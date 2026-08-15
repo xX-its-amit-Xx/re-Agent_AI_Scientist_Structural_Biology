@@ -19,6 +19,9 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from demo_context import GLOSSARY, interpretations, trace  # noqa: E402
 
 from reagent.contracts import (  # noqa: E402
     AgentIdentity,
@@ -38,7 +41,7 @@ from reagent.contracts import (  # noqa: E402
 )
 from reagent.kg import KGStore  # noqa: E402
 from reagent.reports import render as render_report  # noqa: E402
-from reagent.viz import heatmap, ranked_bar  # noqa: E402
+from reagent.viz import heatmap, provenance_chain, ranked_bar  # noqa: E402
 from reagent.viz import render as render_graph  # noqa: E402
 
 RUN = "demo"
@@ -135,9 +138,42 @@ def main() -> int:
         repo_root=REPO,
     )
 
+    interps = interpretations()
+
+    # -- provenance chain: sources -> decisions -> findings -> downstream ----
+    # Built from the reasoning trace, so the figure and the audit trail cannot
+    # disagree; both read the same object.
+    tr = trace()
+    interps_for_prov = interpretations()
+    prov_rows = []
+    for st in tr.steps:
+        srcs = [e.locator for e in st.informed_by] or ["(no source cited)"]
+        targets = st.produced_findings or ["(no finding)"]
+        for src in srcs:
+            for fid in targets:
+                it = interps_for_prov.get(fid)
+                stages = ([i.for_stage for i in it.implications] if it and it.implications
+                          else ["(none recorded)"])
+                for stg in stages:
+                    prov_rows.append({"source": src.split("#")[0], "decision": st.id,
+                                      "finding": fid, "stage": stg})
+    _, prov_viz = provenance_chain(
+        prov_rows, REPO / FIG / "demo_provenance.svg",
+        viz_id="V-PROV-01",
+        title="Where each finding came from",
+        question="Which sources informed which decision, and what did that decision produce?",
+        takeaway=(
+            "Every finding traces back through a recorded decision to the sources that "
+            "informed it; one decision (R-04) is a default with no alternatives weighed."
+        ),
+        reads_from=["reports/demo/stage1_literature/report.json"],
+        repo_root=REPO,
+    )
+
     findings = [
         Finding(
             id="F-CONSTRAINT-01",
+            interpretation=interps.get("F-CONSTRAINT-01"),
             kind=FindingKind.CONSTRAINT,
             statement=(
                 "Every quantitative edge in this fixture is a placeholder, flagged "
@@ -158,6 +194,7 @@ def main() -> int:
         ),
         Finding(
             id="F-FAMILY-01",
+            interpretation=interps.get("F-FAMILY-01"),
             kind=FindingKind.OBSERVATION,
             statement=(
                 f"The target sits in a receptor family with {len(nr_members)} members "
@@ -174,6 +211,7 @@ def main() -> int:
         ),
         Finding(
             id="F-PROMISC-01",
+            interpretation=interps.get("F-PROMISC-01"),
             kind=FindingKind.PRIOR,
             statement=(
                 "The most promiscuous neighbours are xenobiotic-handling enzymes and "
@@ -196,6 +234,7 @@ def main() -> int:
         ),
         Finding(
             id="F-NEG-01",
+            interpretation=interps.get("F-NEG-01"),
             kind=FindingKind.NEGATIVE,
             statement=(
                 "Five of the seven declared similarity axes are empty in this fixture. "
@@ -220,6 +259,7 @@ def main() -> int:
         ),
         Finding(
             id="F-DESIGN-01",
+            interpretation=interps.get("F-DESIGN-01"),
             kind=FindingKind.DESIGN_CHOICE,
             statement=(
                 "Each similarity axis writes its own predicate rather than a generic "
@@ -232,6 +272,7 @@ def main() -> int:
         ),
         Finding(
             id="F-RISK-01",
+            interpretation=interps.get("F-RISK-01"),
             kind=FindingKind.RISK,
             statement=(
                 f"Only {stats['cited_edge_fraction']:.0%} of edges carry a citation. The "
@@ -307,8 +348,21 @@ def main() -> int:
         # axes agree about it, then how much of it is actually cited.
         visuals=VizBundle(
             stage=Stage.LITERATURE.value,
-            visualizations=[viz, heat_viz, bar_viz],
-            reading_order=[viz.id, heat_viz.id, bar_viz.id],
+            visualizations=[viz, heat_viz, bar_viz, prov_viz],
+            reading_order=[viz.id, heat_viz.id, bar_viz.id, prov_viz.id],
+        ),
+        glossary=GLOSSARY,
+        reasoning=tr,
+        plain_summary=(
+            "We were asked what other proteins resemble our target, so that later steps "
+            "can borrow their known shapes. This run built the machinery for that question "
+            "and mapped out the relationships, but the numbers attached to them are "
+            "stand-ins rather than measurements, and five of the seven planned comparisons "
+            "have not been made yet. The one result worth carrying forward is not a number: "
+            "the proteins most like our target in the way that matters are not its close "
+            "relatives but liver enzymes that face the same problem of having to grip many "
+            "different molecules. That is where the useful comparisons are likely to be, "
+            "and it is not where a family tree would have pointed."
         ),
         metrics={
             "n_nodes": stats["n_nodes"],

@@ -97,6 +97,13 @@ META: dict[str, dict] = {
         "produces": ["viz.kg_html", "viz.obsidian_vault", "viz.graphml"],
         "external_tools": ["cytoscape.js"], "credits": [],
     },
+    "explain-significance": {
+        "stage": "shared", "owner": "amit", "status": "implemented",
+        "summary": "Write why a finding matters, for each audience, and how the agent decided.",
+        "consumes": ["stage0.report", "stage1.report", "kg.neighbourhood"],
+        "produces": ["report.interpretation", "report.glossary", "report.reasoning_trace"],
+        "external_tools": [], "credits": [],
+    },
     "report-mcp": {
         "stage": "shared", "owner": "amit", "status": "implemented",
         "summary": "Serve a report and its graph over MCP; compare two structures in 3D.",
@@ -107,7 +114,7 @@ META: dict[str, dict] = {
     "model-report": {
         "stage": "shared", "owner": "amit", "status": "implemented",
         "summary": "How to write, visualize, and validate a stage's Model Report.",
-        "consumes": [],
+        "consumes": ["report.interpretation", "report.glossary", "report.reasoning_trace"],
         "produces": ["report.rendered", "report.validated"],
         "external_tools": [], "credits": [],
     },

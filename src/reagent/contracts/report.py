@@ -22,10 +22,19 @@ import json
 from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, ClassVar, Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+# Re-exported so `from reagent.contracts.report import Evidence` keeps working.
+from .evidence import Confidence, Evidence
+from .interpret import (
+    Glossary,
+    Interpretation,
+    mean_sentence_length,
+    undefined_jargon,
+)
+from .reasoning import ReasoningTrace
 from .viz import EXPECTED_VIZ, VizBundle, missing_expected
 
 SCHEMA_VERSION = "1.0.0"
@@ -42,79 +51,6 @@ class Stage(str, Enum):
     SYNTHESIS = "synthesis"
 
 
-class SourceType(str, Enum):
-    """Where a piece of evidence came from.
-
-    The ordering is deliberate: everything at or below ``ANALOGY`` is
-    *ungrounded* with respect to the biology and is capped in confidence.
-    """
-
-    # -- peer-reviewed / formal ------------------------------------------
-    PAPER = "paper"
-    PREPRINT = "preprint"
-    PATENT = "patent"
-    CLINICAL_TRIAL = "clinical_trial"
-    REGULATORY = "regulatory_doc"
-    THESIS = "thesis"
-    # -- structured data -------------------------------------------------
-    STRUCTURE = "structure"          # PDB / CIF entry
-    DATABASE = "database"            # UniProt, ChEMBL, BindingDB, Pharos, ...
-    DATASET = "dataset"              # Zenodo, Figshare, HuggingFace, OSF deposit
-    CODE_REPO = "code_repo"          # GitHub/GitLab — often the only place a detail lives
-    COMPETITION = "competition"      # Kaggle / benchmark challenge writeups and data
-    # -- grey literature -------------------------------------------------
-    # Frequently the only public record of a negative result, a parameter choice,
-    # or a practitioner default. Lower-trust, not no-trust: still grounded, but
-    # `Confidence.ESTABLISHED` needs a second independent source anyway.
-    BLOG = "blog"                    # lab blogs, Substack, company engineering posts
-    SOCIAL = "social"                # LinkedIn / X / forum / Discord recap
-    DOCS = "documentation"           # tool docs, issue trackers, release notes
-    TALK = "talk"                    # conference talk, poster, recorded seminar
-    # -- our own work ----------------------------------------------------
-    COMPUTATION = "computation"      # something we ran ourselves
-    BENCHMARK = "benchmark"          # leaderboard / held-out eval result
-    # -- ungrounded ------------------------------------------------------
-    ANALOGY = "cross_domain_analogy"  # finance, cybersec, art, ecology, ...
-    EXPERT_PRIOR = "expert_prior"    # a human on the team asserted it
-
-    @property
-    def is_grounded(self) -> bool:
-        """Whether this source says anything about the problem domain itself.
-
-        Grey literature counts as grounded — a GitHub issue reporting that a tool
-        silently fails on a class of input is real evidence about the world. What
-        is *not* grounded is a mechanism borrowed from another field, or a
-        teammate's hunch.
-        """
-        return self not in {SourceType.ANALOGY, SourceType.EXPERT_PRIOR}
-
-    @property
-    def is_grey(self) -> bool:
-        """Unreviewed sources. Usable, but never sufficient alone for 'established'.
-
-        ``CODE_REPO`` counts as grey even though it sits in the structured-data block
-        above, because the thing being cited is usually a claim in a README or an
-        issue rather than a measurement. A repository's *data* is a `DATASET`; a
-        repository's *assertion about its own performance* is grey, and treating a
-        self-reported benchmark as consensus is exactly the mistake this guards.
-        """
-        return self in {
-            SourceType.BLOG, SourceType.SOCIAL, SourceType.DOCS,
-            SourceType.TALK, SourceType.COMPETITION, SourceType.CODE_REPO,
-        }
-
-
-class Confidence(str, Enum):
-    ESTABLISHED = "established"    # multiple independent grounded sources
-    SUPPORTED = "supported"        # one solid grounded source
-    TENTATIVE = "tentative"        # weak/indirect grounded support
-    SPECULATIVE = "speculative"    # hypothesis, analogy-derived, untested
-
-    @property
-    def rank(self) -> int:
-        return {"speculative": 0, "tentative": 1, "supported": 2, "established": 3}[self.value]
-
-
 class FindingKind(str, Enum):
     OBSERVATION = "observation"        # a fact read out of a source
     HYPOTHESIS = "hypothesis"          # a testable proposition we generated
@@ -124,44 +60,6 @@ class FindingKind(str, Enum):
     NEGATIVE = "negative_result"       # something that did NOT work
     DESIGN_CHOICE = "design_choice"    # a pipeline decision + rationale
     RISK = "risk"                      # a known failure mode
-
-
-class Evidence(BaseModel):
-    """One resolvable pointer backing a Finding."""
-
-    source_type: SourceType
-    locator: str = Field(
-        ...,
-        description=(
-            "A resolvable identifier: DOI, PMID, PDB ID, ChEMBL ID, UniProt "
-            "accession, patent number, NCT number, URL, or for COMPUTATION a "
-            "repo-relative path to the artifact that produced it."
-        ),
-    )
-    title: str | None = None
-    excerpt: str | None = Field(
-        default=None,
-        description="Verbatim supporting span. Do not paraphrase here — paraphrase in the finding.",
-    )
-    year: int | None = None
-    # For ANALOGY evidence only: the source domain it was lifted from.
-    source_domain: str | None = None
-
-    @field_validator("locator")
-    @classmethod
-    def _locator_nonempty(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError("evidence.locator must be a resolvable identifier, not blank")
-        return v.strip()
-
-    @model_validator(mode="after")
-    def _analogy_needs_domain(self) -> Evidence:
-        if self.source_type is SourceType.ANALOGY and not self.source_domain:
-            raise ValueError(
-                "cross_domain_analogy evidence must name its source_domain "
-                "(e.g. 'quantitative finance') so it is never mistaken for biology"
-            )
-        return self
 
 
 class Finding(BaseModel):
@@ -178,6 +76,37 @@ class Finding(BaseModel):
     kg_nodes: list[str] = Field(default_factory=list)
     tags: list[str] = Field(default_factory=list)
     supersedes: list[str] = Field(default_factory=list)
+
+    interpretation: Interpretation | None = Field(
+        default=None,
+        description=(
+            "What this means and what it changes. Required for the decision-bearing "
+            "kinds (prior, design_choice, negative_result, constraint) because those "
+            "are the ones a downstream stage acts on, and an uninterpreted one gets "
+            "either ignored or misapplied."
+        ),
+    )
+
+    #: Kinds a downstream stage acts on, and which therefore must say what they mean.
+    #: An uninterpreted observation is merely unhelpful; an uninterpreted prior gets
+    #: applied outside its domain of validity, which is how a pipeline regresses.
+    NEEDS_INTERPRETATION: ClassVar[frozenset[FindingKind]] = frozenset({
+        FindingKind.PRIOR,
+        FindingKind.DESIGN_CHOICE,
+        FindingKind.NEGATIVE,
+        FindingKind.CONSTRAINT,
+    })
+
+    @model_validator(mode="after")
+    def _decision_bearing_findings_must_be_interpreted(self) -> Finding:
+        if self.kind in Finding.NEEDS_INTERPRETATION and self.interpretation is None:
+            raise ValueError(
+                f"finding {self.id} is a {self.kind.value}, which a downstream stage "
+                "will act on, so it needs an `interpretation`: what it means (including "
+                "a layperson register) and what it changes. Without one it will be "
+                "either ignored or applied outside the conditions it holds under."
+            )
+        return self
 
     @model_validator(mode="after")
     def _enforce_grounding(self) -> Finding:
@@ -310,9 +239,34 @@ class ModelReport(BaseModel):
     executive_summary: str = Field(
         ..., min_length=30, description="What a reader needs if they read nothing else."
     )
+    plain_summary: str | None = Field(
+        default=None,
+        min_length=80,
+        description=(
+            "The same outcome for someone outside the field: what was asked, what came "
+            "back, and why it matters, with no undefined jargon. This is the paragraph "
+            "that decides whether a non-specialist can use the report at all, so "
+            "`--strict` requires it and checks it against the glossary."
+        ),
+    )
+    glossary: Glossary = Field(
+        default_factory=Glossary,
+        description=(
+            "Run-level term definitions. Define a term once here and every finding's "
+            "plain register may use it; the renderer makes them hoverable."
+        ),
+    )
 
     inputs: list[InputRef] = Field(default_factory=list)
     methods: list[MethodStep] = Field(default_factory=list)
+    reasoning: ReasoningTrace = Field(
+        default_factory=ReasoningTrace,
+        description=(
+            "How the agent decided, not what it ran. Records the options weighed, why "
+            "one was chosen, and which sources informed the judgement — the trail that "
+            "makes an analysis auditable rather than merely cited."
+        ),
+    )
     findings: list[Finding] = Field(default_factory=list)
     artifacts: list[Artifact] = Field(default_factory=list)
     visuals: VizBundle | None = Field(
@@ -367,6 +321,118 @@ class ModelReport(BaseModel):
                 f"{[k.value for k in EXPECTED_VIZ.get(self.stage.value, [])]}"
             ]
         return [k.value for k in missing_expected(self.stage.value, self.visuals)]
+
+    # -- the interpretive layer ------------------------------------------
+
+    def effective_glossary(self) -> Glossary:
+        """Run glossary plus every term any finding introduced, deduplicated."""
+        out = self.glossary
+        for f in self.findings:
+            if f.interpretation and f.interpretation.glossary:
+                out = out.merge(f.interpretation.glossary)
+        return out
+
+    def plain_language_problems(self) -> list[str]:
+        """Places a non-specialist would be stopped. Empty means the report reads.
+
+        Checked against the *effective* glossary, so a term defined once for the run
+        satisfies every finding that uses it.
+        """
+        defined = self.effective_glossary().defined()
+        problems: list[str] = []
+
+        if self.plain_summary:
+            if jargon := undefined_jargon(self.plain_summary, defined):
+                problems.append(
+                    "plain_summary uses undefined jargon: "
+                    + ", ".join(repr(j) for j in jargon)
+                )
+            avg = mean_sentence_length(self.plain_summary)
+            if avg > 32:
+                problems.append(
+                    f"plain_summary averages {avg:.0f} words per sentence; aim under 25"
+                )
+
+        for f in self.findings:
+            if f.interpretation is None:
+                continue
+            for p in f.interpretation.check_plain_language(defined):
+                problems.append(f"{f.id}: {p}")
+
+        # A definition written in more undefined jargon has moved the problem, not
+        # solved it, and leaves the reader exactly where they started.
+        for term, leftover in self.effective_glossary().circular_definitions().items():
+            problems.append(
+                f"glossary term {term!r} is defined using jargon nothing explains: "
+                + ", ".join(repr(x) for x in leftover)
+            )
+        return problems
+
+    def uninterpreted_findings(self) -> list[str]:
+        """Findings with no interpretation. Fatal only for the decision-bearing kinds,
+        which the Finding validator already enforces; the rest is advisory."""
+        return [f.id for f in self.findings if f.interpretation is None]
+
+    def findings_without_implications(self) -> list[str]:
+        """Interpreted findings that change nothing downstream — candidate trivia."""
+        return [
+            f.id for f in self.findings
+            if f.interpretation is not None and not f.interpretation.implications
+        ]
+
+    def implications_by_stage(self) -> dict[str, list[tuple[str, str]]]:
+        """``{stage: [(finding_id, decision)]}`` — what this report asks of each stage.
+
+        This is what a downstream owner should read first: not the whole report, but
+        the list of decisions it claims to bear on.
+        """
+        out: dict[str, list[tuple[str, str]]] = {}
+        for f in self.findings:
+            if not f.interpretation:
+                continue
+            for imp in f.interpretation.implications:
+                out.setdefault(imp.for_stage, []).append((f.id, imp.decision))
+        return out
+
+    def audience_coverage(self) -> dict[str, int]:
+        """How many findings speak to each audience register."""
+        counts: dict[str, int] = {}
+        for f in self.findings:
+            if not f.interpretation:
+                continue
+            for a in f.interpretation.for_audience:
+                counts[a.value] = counts.get(a.value, 0) + 1
+        return dict(sorted(counts.items(), key=lambda kv: -kv[1]))
+
+    def reasoning_gaps(self) -> list[str]:
+        """Where the reasoning trail is thin. Advisory; `--strict` promotes these."""
+        problems: list[str] = []
+        steps = self.reasoning.steps
+        if not steps:
+            problems.append(
+                "no reasoning steps recorded — the report says what was concluded but "
+                "not how, so a reader cannot tell which choices were made or what was "
+                "rejected"
+            )
+            return problems
+
+        ids = [f.id for f in self.findings]
+        orphans = self.reasoning.orphan_findings(ids)
+        if ids and len(orphans) > len(ids) / 2:
+            problems.append(
+                f"{len(orphans)} of {len(ids)} findings trace to no recorded decision "
+                f"({orphans[:6]}) — most of the reasoning path is unrecorded"
+            )
+        if uncited := self.reasoning.uncited_steps():
+            problems.append(
+                f"{len(uncited)} decisions cite no source at all: {uncited[:6]}. "
+                "Say what informed the judgement, or that nothing did."
+            )
+        return problems
+
+    def reasoning_sources(self) -> list[str]:
+        """Sources that informed the agent's judgement, distinct from claim evidence."""
+        return self.reasoning.all_sources()
 
     def unvisualized_metrics(self) -> list[str]:
         """Headline metrics that no figure shows. A number nobody can see is a claim.

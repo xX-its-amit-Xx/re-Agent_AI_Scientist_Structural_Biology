@@ -134,6 +134,23 @@ At minimum:
 
 Every figure must declare its question. See `kg-visualize` and `model-report`.
 
+### Step 5b — Say what each relationship means
+
+For every axis that produced neighbours, answer three questions in the finding's
+`interpretation`:
+
+- **Why are these related?** The mechanism, not the score. "These share a large
+  adaptable pocket because both must accommodate chemically unrelated partners" is a
+  mechanism; "TM-score 0.79" is not.
+- **What would a chemist and a biologist each see here?** They see different things in
+  the same shared motif — one a pharmacophore, the other a fold constraint.
+- **What does it change?** Which template, corpus, or restraint decision this bears on,
+  and what breaks if the reading is wrong.
+
+Define the jargon once in the report glossary: what a nuclear receptor is, what a
+binding pocket is, what promiscuity means and why it makes prediction harder. A reader
+who does not have those cannot use any of the rest.
+
 ### Step 6 — Hand off
 
 ```json

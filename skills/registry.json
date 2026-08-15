@@ -1,11 +1,12 @@
 {
   "version": 1,
   "generated_from": ".claude/skills",
-  "n_skills": 19,
+  "n_skills": 20,
   "by_stage": {
     "shared": [
       "ai-scientist",
       "data-materialize",
+      "explain-significance",
       "kg-visualize",
       "literature-harvest",
       "model-report",
@@ -40,6 +41,7 @@
       "ai-scientist",
       "cross-domain-analogy",
       "data-materialize",
+      "explain-significance",
       "kg-visualize",
       "literature-harvest",
       "model-report",
@@ -151,6 +153,48 @@
       "body_lines": 114,
       "summary": "Resolve Dataset pointers into local files, costed and checksummed."
     },
+    "explain-significance": {
+      "name": "explain-significance",
+      "path": ".claude/skills/explain-significance",
+      "description": "Write the context layer that makes a finding usable: why it is true, what it means to a non-specialist and to a medicinal chemist and to a modeller, and what decision it changes downstream. Also writes the reasoning trace \u2014 the options an agent weighed, why it rejected each alternative, and the sources that informed the judgement. Use whenever a stage has facts but has not yet said what they mean, when a report reads as opaque, or when a validator rejects a plain-language register. Trigger on: \"what does this mean\", \"explain the significance\", \"why does this matter\", \"make this readable\", \"for a layman\", \"why did the agent decide\", \"show the reasoning\", or /explain-significance.",
+      "stage": "shared",
+      "owner": "amit",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash"
+      ],
+      "consumes": [
+        "stage0.report",
+        "stage1.report",
+        "kg.neighbourhood"
+      ],
+      "produces": [
+        "report.interpretation",
+        "report.glossary",
+        "report.reasoning_trace"
+      ],
+      "triggers": [
+        "what does this mean",
+        "explain the significance",
+        "why does this matter",
+        "make this readable",
+        "for a layman",
+        "why did the agent decide",
+        "show the reasoning"
+      ],
+      "references": [
+        "reference/audience-registers.md",
+        "reference/chemical-significance.md",
+        "reference/downstream-implications.md"
+      ],
+      "body_lines": 174,
+      "summary": "Write why a finding matters, for each audience, and how the agent decided."
+    },
     "kg-visualize": {
       "name": "kg-visualize",
       "path": ".claude/skills/kg-visualize",
@@ -252,6 +296,11 @@
         "Grep",
         "Bash"
       ],
+      "consumes": [
+        "report.interpretation",
+        "report.glossary",
+        "report.reasoning_trace"
+      ],
       "produces": [
         "report.rendered",
         "report.validated"
@@ -263,7 +312,7 @@
         "what goes in the report",
         "report failed validation"
       ],
-      "body_lines": 133,
+      "body_lines": 167,
       "summary": "How to write, visualize, and validate a stage's Model Report."
     },
     "report-mcp": {
@@ -592,7 +641,7 @@
         "reference/domain-shift.md",
         "reference/structured-corpus-harvest.md"
       ],
-      "body_lines": 158,
+      "body_lines": 175,
       "summary": "Multi-axis neighbourhood of the target; measures the domain shift."
     },
     "pocket-anatomy": {

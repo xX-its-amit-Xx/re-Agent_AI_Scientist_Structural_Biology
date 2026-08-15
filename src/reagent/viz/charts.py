@@ -440,3 +440,107 @@ def _rel(path: Path, repo_root: Path | None) -> str:
         return str(path.relative_to(root)).replace("\\", "/")
     except ValueError:
         return str(path).replace("\\", "/")
+
+
+def provenance_chain(
+    rows: Sequence[dict],
+    out_path: Path,
+    *,
+    viz_id: str,
+    title: str,
+    question: str,
+    takeaway: str,
+    reads_from: Sequence[str],
+    covers_metrics: Sequence[str] = (),
+    repo_root: Path | None = None,
+) -> tuple[Path, Visualization]:
+    """Sources to decisions to findings to downstream stages, as a four-column flow.
+
+    This is the figure that answers "where did this come from" in one look. Each row is
+    ``{source, decision, finding, stage}``; repeated values in a column are drawn once
+    and shared, so a source that informed three decisions appears as one node with
+    three lines leaving it.
+
+    Deliberately not a force-directed graph: the whole point is that provenance has a
+    *direction* and a fixed number of stages, and a layered layout shows that where a
+    force layout would obscure it.
+    """
+    cols = ["source", "decision", "finding", "stage"]
+    headers = ["Source", "Decision", "Finding", "Bears on"]
+
+    # Unique values per column, in first-appearance order so related rows stay adjacent.
+    nodes: list[list[str]] = []
+    for c in cols:
+        seen: list[str] = []
+        for r in rows:
+            v = str(r.get(c, "")) or "—"
+            if v not in seen:
+                seen.append(v)
+        nodes.append(seen)
+
+    row_h, col_w, pad_l, pad_t, pad_r = 26, 210, 14, 46, 14
+    box_w = 176
+    tallest = max((len(n) for n in nodes), default=1)
+    w = pad_l + col_w * len(cols) + pad_r
+    h = pad_t + row_h * tallest + 34
+
+    # y position of each value, per column
+    pos: list[dict[str, float]] = []
+    for vals in nodes:
+        # Centre each column vertically so short columns line up with long ones.
+        offset = (tallest - len(vals)) * row_h / 2
+        pos.append({v: pad_t + offset + i * row_h + row_h / 2 for i, v in enumerate(vals)})
+
+    parts = [f'<text class="ttl" x="8" y="18">{_e(title)}</text>']
+    for ci, head in enumerate(headers):
+        parts.append(
+            f'<text class="lab" x="{pad_l + ci * col_w}" y="{pad_t - 12}" '
+            f'font-weight="600">{_e(head)}</text>'
+        )
+
+    # Links first, so boxes paint over their endpoints.
+    for r in rows:
+        for ci in range(len(cols) - 1):
+            a = str(r.get(cols[ci], "")) or "—"
+            b = str(r.get(cols[ci + 1], "")) or "—"
+            x1 = pad_l + ci * col_w + box_w
+            x2 = pad_l + (ci + 1) * col_w
+            y1, y2 = pos[ci][a], pos[ci + 1][b]
+            mx = (x1 + x2) / 2
+            parts.append(
+                f'<path d="M{x1:.1f},{y1:.1f} C{mx:.1f},{y1:.1f} {mx:.1f},{y2:.1f} '
+                f'{x2:.1f},{y2:.1f}" fill="none" stroke="{PALETTE[4]}" '
+                f'stroke-width="1.2" opacity="0.5"/>'
+            )
+
+    for ci, vals in enumerate(nodes):
+        color = PALETTE[ci % len(PALETTE)]
+        for v in vals:
+            x = pad_l + ci * col_w
+            y = pos[ci][v] - row_h / 2 + 2
+            label = v if len(v) <= 30 else v[:29] + "…"
+            parts.append(
+                f'<rect x="{x}" y="{y:.1f}" width="{box_w}" height="{row_h - 5}" rx="3" '
+                f'fill="{color}" opacity="0.16" stroke="{color}" stroke-width="1"/>'
+                f'<text class="val" x="{x + 6}" y="{y + row_h / 2 - 0.5:.1f}">'
+                f'{_e(label)}<title>{_e(v)}</title></text>'
+            )
+
+    path = _write(_svg(w, h, "".join(parts)), out_path)
+    viz = Visualization(
+        id=viz_id, kind=VizKind.PROVENANCE_CHAIN, medium=VizMedium.SVG, title=title,
+        question=question, takeaway=takeaway,
+        path=_rel(path, repo_root), reads_from=list(reads_from),
+        encoding={"column": "stage of provenance (source, decision, finding, downstream)",
+                  "box": "one distinct value", "line": "one traced path"},
+        alt_text=(
+            f"A four-column flow diagram tracing provenance: {len(nodes[0])} sources feed "
+            f"{len(nodes[1])} recorded decisions, which produced {len(nodes[2])} findings, "
+            f"which bear on {len(nodes[3])} downstream stages. Curved lines connect each "
+            "traced path across the columns."
+        ),
+        n_elements=sum(len(n) for n in nodes) + len(rows) * 3,
+        covers_metrics=list(covers_metrics),
+        params={"aggregated": True, "n_paths": len(rows)},
+    )
+    return path, viz

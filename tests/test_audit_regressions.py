@@ -33,7 +33,7 @@ from reagent.contracts import (
 )
 from reagent.kg import KGStore
 
-from .test_contracts import _protein, a_proposal, paper_evidence
+from .test_contracts import _protein, a_proposal, an_interpretation, paper_evidence
 
 
 def test_every_predicate_has_declared_endpoint_types():
@@ -217,7 +217,8 @@ def test_report_renders_self_contained_html_with_inline_citations(tmp_path):
                     confidence=Confidence.SUPPORTED, evidence=[paper_evidence()]),
             Finding(id="F-2", kind=FindingKind.NEGATIVE,
                     statement="Sequence identity did not predict pocket similarity here.",
-                    confidence=Confidence.TENTATIVE, evidence=[paper_evidence("pmid:1")]),
+                    confidence=Confidence.TENTATIVE, evidence=[paper_evidence("pmid:1")],
+                    interpretation=an_interpretation()),
         ],
         metrics={"n_fold_neighbours": 2},
         limitations=["Only one axis was populated."],

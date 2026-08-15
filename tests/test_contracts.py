@@ -12,6 +12,7 @@ from pydantic import ValidationError
 
 from reagent.contracts import (
     AnalogyCard,
+    Audience,
     Confidence,
     Decision,
     DecisionLedger,
@@ -22,6 +23,9 @@ from reagent.contracts import (
     FindingKind,
     GraphDelta,
     Handoff,
+    Implication,
+    ImplicationStrength,
+    Interpretation,
     MethodStep,
     ModelReport,
     Node,
@@ -163,6 +167,48 @@ def paper_evidence(locator="doi:10.1016/j.str.2025.09.011") -> Evidence:
     )
 
 
+def an_interpretation(**kw) -> Interpretation:
+    """A minimal valid Interpretation. The layperson register avoids jargon on purpose."""
+    defaults = dict(
+        mechanism=(
+            "Proteins that must accommodate many different partners tend to evolve "
+            "roomier, more flexible binding sites, so they resemble each other in shape "
+            "even when their building blocks differ."
+        ),
+        for_audience={
+            Audience.LAYPERSON: (
+                "Two proteins can have very different recipes and still end up with "
+                "similar shaped pockets. That matters because a pocket shape is what "
+                "decides which small molecules will fit."
+            ),
+            Audience.MEDICINAL_CHEMIST: (
+                "Shared pocket shape without shared sequence means SAR may transfer even "
+                "where homology-based reasoning would say it should not."
+            ),
+        },
+        implications=[an_implication()],
+    )
+    defaults.update(kw)
+    return Interpretation(**defaults)
+
+
+def an_implication(**kw) -> Implication:
+    defaults = dict(
+        for_stage="stage3_prior",
+        decision="which structures to include in the template set",
+        direction=(
+            "Argues FOR including the promiscuous non-family proteins as templates, "
+            "because they share the adaptable-pocket problem."
+        ),
+        strength=ImplicationStrength.SUGGESTIVE,
+        if_wrong=(
+            "The template set is diluted with irrelevant folds and selection gets noisier."
+        ),
+    )
+    defaults.update(kw)
+    return Implication(**defaults)
+
+
 def test_observation_requires_evidence():
     with pytest.raises(ValidationError, match="must cite at least one Evidence"):
         Finding(
@@ -179,6 +225,7 @@ def test_design_choice_may_be_asserted_without_evidence():
         kind=FindingKind.DESIGN_CHOICE,
         statement="Use per-model z-scoring before cross-model comparison.",
         confidence=Confidence.TENTATIVE,
+        interpretation=an_interpretation(),
     )
     assert f.evidence == []
 
@@ -651,7 +698,8 @@ def test_empty_report_must_explain_itself():
 
 def test_duplicate_finding_ids_rejected():
     f = Finding(id="F-1", kind=FindingKind.DESIGN_CHOICE,
-                statement="Do the thing that we decided to do.", confidence=Confidence.TENTATIVE)
+                statement="Do the thing that we decided to do.", confidence=Confidence.TENTATIVE,
+                interpretation=an_interpretation())
     with pytest.raises(ValidationError, match="duplicate finding id"):
         ModelReport(
             report_id="r", run_id="r", stage=Stage.LITERATURE, title="t",

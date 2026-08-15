@@ -2,15 +2,16 @@
   "stage": "shared",
   "owner": "amit",
   "status": "implemented",
-  "summary": "How to write, visualize, and validate a stage's Model Report.",
+  "summary": "Write why a finding matters, for each audience, and how the agent decided.",
   "consumes": [
+    "stage0.report",
+    "stage1.report",
+    "kg.neighbourhood"
+  ],
+  "produces": [
     "report.interpretation",
     "report.glossary",
     "report.reasoning_trace"
-  ],
-  "produces": [
-    "report.rendered",
-    "report.validated"
   ],
   "external_tools": [],
   "credits": []

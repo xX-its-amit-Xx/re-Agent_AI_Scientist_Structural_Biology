@@ -40,6 +40,15 @@ thing the next stage reads.
   characteristic figures. See below.
 - **An empty report must explain itself.** The contract rejects a report with no
   findings *and* no `limitations`. Silent empty reports break the chain.
+- **Decision-bearing findings must be interpreted.** A `prior`, `design_choice`,
+  `negative_result`, or `constraint` finding is rejected without an `interpretation`:
+  what it means (including a register a non-specialist can read) and what it changes
+  downstream. Those are the kinds a later stage acts on, and an uninterpreted one gets
+  either ignored or applied outside the conditions it holds under.
+- **Record how you decided, not only what you ran.** `reasoning` is a separate field
+  from `methods` for a reason: `methods` says foldseek ran, `reasoning` says why
+  foldseek rather than the alternatives, and what informed that. See
+  `explain-significance`.
 
 ## Structure
 
@@ -48,6 +57,20 @@ Write the report as you work, not at the end. The fields, in the order they matt
 **`executive_summary`** — what a reader needs if they read nothing else. Lead with
 the outcome, not the method.
 
+**`plain_summary`** — the same outcome for someone outside the field, with no undefined
+jargon. This is the paragraph that decides whether a non-specialist can use the report
+at all, so `--strict` requires it and checks it against the glossary. It is a different
+explanation, not a shorter one.
+
+**`glossary`** — define each term once for the run. The renderer then makes it hoverable
+everywhere it appears, including inside the expert registers, which is where a
+non-specialist reading across most needs it.
+
+**`reasoning`** — the decisions behind the stage: the options weighed, why each
+alternative was rejected, and which sources informed the judgement. This is what makes
+the analysis auditable rather than merely cited, and it is what the provenance figure
+is drawn from.
+
 **`objective`** — what this stage was asked to do. If it drifted from the plan, say
 so here rather than pretending it did not.
 
@@ -55,6 +78,12 @@ so here rather than pretending it did not.
 plain prose, with `kind`, `confidence`, `evidence`, and a `data` payload so a
 downstream agent can act without parsing your prose. Use `kg_nodes` to link a
 finding to the graph nodes it touches, so the report and the graph stay in sync.
+
+Each one also carries an `interpretation`: the mechanism (why it is so), a sentence per
+audience register, and `implications` naming the stage and decision it bears on, which
+way it argues, and what breaks if the interpretation is wrong. Required for the
+decision-bearing kinds; write it for the rest too, because a finding nobody can act on
+is one nobody will read.
 
 **`methods`** — one `MethodStep` per tool invocation, with parameters, call counts,
 wall-clock, and cost. This is what makes a run replayable and costable. Record
@@ -131,6 +160,11 @@ CI. The non-strict mode exists so an exploratory mid-stage run is not blocked.
 | `draws N elements with no clustering declared` | it will read as a hairball | filter, cluster, or aggregate, and declare it in `params` |
 | `a report with no findings must populate limitations` | silent empty reports break the chain | say why nothing was found — that is a real result |
 | `evidence.locator must be a resolvable identifier` | a blank locator is worse than none | use a DOI, PMID, PDB ID, accession, or repo-relative path |
+| `is a prior, which a downstream stage will act on, so it needs an interpretation` | uninterpreted priors get misapplied | say what it means and what it changes |
+| `the layperson register uses undefined jargon` | a plain register with jargon is not plain | define the term in the glossary, or rewrite without it |
+| `direction does not take a side` | an implication that points nowhere changes nothing | say what it argues FOR or AGAINST |
+| `weighed N option(s)` on a reasoning step | a default recorded as a decision is post-hoc justification | list the real alternatives, or set `no_alternative_because` |
+| `option X was not chosen but gives no rejected_because` | an unexplained rejection looks like not having looked | say why you passed on it |
 
 ## Writing style for the report itself
 

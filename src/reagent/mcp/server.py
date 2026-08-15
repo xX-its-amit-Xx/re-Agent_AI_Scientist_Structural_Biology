@@ -31,6 +31,7 @@ from collections.abc import Callable
 from typing import Any
 
 from reagent.mcp import tools as toolmod
+from reagent.mcp import tools_context  # noqa: F401 — registers its @tool entries
 
 SERVER_NAME = "reagent-report"
 SERVER_VERSION = "0.1.0"

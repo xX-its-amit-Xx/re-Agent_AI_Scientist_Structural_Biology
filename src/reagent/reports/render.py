@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import html
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -132,7 +133,115 @@ def _evidence_html(f: Finding) -> str:
     return f'<ul class="ev">{"".join(parts)}</ul>'
 
 
-def _finding_html(f: Finding) -> str:
+AUDIENCE_LABEL = {
+    "layperson": "In plain terms",
+    "medicinal_chemist": "For a medicinal chemist",
+    "structural_biologist": "For a structural biologist",
+    "ml_practitioner": "For a modeller",
+    "clinician": "For a clinician",
+}
+
+#: Reading order for audience registers: plain first, because the point of the layered
+#: view is that the non-specialist path is the default one.
+AUDIENCE_ORDER = ["layperson", "medicinal_chemist", "structural_biologist",
+                  "ml_practitioner", "clinician"]
+
+STRENGTH_COLOR = {
+    "decisive": "#8a3d2f", "strong": "#b0562f",
+    "suggestive": "#2f6fb0", "weak": "#5c5c5c",
+}
+
+
+def _link_glossary(text: str, terms: dict[str, Any]) -> str:
+    """Wrap known glossary terms in a hoverable span.
+
+    Longest term first so "ligand-binding domain" wins over "domain", and each term is
+    linked only on its first appearance — marking every instance turns the paragraph
+    into a field of underlines and stops being helpful.
+    """
+    escaped = _e(text)
+    used: set[str] = set()
+    for term in sorted(terms, key=len, reverse=True):
+        if term in used:
+            continue
+        pattern = re.compile(rf"\b({re.escape(_e(term))})\b", re.I)
+        g = terms[term]
+        tip = _e(g.plain + (f" — {g.why_it_matters}" if g.why_it_matters else ""))
+
+        def repl(m: re.Match, _tip=tip) -> str:
+            return f'<span class="gl" data-tip="{_tip}">{m.group(1)}</span>'
+
+        new, n = pattern.subn(repl, escaped, count=1)
+        if n:
+            escaped = new
+            used.add(term)
+    return escaped
+
+
+def _interpretation_html(f: Finding, terms: dict[str, Any]) -> str:
+    it = f.interpretation
+    if it is None:
+        return (
+            '<div class="nointerp">Not interpreted — this finding records a fact but '
+            "does not say what it means or what it changes.</div>"
+        )
+
+    blocks = []
+    for key in AUDIENCE_ORDER:
+        aud = next((a for a in it.for_audience if a.value == key), None)
+        if aud is None:
+            continue
+        text = it.for_audience[aud]
+        # Link the glossary in EVERY register, not only the plain one. The plain
+        # register is written to avoid jargon, so it has little to link; the expert
+        # registers are exactly where a non-specialist reading across needs the
+        # definitions, which is the point of having the toggle at all.
+        body = _link_glossary(text, terms)
+        blocks.append(
+            f'<div class="aud" data-aud="{key}">'
+            f'<span class="audlab">{_e(AUDIENCE_LABEL.get(key, key))}</span>'
+            f"<p>{body}</p></div>"
+        )
+
+    mech = ""
+    if it.mechanism:
+        mech = (
+            '<div class="mech"><span class="audlab">Why</span>'
+            f"<p>{_link_glossary(it.mechanism, terms)}</p></div>"
+        )
+    analogy = ""
+    if it.analogy:
+        analogy = f'<div class="analogy"><b>Like this:</b> {_e(it.analogy)}</div>'
+    caveat = ""
+    if it.caveat_for_reader:
+        caveat = (
+            '<div class="readercav"><b>Easy to misread:</b> '
+            f"{_e(it.caveat_for_reader)}</div>"
+        )
+
+    imps = ""
+    if it.implications:
+        rows = []
+        for imp in it.implications:
+            col = STRENGTH_COLOR.get(imp.strength.value, "#5c5c5c")
+            rows.append(
+                '<li class="imp">'
+                f'<span class="istage">{_e(imp.for_stage)}</span>'
+                f'<span class="istr" style="--c:{col}">{_e(imp.strength.value)}</span>'
+                f'<div class="idec">{_e(imp.decision)}</div>'
+                f'<div class="idir">{_e(imp.direction)}</div>'
+                f'<div class="iwrong"><b>If this is wrong:</b> {_e(imp.if_wrong)}</div>'
+                "</li>"
+            )
+        imps = (
+            '<div class="imps"><span class="audlab">What it changes downstream</span>'
+            f'<ul>{"".join(rows)}</ul></div>'
+        )
+
+    return f'<div class="interp">{mech}{"".join(blocks)}{analogy}{caveat}{imps}</div>'
+
+
+def _finding_html(f: Finding, terms: dict[str, Any]) -> str:
     color = CONF_COLOR[f.confidence]
     data = ""
     if f.data:
@@ -149,18 +258,23 @@ def _finding_html(f: Finding) -> str:
         )
     tags = "".join(f'<span class="tag">{_e(t)}</span>' for t in f.tags)
     neg = " negative" if f.kind is FindingKind.NEGATIVE else ""
+    stages = ""
+    if f.interpretation and f.interpretation.implications:
+        stages = "".join(
+            f'<span class="chip">{_e(s)}</span>'
+            for s in f.interpretation.stages_affected()
+        )
     return f"""
 <article class="finding{neg}">
   <header>
     <span class="fid">{_e(f.id)}</span>
     <span class="kind">{_e(KIND_LABEL.get(f.kind, f.kind.value))}</span>
     <span class="conf" style="--c:{color}">{_e(f.confidence.value)}</span>
-    {tags}
+    {tags}{stages}
   </header>
   <p class="stmt">{_e(f.statement)}</p>
-  {_evidence_html(f)}
-  {nodes}
-  {data}
+  {_interpretation_html(f, terms)}
+  <details class="ev-wrap"><summary>evidence</summary>{_evidence_html(f)}{nodes}{data}</details>
 </article>"""
 
 
@@ -234,9 +348,144 @@ def render(report: ModelReport, out_path: Path, repo_root: Path | None = None) -
             f.id,
         ),
     )
-    findings_html = "".join(_finding_html(f) for f in findings) or (
+    gloss = report.effective_glossary()
+    terms = {t.term: t for t in gloss.terms}
+    findings_html = "".join(_finding_html(f, terms) for f in findings) or (
         '<p class="empty">No findings. See limitations below for why.</p>'
     )
+
+    plain_html = ""
+    if report.plain_summary:
+        plain_html = (
+            '<section class="plainbox"><h3>What this means, without the jargon</h3>'
+            f"<p>{_link_glossary(report.plain_summary, terms)}</p></section>"
+        )
+
+    glossary_html = ""
+    if gloss.terms:
+        rows = []
+        for t in sorted(gloss.terms, key=lambda x: x.term.lower()):
+            extra = f'<div class="gan">{_e(t.analogy)}</div>' if t.analogy else ""
+            rows.append(
+                f'<div class="gterm"><b>{_e(t.term)}</b>'
+                + (f' <span class="k">({", ".join(_e(a) for a in t.aliases)})</span>'
+                   if t.aliases else "")
+                + f"<div>{_e(t.plain)}</div>"
+                f'<div class="k">Why it matters here: {_e(t.why_it_matters)}</div>'
+                f"{extra}</div>"
+            )
+        glossary_html = (
+            f'<h2>Glossary <span class="k">({len(gloss.terms)} terms)</span></h2>'
+            f'<div class="glossary">{"".join(rows)}</div>'
+        )
+
+    # How the agent decided. Distinct from "what was run" (methods) and from
+    # "what was concluded" (findings): this is the audit trail for the judgement.
+    reasoning_html = ""
+    trace = report.reasoning
+    if trace.steps:
+        blocks = []
+        for st in trace.steps:
+            opts = ""
+            if st.rejected:
+                opts = "".join(
+                    f'<li><b>{_e(o.name)}</b> — rejected: {_e(o.rejected_because)}'
+                    + (f' <span class="k">(cost: {_e(o.cost)})</span>' if o.cost else "")
+                    + "</li>"
+                    for o in st.rejected
+                )
+                opts = f'<div class="rej"><span class="audlab">Considered and rejected</span><ul>{opts}</ul></div>'
+            srcs = ""
+            if st.informed_by:
+                items = []
+                for ev in st.informed_by:
+                    url = _locator_url(ev.locator)
+                    loc = _e(ev.locator)
+                    link = (f'<a href="{_e(url)}" target="_blank" rel="noopener">{loc}</a>'
+                            if url else f"<code>{loc}</code>")
+                    items.append(
+                        f'<li><span class="stype">{_e(ev.source_type.value)}</span> {link}'
+                        + (f" — {_e(ev.title)}" if ev.title else "") + "</li>"
+                    )
+                srcs = (
+                    '<div class="rsrc"><span class="audlab">What informed this</span>'
+                    f'<ul>{"".join(items)}</ul></div>'
+                )
+            else:
+                srcs = ('<div class="rsrc k">No source cited for this judgement.</div>')
+            produced = ""
+            if st.produced_findings:
+                produced = (
+                    '<div class="k">Led to: '
+                    + ", ".join(f"<code>{_e(x)}</code>" for x in st.produced_findings)
+                    + "</div>"
+                )
+            flags = ""
+            if st.no_alternative_because:
+                flags += ('<span class="dflt">default, not a choice</span>')
+            if st.superseded_by:
+                flags += f'<span class="rev">later reversed by {_e(st.superseded_by)}</span>'
+            revisit = (
+                f'<div class="k"><b>Revisit if:</b> {_e(st.revisit_if)}</div>'
+                if st.revisit_if else ""
+            )
+            blocks.append(f"""
+<article class="rstep">
+  <header><span class="fid">{_e(st.id)}</span>
+    <span class="kind">{_e(st.kind.value)}</span>
+    <span class="conf" style="--c:{CONF_COLOR[st.confidence_then]}">{_e(st.confidence_then.value)} at the time</span>
+    {flags}</header>
+  <p class="rq">{_e(st.question)}</p>
+  <div class="rchose"><b>Chose:</b> {_e(st.chose)}</div>
+  <p class="rwhy">{_e(st.because)}</p>
+  {opts}{srcs}{produced}{revisit}
+</article>""")
+
+        gaps = report.reasoning_gaps()
+        gap_html = ""
+        if gaps:
+            gap_html = '<div class="warn">' + "<br>".join(_e(g) for g in gaps) + "</div>"
+        src_list = trace.all_sources()
+        srcs_html = ""
+        if src_list:
+            items = []
+            for loc in src_list:
+                url = _locator_url(loc)
+                link = (
+                    f'<a href="{_e(url)}" target="_blank" rel="noopener">{_e(loc)}</a>'
+                    if url else f"<code>{_e(loc)}</code>"
+                )
+                items.append(f"<li>{link}</li>")
+            srcs_html = (
+                f'<h3>Everything that informed the reasoning <span class="k">'
+                f'({len(src_list)} sources)</span></h3>'
+                f'<ul class="allsrc">{"".join(items)}</ul>'
+            )
+        reasoning_html = (
+            "<h2>How this was decided</h2>"
+            '<div class="meta-line">' + _e(trace.summary().replace("\n", " · ")) + "</div>"
+            + gap_html
+            + "".join(blocks)
+            + ('<div class="opendec"><b>Deliberately still open:</b><ul>'
+               + "".join(f"<li>{_e(o)}</li>" for o in trace.open_decisions)
+               + "</ul></div>" if trace.open_decisions else "")
+            + srcs_html
+        )
+
+    # What this report asks of each downstream stage — the section a stage owner
+    # should read instead of the whole thing.
+    asks_html = ""
+    if by_stage := report.implications_by_stage():
+        blocks = []
+        for stage, items in sorted(by_stage.items()):
+            lis = "".join(
+                f"<li><code>{_e(fid)}</code> {_e(dec)}</li>" for fid, dec in items
+            )
+            blocks.append(f'<div class="ask"><b>{_e(stage)}</b><ul>{lis}</ul></div>')
+        asks_html = (
+            "<h2>What this asks of the next stages</h2>"
+            f'<div class="asks">{"".join(blocks)}</div>'
+        )
 
     viz_html = ""
     if report.visuals:
@@ -326,6 +575,10 @@ def render(report: ModelReport, out_path: Path, repo_root: Path | None = None) -
         "__MODEL__": _e(report.produced_by.model),
         "__OWNER__": _e(report.produced_by.human_owner or "unassigned"),
         "__SUMMARY__": _e(report.executive_summary),
+        "__PLAIN__": plain_html,
+        "__GLOSSARY__": glossary_html,
+        "__ASKS__": asks_html,
+        "__REASONING__": reasoning_html,
         "__OBJECTIVE__": _e(report.objective),
         "__METRICS__": metrics_html or '<p class="empty">No headline metrics recorded.</p>',
         "__VIZ__": viz_html,
@@ -464,6 +717,88 @@ _TEMPLATE = r"""<title>__TITLE__</title>
   ul.inputs li { padding:.2rem 0; }
   footer { margin-top:3rem; padding-top:1rem; border-top:1px solid var(--line);
            color:var(--muted); font-size:.8rem; }
+
+  /* ---- the interpretive layer ---- */
+  .audbar { display:flex; gap:.4rem; flex-wrap:wrap; align-items:center;
+            margin:1.2rem 0 .4rem; }
+  .audbtn { font:inherit; font-size:.78rem; padding:.25rem .6rem; cursor:pointer;
+            border:1px solid var(--line); background:var(--panel); color:var(--muted);
+            border-radius:99px; }
+  .audbtn:hover { border-color:var(--accent); }
+  .audbtn.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .k { color:var(--muted); font-size:.85em; }
+
+  .plainbox { background:var(--panel); border:1px solid var(--line);
+              border-left:3px solid var(--accent); border-radius:7px;
+              padding:.9rem 1.1rem; margin:1rem 0; }
+  .plainbox h3 { margin:0 0 .4rem; font-size:.8rem; text-transform:uppercase;
+                 letter-spacing:.06em; color:var(--muted); }
+  .plainbox p { margin:0; font-size:1.02rem; }
+
+  .interp { margin:.6rem 0 .2rem; }
+  .aud, .mech { margin:.55rem 0; padding-left:.75rem;
+                border-left:2px solid var(--line); }
+  .aud p, .mech p { margin:.15rem 0; }
+  .audlab { display:block; font-size:.7rem; text-transform:uppercase;
+            letter-spacing:.06em; color:var(--muted); font-weight:600; }
+  .mech { border-left-color:var(--accent); }
+  .analogy, .readercav { font-size:.9rem; margin:.45rem 0; padding:.4rem .6rem;
+                         background:var(--code); border-radius:5px; }
+  .readercav { border-left:2px solid var(--warn); }
+  .nointerp { color:var(--muted); font-size:.85rem; font-style:italic; margin:.4rem 0; }
+
+  .gl { border-bottom:1px dotted var(--accent); cursor:help; }
+  #gtip { position:fixed; z-index:40; display:none; max-width:320px;
+          background:var(--panel); border:1px solid var(--line); border-radius:6px;
+          padding:.55rem .7rem; font-size:.85rem; line-height:1.45;
+          box-shadow:0 6px 22px rgba(0,0,0,.18); pointer-events:none; }
+
+  .imps ul, .rej ul, .rsrc ul { list-style:none; padding:0; margin:.3rem 0 0; }
+  .imp { border-top:1px dashed var(--line); padding:.45rem 0; font-size:.9rem; }
+  .istage { font-family:ui-monospace,monospace; font-size:.75rem;
+            background:var(--code); padding:.05rem .35rem; border-radius:3px; }
+  .istr { font-size:.68rem; text-transform:uppercase; letter-spacing:.04em;
+          color:#fff; background:var(--c); padding:.05rem .4rem; border-radius:10px;
+          margin-left:.35rem; }
+  .idec { font-weight:600; margin-top:.2rem; }
+  .idir { margin-top:.1rem; }
+  .iwrong { color:var(--muted); font-size:.85em; margin-top:.15rem; }
+  .chip { font-family:ui-monospace,monospace; font-size:.68rem; background:var(--code);
+          color:var(--muted); padding:.05rem .35rem; border-radius:3px; }
+
+  .asks { display:flex; flex-wrap:wrap; gap:.7rem; }
+  .ask { flex:1 1 15rem; background:var(--panel); border:1px solid var(--line);
+         border-radius:7px; padding:.7rem .9rem; font-size:.9rem; }
+  .ask ul { margin:.3rem 0 0; padding-left:1.1rem; }
+
+  .glossary { display:flex; flex-wrap:wrap; gap:.7rem; }
+  .gterm { flex:1 1 17rem; background:var(--panel); border:1px solid var(--line);
+           border-radius:7px; padding:.7rem .9rem; font-size:.9rem; }
+  .gan { margin-top:.3rem; font-style:italic; color:var(--muted); font-size:.88em; }
+
+  /* ---- the reasoning trace ---- */
+  .rstep { background:var(--panel); border:1px solid var(--line);
+           border-left:3px solid var(--muted); border-radius:7px;
+           padding:.8rem 1rem; margin:.7rem 0; }
+  .rstep header { display:flex; flex-wrap:wrap; gap:.45rem; align-items:center;
+                  font-size:.72rem; margin-bottom:.4rem; }
+  .rq { font-weight:600; margin:.15rem 0; }
+  .rchose { font-size:.92rem; margin:.25rem 0; }
+  .rwhy { margin:.2rem 0 .4rem; }
+  .rej, .rsrc { margin:.45rem 0; padding-left:.75rem;
+                border-left:2px solid var(--line); font-size:.88rem; }
+  .rej li, .rsrc li { padding:.15rem 0; }
+  .dflt, .rev { font-size:.68rem; text-transform:uppercase; letter-spacing:.04em;
+                background:var(--code); color:var(--warn); padding:.05rem .4rem;
+                border-radius:10px; }
+  .opendec { background:var(--panel); border:1px solid var(--line);
+             border-left:3px solid var(--warn); border-radius:7px;
+             padding:.7rem .9rem; margin:.8rem 0; font-size:.9rem; }
+  ul.allsrc { columns:2; column-gap:1.4rem; font-size:.85rem; padding-left:1.1rem; }
+  @media (max-width:640px) { ul.allsrc { columns:1; } }
+  details.ev-wrap summary { cursor:pointer; font-size:.78rem; color:var(--muted);
+                            margin-top:.5rem; text-transform:uppercase;
+                            letter-spacing:.05em; }
 </style>
 
 <div class="wrap">
@@ -473,7 +808,17 @@ _TEMPLATE = r"""<title>__TITLE__</title>
     __DATE__ · produced by __MODEL__ · owner: __OWNER__
   </div>
 
+  <div class="audbar">
+    <span class="k">Read as:</span>
+    <button class="audbtn on" data-set="layperson">Non-specialist</button>
+    <button class="audbtn" data-set="medicinal_chemist">Medicinal chemist</button>
+    <button class="audbtn" data-set="structural_biologist">Structural biologist</button>
+    <button class="audbtn" data-set="ml_practitioner">Modeller</button>
+    <button class="audbtn" data-set="all">All</button>
+  </div>
+
   <p class="lede">__SUMMARY__</p>
+  __PLAIN__
   <p class="obj"><b>Objective.</b> __OBJECTIVE__</p>
 
   <h2>Headline numbers</h2>
@@ -495,6 +840,10 @@ _TEMPLATE = r"""<title>__TITLE__</title>
   <h2>Open questions</h2>
   __OPENQ__
 
+  __REASONING__
+
+  __ASKS__
+
   <h2>Handoff</h2>
   __HANDOFF__
 
@@ -510,11 +859,59 @@ _TEMPLATE = r"""<title>__TITLE__</title>
   <h2>Inputs consumed</h2>
   __INPUTS__
 
+  __GLOSSARY__
+
   <footer>
-    Generated by <code>reagent report render</code>. Every finding above carries its own
-    citations so a claim can be checked where it is made. Cross-domain analogies are
-    marked and capped at speculative confidence by contract; grey literature is marked
-    and cannot alone support an "established" claim.
+    Generated by <code>reagent report render</code>. Every finding carries its own
+    citations so a claim can be checked where it is made, its interpretation for each
+    audience, and what it changes downstream. "How this was decided" is the separate
+    audit trail for the agent's judgement — the options it weighed, what it rejected,
+    and which sources informed the choice. Cross-domain analogies are marked and capped
+    at speculative confidence by contract; grey literature is marked and cannot alone
+    support an "established" claim.
   </footer>
 </div>
+<div id="gtip"></div>
+
+<script>
+// Audience toggle. The layperson register is the default view, because the point of
+// the layered write-up is that the non-specialist path is the one you land on.
+const bar = document.querySelector(".audbar");
+function setAudience(which) {
+  document.querySelectorAll(".audbtn").forEach(b =>
+    b.classList.toggle("on", b.dataset.set === which));
+  document.querySelectorAll(".aud").forEach(el => {
+    el.style.display = (which === "all" || el.dataset.aud === which) ? "" : "none";
+  });
+  // If a finding has nothing for the chosen audience, fall back to plain rather than
+  // showing an empty card.
+  document.querySelectorAll(".interp").forEach(box => {
+    const visible = [...box.querySelectorAll(".aud")].some(e => e.style.display !== "none");
+    if (!visible) {
+      const lay = box.querySelector('.aud[data-aud="layperson"]');
+      if (lay) lay.style.display = "";
+    }
+  });
+}
+bar?.addEventListener("click", e => {
+  const b = e.target.closest(".audbtn");
+  if (b) setAudience(b.dataset.set);
+});
+setAudience("layperson");
+
+// Glossary tooltips.
+const gtip = document.getElementById("gtip");
+document.addEventListener("mouseover", e => {
+  const g = e.target.closest(".gl");
+  if (!g) return;
+  gtip.textContent = g.dataset.tip;
+  gtip.style.display = "block";
+  const r = g.getBoundingClientRect();
+  gtip.style.left = Math.min(r.left, window.innerWidth - 340) + "px";
+  gtip.style.top = (r.bottom + 8) + "px";
+});
+document.addEventListener("mouseout", e => {
+  if (e.target.closest(".gl")) gtip.style.display = "none";
+});
+</script>
 """

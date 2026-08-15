@@ -159,6 +159,41 @@ def cmd_report_validate(args: argparse.Namespace) -> int:
         else:
             print(f"  warn  {msg}")
 
+    # -- the interpretive layer: can a non-specialist use this report? ----
+    if not report.plain_summary:
+        msg = (
+            "no plain_summary — a reader outside the field has no way in. Write the "
+            "outcome again with no undefined jargon."
+        )
+        if args.strict:
+            _err(msg)
+            failures += 1
+        else:
+            print(f"  warn  {msg}")
+
+    if lang := report.plain_language_problems():
+        for p in lang:
+            if args.strict:
+                _err(p)
+                failures += 1
+            else:
+                print(f"  warn  {p}")
+    elif report.plain_summary:
+        gloss = report.effective_glossary()
+        _ok(f"plain language checks out ({len(gloss.terms)} glossary terms defined)")
+
+    if uninterp := report.uninterpreted_findings():
+        print(f"  note  {len(uninterp)} findings have no interpretation: {uninterp[:6]}")
+    if trivia := report.findings_without_implications():
+        print(
+            f"  note  {len(trivia)} interpreted findings change nothing downstream "
+            f"(candidate trivia): {trivia[:6]}"
+        )
+    if by_stage := report.implications_by_stage():
+        _ok("bears on " + ", ".join(f"{s} ({len(v)})" for s, v in sorted(by_stage.items())))
+    if cov := report.audience_coverage():
+        _ok("audiences addressed: " + ", ".join(f"{k} ({v})" for k, v in cov.items()))
+
     cost = report.total_cost_usd()
     if cost:
         _ok(f"recorded spend ${cost:.2f}")
