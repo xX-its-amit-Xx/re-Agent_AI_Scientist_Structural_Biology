@@ -27,7 +27,7 @@ parallel without a daily sync.
 ```bash
 uv venv .venv --python 3.12
 uv pip install -e ".[dev,graph]"
-./.venv/Scripts/python.exe -m pytest tests/ -q        # 48 tests, should be green
+./.venv/Scripts/python.exe -m pytest tests/ -q        # 80 tests, should be green
 ./.venv/Scripts/python.exe scripts/bootstrap_skills.py
 ./.venv/Scripts/python.exe -m reagent.cli skills check
 ```
@@ -47,6 +47,23 @@ That second one writes `docs/reports/stage1-demo.html` — a single self-contain
 with the graph embedded, two SVG charts, and six findings carrying inline citations.
 It is the shape your stage's output should take. See [`docs/STATUS.md`](docs/STATUS.md)
 for what is built and what is not.
+
+## Interrogating a report
+
+Once a report exists, you do not have to read JSON to explore it. `.mcp.json`
+registers an MCP server that Claude Code picks up in this directory:
+
+```
+python -m reagent.mcp --list-tools
+```
+
+`report_list` and `graph_overview` orient you; `neighbors` and `explain_edge` explore
+and audit; `compare_structures` renders two proteins side by side in interactive 3D
+with their pocket similarity computed. See `.claude/skills/report-mcp/SKILL.md`.
+
+Two behaviours to preserve if you extend it: nothing but protocol messages may reach
+stdout, and any tool surfacing an `illustrative: true` edge must say on the same line
+that the number is a placeholder.
 
 ## Nothing is hardcoded to a target or a domain
 

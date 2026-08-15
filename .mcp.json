@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "reagent-report": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["-m", "reagent.mcp"],
+      "env": {
+        "PYTHONUTF8": "1",
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}

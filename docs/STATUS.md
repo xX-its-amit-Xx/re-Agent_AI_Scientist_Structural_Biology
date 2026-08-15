@@ -10,9 +10,10 @@ are built and tested. You can run the whole chain on a fixture today:
 ```bash
 uv venv .venv --python 3.12
 uv pip install -e ".[dev,graph]"
-./.venv/Scripts/python.exe -m pytest tests/ -q          # 48 tests
+./.venv/Scripts/python.exe -m pytest tests/ -q          # 80 tests
 ./.venv/Scripts/python.exe examples/seed_demo_graph.py  # graph + interactive figure
 ./.venv/Scripts/python.exe examples/seed_demo_report.py # full Model Report + HTML
+./.venv/Scripts/python.exe -m reagent.mcp --list-tools   # the MCP surface
 ```
 
 That produces `docs/reports/stage1-demo.html` — one self-contained 600 KB file with
@@ -30,7 +31,10 @@ citations. It is the shape every stage's output should take.
 | SVG charts (bar, heatmap, histogram, scatter) | working, no dependencies |
 | Obsidian vault exporter | working — secondary view only, see below |
 | Model Report HTML renderer | working |
-| Skill registry + data-flow lint | working, 18 skills, no problems |
+| MCP server (12 tools, zero-dependency stdio) | working, protocol-tested |
+| Structure fetch / parse / superpose | working, validated against real PDB entries |
+| Interactive 3D side-by-side comparison | working |
+| Skill registry + data-flow lint | working, 19 skills, no problems |
 
 ## Skills
 
@@ -45,6 +49,7 @@ citations. It is the shape every stage's output should take.
 | `target-neighborhood` | 1 | Amit | written |
 | `kg-visualize` | shared | Amit | written |
 | `model-report` | shared | Amit | written |
+| `report-mcp` | shared | Amit | written |
 | `compound-neighborhood` | 1 | Amit | stub |
 | `esmc-sae-motifs` | 1 | Amit | stub |
 | `pocket-anatomy` | 2 | **Denny** | contract-complete stub |
@@ -72,6 +77,11 @@ its evidence, and its sources as a small directed graph.
 
 **GraphML export.** `kg-visualize` documents it for Gephi and Cytoscape desktop; the
 writer is not implemented. The Obsidian exporter is.
+
+**A real structural aligner.** `compare_structures` uses a sequence-guided
+superposition, which is right for homologs and wrong for structurally similar
+proteins with unrelated sequences. Wiring in Foldseek or TM-align when available
+would remove the caveat rather than merely stating it.
 
 **A real literature harvest.** Every number in `kg/demo/` is an illustrative
 placeholder, flagged as such in the data and in the report. Running
@@ -136,3 +146,5 @@ science.
    graph with measured edges.
 4. Build the provenance-chain figure so a stage can pass `--strict`.
 5. Validate ChimeraX offscreen rendering on Explorer before Denny depends on it.
+6. Wire Foldseek or TM-align into `compare_structures` so its numbers stop being
+   estimates.

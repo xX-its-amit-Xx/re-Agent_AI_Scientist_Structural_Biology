@@ -20,6 +20,34 @@ reverse-engineered in
 [`pxr-case-study.md`](.claude/skills/ai-scientist/reference/pxr-case-study.md).
 **PXR is an instance, not an assumption.**
 
+## The report is interactive
+
+A finished Model Report answers the questions its author thought to ask. A reader
+always has others. So the report and its knowledge graph are served over **MCP**,
+which turns a static artifact into something you can interrogate from Claude or any
+coding agent:
+
+```
+> PXR is connected to FXR in the graph. Show me them side by side.
+
+  neighbors(uniprot:O75469, SIMILAR_FOLD_TO)     -> lists FXR, flagged ILLUSTRATIVE
+  explain_edge(...)                              -> no citations; the graph is guessing
+  compare_structures(pdb:1M13, pdb:1OSV)         -> measures it: TM 0.643, RMSD 2.03 A,
+                                                    14 corresponding pocket residues,
+                                                    and an interactive 3D page
+```
+
+`compare_structures` fetches both structures, aligns and superposes them, works out
+which pocket residues correspond, and renders side-by-side viewers with **linked
+cameras** plus a superposed overlay. Backbone colour encodes how well each residue
+pair corresponds; hovering a residue names its partner and their separation.
+
+The graph *proposes* a relationship; the comparison *measures* it. Keeping those
+distinct — and labelling which is which — is the point.
+
+See [`report-mcp`](.claude/skills/report-mcp/SKILL.md). `.mcp.json` registers the
+server, so Claude Code picks it up automatically in this directory.
+
 ## The two ideas that make this different
 
 **1. Every stage must show its work.** `Visualization` is a typed, validated field
@@ -102,6 +130,7 @@ Or drive it conversationally in Claude Code, which is the intended mode:
   compound-neighborhood/   Stage 1: chemical space + domain shift
   esmc-sae-motifs/         Stage 1: learned structural motifs
   kg-visualize/            shared: the graph, made legible
+  report-mcp/              shared: serve the report over MCP; compare structures in 3D
   model-report/            shared: how to write and validate a stage report
   pocket-anatomy/          Stage 2 (Denny)
   pocket-dynamics/         Stage 2 (Denny)
@@ -121,7 +150,9 @@ src/reagent/
     data.py                DataRef / FetchPlan: discover now, download later
   domains/               pluggable per-domain definitions of "what counts as similar"
   kg/                    JSONL source of truth + SQLite query layer
-  viz/                   self-contained graph renderer + Obsidian exporter
+  structure/             fetch, parse, align, and superpose structures
+  mcp/                   the MCP server and its tools
+  viz/                   graph renderer, SVG charts, 3D comparison, Obsidian export
   reports/               Model Report scaffolding and HTML rendering
   skills.py              registry generation and data-flow linting
   cli.py                 the `reagent` command

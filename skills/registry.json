@@ -1,14 +1,15 @@
 {
   "version": 1,
   "generated_from": ".claude/skills",
-  "n_skills": 18,
+  "n_skills": 19,
   "by_stage": {
     "shared": [
       "ai-scientist",
       "data-materialize",
       "kg-visualize",
       "literature-harvest",
-      "model-report"
+      "model-report",
+      "report-mcp"
     ],
     "stage0_scouting": [
       "cross-domain-analogy",
@@ -43,6 +44,7 @@
       "literature-harvest",
       "model-report",
       "pipeline-space-scouting",
+      "report-mcp",
       "source-scout",
       "target-neighborhood"
     ],
@@ -263,6 +265,49 @@
       ],
       "body_lines": 133,
       "summary": "How to write, visualize, and validate a stage's Model Report."
+    },
+    "report-mcp": {
+      "name": "report-mcp",
+      "path": ".claude/skills/report-mcp",
+      "description": "Make a finished Model Report and its knowledge graph conversationally interrogable, by serving them over MCP. Turns a static report into something a user can question \u2014 explore relationships, check the evidence behind any single assertion, and render two proteins side by side in interactive 3D with their structural and pocket similarity computed. Use when setting up, extending, debugging, or explaining the reagent-report MCP server. Trigger on: \"MCP\", \"interactive report\", \"query the report\", \"serve the graph\", \"compare two proteins in 3D\", \"side by side structures\", or /report-mcp.",
+      "stage": "shared",
+      "owner": "amit",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash"
+      ],
+      "consumes": [
+        "report.validated",
+        "kg.neighbourhood",
+        "kg.dataset_nodes"
+      ],
+      "produces": [
+        "mcp.server",
+        "viz.structure_comparison"
+      ],
+      "external_tools": [
+        "3dmol.js",
+        "rcsb",
+        "alphafold-db"
+      ],
+      "triggers": [
+        "MCP",
+        "interactive report",
+        "query the report",
+        "serve the graph",
+        "compare two proteins in 3D",
+        "side by side structures"
+      ],
+      "references": [
+        "reference/protocol-notes.md"
+      ],
+      "body_lines": 173,
+      "summary": "Serve a report and its graph over MCP; compare two structures in 3D."
     },
     "cross-domain-analogy": {
       "name": "cross-domain-analogy",

@@ -97,6 +97,13 @@ META: dict[str, dict] = {
         "produces": ["viz.kg_html", "viz.obsidian_vault", "viz.graphml"],
         "external_tools": ["cytoscape.js"], "credits": [],
     },
+    "report-mcp": {
+        "stage": "shared", "owner": "amit", "status": "implemented",
+        "summary": "Serve a report and its graph over MCP; compare two structures in 3D.",
+        "consumes": ["report.validated", "kg.neighbourhood", "kg.dataset_nodes"],
+        "produces": ["mcp.server", "viz.structure_comparison"],
+        "external_tools": ["3dmol.js", "rcsb", "alphafold-db"], "credits": [],
+    },
     "model-report": {
         "stage": "shared", "owner": "amit", "status": "implemented",
         "summary": "How to write, visualize, and validate a stage's Model Report.",
