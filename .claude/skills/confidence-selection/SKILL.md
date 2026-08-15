@@ -49,10 +49,45 @@ and require it to beat the z-hybrid baseline on held-out data before adoption.
    (0.5640); N=4 and N=12 were both worse. The tail is real but small, and
    over-swapping destroys good picks.
 
+## Which confidence signal to use — published numbers
+
+From the closest published analogue to this setup (557 protein-ligand complexes
+scored by three co-folding models), against a two-angstrom accuracy threshold:
+
+| Signal | Discrimination (ROC AUC) |
+|---|---|
+| ligand-atom-mean pLDDT | 0.76 |
+| interface pTM (two models) | 0.73 |
+| a model's own affinity head | 0.55 |
+
+And the correlation that matters most: **global protein pLDDT against pose accuracy
+is r ≈ +0.04 — nothing. Ligand-restricted pLDDT is r ≈ −0.46.** So restrict every
+confidence signal to the ligand and the interface, and never rank on a global
+score or a model's default `ranking_score` field. Include global protein pLDDT as a
+deliberate negative control; it should land near 0.5 AUC, and if it does not, your
+harness is wrong.
+
+**Better than interface pTM: minimum interface PAE** (the minimum predicted aligned
+error over protein-ligand token pairs). It beat interface pTM on every metric in a
+2026 study and is cheap to compute from files you already have.
+
+Two schema traps that silently corrupt a cross-model comparison: one major model
+reports complex pLDDT on 0-100 while another reports 0-1, and predicted-aligned-error
+matrices are **token-indexed** while per-atom pLDDT is **atom-indexed**, so they have
+different lengths. Normalise deliberately and derive chain boundaries from token
+identifiers, never from residue counts — a ligand is many tokens, not one.
+
 ## Guard rails
 
 - **Z-score within a model before comparing across models.** Skipping this lets one
   model's inflated scale dominate every item.
+- **Restrict the signal to the ligand and interface.** See the table above.
+- **Validate with symmetry-corrected, in-place accuracy metrics.** Chemically
+  indistinguishable atoms admit multiple valid correspondences, and index-order
+  comparison accrues one to two angstroms of pure bookkeeping error *precisely at
+  the decision boundary*. Also avoid any accuracy function that superposes the
+  candidate onto the reference as a side effect — that scores a correctly-shaped
+  molecule in entirely the wrong site as a success.
 - **Sweep the rescue count; do not guess it.** The optimum is a narrow peak.
 - **Validate against the real metric, not a proxy.** In the reference case a
   secondary metric was statistically decoupled from the primary one (Spearman

@@ -594,7 +594,10 @@
         "interaction map",
         "anchor residues"
       ],
-      "body_lines": 62,
+      "references": [
+        "reference/interaction-toolchain.md"
+      ],
+      "body_lines": 103,
       "summary": "Critical residues and the ligand fragments complementary to them."
     },
     "pocket-dynamics": {
@@ -672,7 +675,7 @@
         "z-score selection",
         "failure tail"
       ],
-      "body_lines": 68,
+      "body_lines": 103,
       "summary": "Pick one candidate per item from the pool; the step that decides the score."
     },
     "structure-ensemble": {
@@ -720,7 +723,7 @@
         "which models should we run",
         "oracle gap"
       ],
-      "body_lines": 63,
+      "body_lines": 76,
       "summary": "Generate a diverse candidate pool across multiple models and seeds."
     },
     "template-and-finetune": {

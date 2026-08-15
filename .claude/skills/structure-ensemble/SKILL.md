@@ -60,6 +60,19 @@ Compute this before anything else in Stage 3.
    coverage of the failure set.
 5. Report the oracle gap prominently. It is the headline metric.
 
+## One published finding worth designing around
+
+In the closest published analogue, cross-model accuracy correlation was **0.72
+between the two most similar co-folders and 0.52 between the most dissimilar pair.**
+That spread is the decorrelation you are buying, and it is measurable before you
+commit a full budget — run a pilot subset and compute it.
+
+More soberingly: in that study the models sampled a receptor's alternative
+conformational state **zero times out of twenty**. Co-folding models largely do not
+sample receptor plasticity. If Stage 2 reports a flexible pocket, say plainly in
+your report that the generation step cannot be expected to explore it, because that
+changes what Stage 4 should attempt.
+
 ## Required visuals
 
 - **Oracle-vs-realised curve** as a function of pool size (best@1, best@5, best@20)

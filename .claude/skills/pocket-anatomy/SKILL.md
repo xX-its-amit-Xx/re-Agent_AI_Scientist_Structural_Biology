@@ -27,7 +27,32 @@ telling Sumer, because his stage consumes them.
 2. For each load-bearing residue, what ligand chemistry is complementary to it?
 3. Which interactions recur across *all* known complexes, and which are idiosyncratic?
 
+## Read this before installing anything
+
+[interaction-toolchain.md](reference/interaction-toolchain.md) records findings
+measured on this machine against a real structure. Three of them will cost you an
+afternoon each if you meet them cold:
+
+- **ChimeraX is installed nowhere in this environment, and `--offscreen` is
+  Linux-only.** `--nogui` alone creates no OpenGL context, so `save image` fails
+  outright. On Windows you must run scripted-with-GUI, which needs a logged-in
+  interactive desktop and will fail over SSH. The plan is a user-space install of
+  the distro-matched build in `$HOME` on the Explorer cluster, relying on
+  ChimeraX's *bundled* OSMesa because the system has none — and it is CPU
+  rendering, so request cores and memory, not a GPU. **Validate `--offscreen` on a
+  compute node before committing to it.** This is the largest environment risk in
+  Stage 2.
+- **PLIP crashes on every ligand with the pip `openbabel` wheel** (no InChI format).
+  Use conda-forge openbabel, or the four-line shim in the reference.
+- **ProLIF dies when driven from stdin or a notebook**, and segfaults on Python
+  3.14. Run it from a real `.py` behind a `__main__` guard, on Python 3.13 or below.
+
 ## Guard rails
+
+- **Use PLIP and ProLIF together, not one of them.** Measured on a real complex,
+  they agree on only 47 % of contact residues, and *neither alone* recovers the
+  canonical contact set while their union does. Their disagreement is also a free
+  per-pose confidence signal, so store both edges tagged by source.
 
 - **"Lines the pocket" is not "matters".** Rank residues by evidence — mutational
   data, conservation across the Stage 1 family corpus, recurrence across holo
@@ -73,3 +98,19 @@ telling Sumer, because his stage consumes them.
 `stage2.critical_residues` — per residue: id, evidence, recurrence fraction,
 required-vs-optional, and the subpopulations it is valid for.
 `stage2.fragment_map` — per residue: complementary chemistry.
+
+## The interaction fingerprint is the bridge to the graph
+
+ProLIF's `to_dataframe()` gives a three-level column index of
+`(ligand, residue, interaction)`, and `fp.ifp` keeps per-interaction atom indices,
+so **every nonzero cell is traceable to specific atoms and becomes one edge**. Emit
+them with the source model and source structure as first-class edge attributes.
+
+That one decision pays off twice: "which residues do five of six models agree
+contact this ligand?" becomes a single graph query, and it is the *same* query that
+produces the cross-model consensus signal Stage 3 wants. The graph becomes the
+consensus engine rather than just a store.
+
+## References
+
+- [interaction-toolchain.md](reference/interaction-toolchain.md) — measured findings: which profilers to use and why both, the three install blockers with fixes, pocket-detection tools with a regression anchor, embedding 3D structures under our content-security policy, and the fingerprint-to-graph bridge
