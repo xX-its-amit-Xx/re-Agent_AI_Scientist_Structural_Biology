@@ -452,6 +452,7 @@ def render(
         encoding=visual_encoding_summary(),
         color_maps=[family_map],
         interactive=True,
+        covers_metrics=["n_nodes", "n_edges"],
         focal_node=focal,
         n_elements=ego.n_elements,
         alt_text=(

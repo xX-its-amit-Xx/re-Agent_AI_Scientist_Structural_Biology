@@ -144,6 +144,15 @@ class Visualization(BaseModel):
         min_length=20,
         description="Describes the content for a reader who cannot see it. Not the title again.",
     )
+    covers_metrics: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Keys from the report's `metrics` that a reader can read off this figure. "
+            "Declared rather than inferred: guessing from the caption text produces "
+            "both false positives and false negatives, and this is the field that "
+            "decides whether `--strict` considers a headline number visible."
+        ),
+    )
     focal_node: str | None = Field(
         default=None, description="For ego-network views: the centre, e.g. 'uniprot:O75469'."
     )

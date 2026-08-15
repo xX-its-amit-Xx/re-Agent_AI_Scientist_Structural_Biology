@@ -35,8 +35,10 @@ through Paperclip, this one owns everything Paperclip cannot see.
   stage that needs the bytes. See
   [lazy-data.md](reference/lazy-data.md) for why this split matters.
 - **Write the `fetch_hint` while you know it.** The API call, the CLI command, the
-  env var holding the key. A dataset behind a registration wall with no hint costs
-  the next agent the same discovery work you just did, and the contract rejects it.
+  env var holding the key. The contract *requires* one for anything behind a
+  registration, API-key, or application wall — an open direct download needs none —
+  but write it whenever getting the file is non-obvious, because a dataset with no
+  hint costs the next agent the discovery work you just did.
 - **Grey sources are grounded but not sufficient.** A blog post or GitHub issue is
   real evidence — often the *only* record of a failure mode. But
   `Confidence.ESTABLISHED` requires at least one reviewed or structured-database

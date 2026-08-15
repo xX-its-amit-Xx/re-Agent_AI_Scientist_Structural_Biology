@@ -64,10 +64,16 @@ returning `MethodCard` JSON (schema in `reference/method-card.md`):
 | Peer-reviewed literature | validated methods, ablations | `paperclip`, `literature-harvest` |
 | Preprints | the current frontier, 6-18 months ahead | bioRxiv/arXiv, `paperclip` |
 | Challenge post-mortems | what actually won, and the tricks | WebSearch: CASP, CACHE, PoseBusters, OpenADMET, D3R, CAPRI |
-| Code & issues | real failure modes, defaults, cost | GitHub repos + issue trackers |
-| Patents | industrial methods absent from papers | `paperclip` patent scope |
-| Practitioner talk | what people default to | forums, blogs, Discord recaps |
+| Code & issues | real failure modes, defaults, cost | GitHub repos + issue trackers, via `source-scout` |
+| Patents | industrial methods absent from papers | **WebSearch against Google Patents / Espacenet — Paperclip cannot search patents**, despite its help text listing them. Delegate to `source-scout`. |
+| Practitioner talk | what people default to | forums, blogs, Substack, conference recaps — `source-scout` |
 | Benchmark papers | honest head-to-head comparisons | `paperclip` |
+
+For everything the indexed full-text corpora cannot see — patents, repositories,
+grey literature, competition write-ups, and datasets — invoke **`source-scout`**
+rather than reimplementing it here. It also records datasets as graph nodes with
+metadata and a URL, which is how a later stage finds them without downloading
+anything now.
 
 Prefer benchmark and post-mortem sources over method papers when they disagree.
 A method paper is written by people who want it to work.
@@ -124,6 +130,12 @@ reagent report validate reports/<run-id>/stage0/report.json
 Required content:
 
 - `metrics`: `{trivial_baseline, current_sota, pool_ceiling, headroom, n_methods}`
+- **an oracle-curve figure** reading from those metrics. `--strict` validation
+  demands a figure for every headline metric, and the oracle curve is the one that
+  earns its place: it is what tells the team whether to improve generation or
+  selection. Compute the ceiling **in the graded metric**, not in a convenient
+  proxy — the reference case reported its pool ceiling as a median RMSD while being
+  graded on LDDT-PLI, which makes the two numbers non-comparable.
 - `findings`: the landscape as `DESIGN_CHOICE` + `BENCHMARK` + `NEGATIVE` findings
 - `handoff.payload`: `{recommended_architecture, candidate_methods, must_beat,
   failure_modes, open_gaps}`
@@ -152,5 +164,5 @@ without them the analogy engine free-associates.
 
 - [method-card.md](reference/method-card.md) — the JSON schema subagents must return
 - [evidence-modalities.md](reference/evidence-modalities.md) — where to search per modality, with query templates
-- [failure-mode-catalogue.md](reference/failure-mode-catalogue.md) — starter catalogue for protein-ligand co-folding
+- [failure-mode-catalogue.md](reference/failure-mode-catalogue.md) — failure modes of computational prediction pipelines, domain-general, with a symptom lookup table
 - [generation-vs-selection.md](reference/generation-vs-selection.md) — the oracle-gap diagnostic, worked through

@@ -273,6 +273,13 @@ documented strictly. Use the canonical external accession wherever one exists.
 | `Analogy` | `analogy:<domain>/<mechanism>` | `analogy:finance/regime-switching-ensemble` |
 | `Domain` | `domain:<field>` | `domain:quantitative-finance` |
 
+The rows for `Protein`, `Structure`, `Pocket`, `Compound`, `Motif`, `Paper`,
+`Family`, `Method`, `Analogy`, and `Domain` are the conventions written into the
+`Node` docstring itself. The rows for `Residue`, `Fragment`, `Assay`, `Dataset`, and
+`PipelineStep` are extensions of the same pattern rather than quotations from the
+source; keep them consistent within a run and, if you settle on something better,
+put it in the `Node` docstring so the next agent inherits it.
+
 For `Paper` locators, prefer a line-anchored form such as
 `pmc:PMC12690452#L45-L52`. An unanchored citation cannot be checked, and a claim
 the next agent cannot check is a claim it has to redo.

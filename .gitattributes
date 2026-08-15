@@ -1,0 +1,17 @@
+# Normalise to LF in the repo. The renderer writes LF explicitly (see
+# reagent/viz/graph_html.py) so generated HTML stays byte-stable across platforms;
+# without this, Windows checkouts would rewrite it to CRLF and every regenerated
+# figure would show as fully changed.
+* text=auto eol=lf
+
+# The knowledge graph is JSONL on purpose: one assertion per line, so a diff shows
+# exactly which claims changed. Never let a merge driver reorder these.
+*.jsonl text eol=lf merge=union
+
+# Vendored third-party JavaScript — leave it exactly as upstream shipped it.
+assets/vendor/** binary linguist-vendored
+
+*.png binary
+*.jpg binary
+*.pdf binary
+*.zip binary

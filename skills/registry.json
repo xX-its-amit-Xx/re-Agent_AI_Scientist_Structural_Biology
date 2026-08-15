@@ -108,7 +108,7 @@
         "reference/pxr-case-study.md",
         "reference/why-stage-zero.md"
       ],
-      "body_lines": 168,
+      "body_lines": 176,
       "summary": "Top-level orchestrator: plans stages, enforces gates, chains reports."
     },
     "data-materialize": {
@@ -309,7 +309,7 @@
         "reference/domain-map.md",
         "reference/scout-prompt.md"
       ],
-      "body_lines": 180,
+      "body_lines": 182,
       "summary": "Borrow mechanisms from unrelated fields; emit gated, falsifiable proposals."
     },
     "pipeline-space-scouting": {
@@ -360,7 +360,7 @@
         "reference/generation-vs-selection.md",
         "reference/method-card.md"
       ],
-      "body_lines": 142,
+      "body_lines": 154,
       "summary": "Map the method landscape, baselines, and failure modes for a problem class."
     },
     "compound-neighborhood": {
@@ -492,7 +492,7 @@
         "reference/lazy-data.md",
         "reference/source-recipes.md"
       ],
-      "body_lines": 168,
+      "body_lines": 170,
       "summary": "Patents, repos, Zenodo, Kaggle, blogs \u2014 plus dataset pointers, not downloads."
     },
     "target-neighborhood": {

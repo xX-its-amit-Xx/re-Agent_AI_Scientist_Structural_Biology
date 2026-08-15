@@ -136,12 +136,12 @@ def build() -> GraphDelta:
                           attrs={"ligand_bound_pdb_entries": n_pdb}))
         edges.append(Edge(src=pid, predicate=Predicate.MEMBER_OF_FAMILY,
                           dst="family:nuclear-receptor", confidence=Confidence.ESTABLISHED,
-                          attrs={"source": "Pfam PF00104", "confidence_numeric": 1.0},
+                          attrs={"source": "Pfam PF00104", "membership": 1.0},
                           evidence=[paper_ev("pmc:PMC9563780"), paper_ev("pmc:PMC8864553")],
                           asserted_by=BY, run_id=RUN))
     for pid in ("uniprot:O75469", "uniprot:Q14994", "uniprot:P11473"):
         edges.append(Edge(src=pid, predicate=Predicate.MEMBER_OF_FAMILY, dst="family:NR1I",
-                          confidence=Confidence.ESTABLISHED, attrs={"confidence_numeric": 1.0},
+                          confidence=Confidence.ESTABLISHED, attrs={"membership": 1.0},
                           evidence=[paper_ev("pmc:PMC9563780"), paper_ev("pmc:PMC8864553")],
                           asserted_by=BY, run_id=RUN))
 
@@ -158,7 +158,7 @@ def build() -> GraphDelta:
         nodes.append(Node(id=pid, type=NodeType.PROTEIN, label=label, asserted_by=BY, run_id=RUN))
         edges.append(Edge(src=pid, predicate=Predicate.MEMBER_OF_FAMILY,
                           dst="family:xenobiotic-handler", confidence=Confidence.SUPPORTED,
-                          attrs={"confidence_numeric": 0.8}, evidence=[paper_ev("pmc:PMC8864553")],
+                          attrs={"membership": 1.0}, evidence=[paper_ev("pmc:PMC8864553")],
                           asserted_by=BY, run_id=RUN))
         edges.append(Edge(src=target, predicate=Predicate.PROMISCUOUS_WITH, dst=pid,
                           attrs=illustrative(breadth_score=breadth),

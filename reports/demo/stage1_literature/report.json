@@ -1,0 +1,479 @@
+{
+  "schema_version": "1.0.0",
+  "report_id": "stage1-demo",
+  "run_id": "demo",
+  "stage": "stage1_literature",
+  "title": "Stage 1 demo — target neighbourhood on a fixture graph",
+  "created_utc": "2026-08-15T21:41:06.668581Z",
+  "produced_by": {
+    "model": "claude-fable-5",
+    "skill": "target-neighborhood",
+    "harness": "claude-code",
+    "human_owner": "amit"
+  },
+  "objective": "Demonstrate the Stage 1 contract end to end on a fixture: build a multi-axis neighbourhood, render it, and report honestly on what the graph does and does not contain.",
+  "executive_summary": "Built a 41-node, 70-edge fixture graph around the target and rendered it as a self-contained interactive ego view. Two of seven declared similarity axes are populated, both with illustrative placeholder scores rather than measurements, so this report demonstrates the machinery rather than characterising the target. The promiscuity axis is the interesting one even in fixture form: its top neighbours sit outside the target's family, which is where non-obvious transfer sources live.",
+  "inputs": [
+    {
+      "kind": "report",
+      "locator": "reports/demo/problem.json",
+      "note": "ProblemSpec: target, domain, metric, and the declared axes"
+    },
+    {
+      "kind": "kg",
+      "locator": "kg/demo/nodes.jsonl",
+      "note": "fixture graph seeded by examples/seed_demo_graph.py"
+    }
+  ],
+  "methods": [
+    {
+      "skill": "target-neighborhood",
+      "tool": "KGStore.neighborhood",
+      "summary": "Queried each declared axis for the target's neighbours",
+      "params": {
+        "axes": [
+          "sequence",
+          "fold",
+          "pocket",
+          "motif",
+          "promiscuity",
+          "family",
+          "compound"
+        ],
+        "per_axis_limit": 25
+      },
+      "n_calls": 1,
+      "failed": false
+    },
+    {
+      "skill": "kg-visualize",
+      "tool": "cytoscape.js (inlined)",
+      "summary": "Rendered a two-hop ego view with per-axis edge encoding",
+      "params": {
+        "max_depth": 2,
+        "max_fanout": 30,
+        "n_elements": 95
+      },
+      "n_calls": 1,
+      "failed": false
+    },
+    {
+      "skill": "target-neighborhood",
+      "tool": "foldseek",
+      "summary": "Fold search — NOT RUN in this fixture",
+      "params": {},
+      "n_calls": 1,
+      "failed": true,
+      "failure_note": "Not executed. Fold edges here are placeholders; this row exists so the omission is visible in the report rather than implied by its absence."
+    }
+  ],
+  "findings": [
+    {
+      "id": "F-CONSTRAINT-01",
+      "kind": "constraint",
+      "statement": "Every quantitative edge in this fixture is a placeholder, flagged illustrative=True and written at speculative confidence. No number here may be used as a prior until the corresponding tool has actually run.",
+      "confidence": "established",
+      "evidence": [
+        {
+          "source_type": "computation",
+          "locator": "examples/seed_demo_graph.py",
+          "title": "the fixture that generated this graph"
+        },
+        {
+          "source_type": "computation",
+          "locator": "kg/demo/edges.jsonl",
+          "title": "every scored edge carries illustrative=True"
+        }
+      ],
+      "data": {
+        "n_illustrative_edges": 28
+      },
+      "kg_nodes": [],
+      "tags": [],
+      "supersedes": []
+    },
+    {
+      "id": "F-FAMILY-01",
+      "kind": "observation",
+      "statement": "The target sits in a receptor family with 13 members represented in this fixture, spanning receptors with very unequal structural coverage.",
+      "confidence": "established",
+      "evidence": [
+        {
+          "source_type": "paper",
+          "locator": "pmc:PMC9563780",
+          "title": "PXR ligand-binding pocket architecture",
+          "year": 2022
+        },
+        {
+          "source_type": "paper",
+          "locator": "pmc:PMC8864553",
+          "title": "Promiscuity of the PXR ligand-binding domain",
+          "year": 2022
+        }
+      ],
+      "data": {
+        "n_family_members": 13
+      },
+      "kg_nodes": [
+        "family:nuclear-receptor"
+      ],
+      "tags": [],
+      "supersedes": []
+    },
+    {
+      "id": "F-PROMISC-01",
+      "kind": "prior",
+      "statement": "The most promiscuous neighbours are xenobiotic-handling enzymes and transporters outside the target's own family, which makes them candidate transfer sources on the basis of a shared structural problem — a large, adaptable pocket — rather than a shared fold.",
+      "confidence": "tentative",
+      "evidence": [
+        {
+          "source_type": "paper",
+          "locator": "pmc:PMC8864553",
+          "title": "Promiscuity of the PXR ligand-binding domain",
+          "year": 2022
+        }
+      ],
+      "data": {
+        "top_promiscuous_neighbours": [
+          "CYP3A4",
+          "P-glycoprotein (ABCB1)",
+          "CYP2C9",
+          "CYP2D6"
+        ],
+        "valid_for": "targets with a large, chemically permissive pocket",
+        "invalid_for": "targets with a small, shape-selective pocket, where breadth of binding is not the shared feature"
+      },
+      "kg_nodes": [
+        "uniprot:P08684",
+        "uniprot:P08183",
+        "uniprot:P11712",
+        "uniprot:P10635"
+      ],
+      "tags": [],
+      "supersedes": []
+    },
+    {
+      "id": "F-NEG-01",
+      "kind": "negative_result",
+      "statement": "Five of the seven declared similarity axes are empty in this fixture. Sequence and fold carry placeholder edges; pocket, motif, and compound have none at all, so no downstream stage may treat this graph as a characterisation of the target.",
+      "confidence": "supported",
+      "evidence": [
+        {
+          "source_type": "computation",
+          "locator": "kg/demo/edges.jsonl",
+          "title": "edges_by_predicate from KGStore.stats()"
+        }
+      ],
+      "data": {
+        "populated_axes": [
+          "family",
+          "fold",
+          "promiscuity",
+          "sequence"
+        ],
+        "empty_axes": [
+          "compound",
+          "motif",
+          "pocket"
+        ]
+      },
+      "kg_nodes": [],
+      "tags": [],
+      "supersedes": []
+    },
+    {
+      "id": "F-DESIGN-01",
+      "kind": "design_choice",
+      "statement": "Each similarity axis writes its own predicate rather than a generic SIMILAR_TO edge, so a downstream stage can ask for fold neighbours that are not family members — a query a single similarity relation cannot express.",
+      "confidence": "supported",
+      "evidence": [],
+      "data": {
+        "predicates_used": [
+          "BINDS",
+          "HAS_MOTIF",
+          "HAS_POCKET",
+          "HAS_STRUCTURE",
+          "MEMBER_OF_FAMILY",
+          "MODULATES",
+          "POCKET_LINED_BY",
+          "PROMISCUOUS_WITH",
+          "SHARES_MOTIF",
+          "SIMILAR_COMPOUND_TO",
+          "SIMILAR_FOLD_TO",
+          "SIMILAR_SEQUENCE_TO",
+          "SUPPORTED_BY"
+        ]
+      },
+      "kg_nodes": [],
+      "tags": [],
+      "supersedes": []
+    },
+    {
+      "id": "F-RISK-01",
+      "kind": "risk",
+      "statement": "Only 66% of edges carry a citation. The uncited remainder are the placeholder similarity edges, which is expected here, but the same figure on a real harvest would mean the stage asserted more than it read.",
+      "confidence": "supported",
+      "evidence": [
+        {
+          "source_type": "computation",
+          "locator": "kg/demo/kg.sqlite",
+          "title": "cited_edge_fraction from KGStore.stats()"
+        }
+      ],
+      "data": {
+        "cited_edge_fraction": 0.657
+      },
+      "kg_nodes": [],
+      "tags": [],
+      "supersedes": []
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "kg/demo/nodes.jsonl",
+      "kind": "kg-nodes",
+      "description": "Graph nodes, one JSON object per line",
+      "sha256": "7c0b34cca5fb65b2ed303bc2702a7528f69eb8c796b5437d6f4adf1b8a20c62a",
+      "bytes": 8113
+    },
+    {
+      "path": "kg/demo/edges.jsonl",
+      "kind": "kg-edges",
+      "description": "Graph edges with provenance and evidence",
+      "sha256": "667986a2e8c389f0f25b45b03dbeece7c5a72270a8a234f383036f9019540a24",
+      "bytes": 26040
+    },
+    {
+      "path": "docs/figures/demo_kg.html",
+      "kind": "figure",
+      "description": "Self-contained interactive ego view",
+      "sha256": "07aec3343cf63b201b14ccea0ba0bcf30e3bee1aeee2c4117aa593e9f49f920e",
+      "bytes": 487897
+    },
+    {
+      "path": "docs/figures/demo_axis_agreement.svg",
+      "kind": "figure",
+      "description": "Axis-agreement heatmap; hatched cells are unmeasured",
+      "sha256": "987a40eccfdffe92ddc9888826a1532fab69b8b506742ca37f5f55ac3d1f4c7f",
+      "bytes": 13117
+    },
+    {
+      "path": "docs/figures/demo_citation_coverage.svg",
+      "kind": "figure",
+      "description": "Citation coverage per predicate",
+      "sha256": "e2c1b6602ae13a98697291f4ff1b0cfd4ae4be06005be015007e1258ce07c7a8",
+      "bytes": 4576
+    }
+  ],
+  "visuals": {
+    "stage": "stage1_literature",
+    "visualizations": [
+      {
+        "id": "V-KG-EGO",
+        "kind": "kg_subgraph",
+        "medium": "html_self_contained",
+        "title": "Target neighbourhood across the declared axes",
+        "question": "Which entities are closest to PXR (NR1I2) on each similarity axis, and how strong is each relationship?",
+        "takeaway": "34 entities within 2 hops, connected by 61 typed edges across 6 predicate families. Truncated: fan-out capped at uniprot:O75469 (+8 hidden).",
+        "path": "docs/figures/demo_kg.html",
+        "reads_from": [
+          "kg/nodes.jsonl",
+          "kg/edges.jsonl"
+        ],
+        "encoding": {
+          "node_fill": "node.type",
+          "node_size": "degree (capped)",
+          "edge_stroke": "predicate family (9 defined, at most 7 visible at once)",
+          "edge_dash": "predicate within family",
+          "edge_width": "axis score, normalised per axis to its declared score_range",
+          "edge_opacity": "confidence (4 levels)",
+          "ring_radius": "graph distance from the focal node"
+        },
+        "color_maps": [
+          {
+            "channel": "edge_stroke",
+            "data_field": "edge.predicate_family",
+            "scale_type": "categorical",
+            "mapping": {
+              "structural": "#0072B2",
+              "sequence": "#56B4E9",
+              "chemical": "#009E73",
+              "interaction": "#CC79A7",
+              "composition": "#454545",
+              "evidence": "#A6A6A6"
+            },
+            "secondary_channel": "edge_dash_pattern"
+          }
+        ],
+        "interactive": true,
+        "alt_text": "An interactive ego network centred on PXR (NR1I2). Concentric rings are graph distance; node shape and colour encode entity type; edge colour encodes one of 6 predicate families with dash pattern separating predicates inside a family; edge thickness is the similarity score normalised within its axis; edge opacity is confidence.",
+        "covers_metrics": [
+          "n_nodes",
+          "n_edges"
+        ],
+        "focal_node": "uniprot:O75469",
+        "n_elements": 95,
+        "params": {
+          "filtered": true,
+          "max_depth": 2,
+          "max_fanout": 30,
+          "hidden_by_default": [
+            "data",
+            "evidence"
+          ],
+          "n_nodes": 34,
+          "n_edges": 61
+        }
+      },
+      {
+        "id": "V-HEAT-01",
+        "kind": "heatmap",
+        "medium": "svg",
+        "title": "Axis agreement across the target's neighbours",
+        "question": "Do the similarity axes agree about which entities are close to the target?",
+        "takeaway": "Fold and sequence rank the same neighbours similarly, while the pocket, motif and compound axes are entirely unmeasured — the hatched columns are the work Stage 1 has not done yet.",
+        "path": "docs/figures/demo_axis_agreement.svg",
+        "reads_from": [
+          "kg/demo/nodes.jsonl",
+          "kg/demo/edges.jsonl"
+        ],
+        "encoding": {
+          "cell_fill": "normalised score",
+          "row": "entity",
+          "column": "axis or condition",
+          "hatched_cell": "not measured (never zero)"
+        },
+        "color_maps": [
+          {
+            "channel": "cell_fill",
+            "data_field": "normalised score",
+            "scale_type": "sequential",
+            "mapping": {},
+            "domain": [
+              0.19,
+              0.87
+            ]
+          }
+        ],
+        "interactive": false,
+        "alt_text": "A 12-row by 7-column heatmap of normalised score, shaded light to dark over 0.19 to 0.87. 66 cells are hatched to mark values that were not measured, as distinct from zero.",
+        "covers_metrics": [
+          "n_fold_neighbours"
+        ],
+        "n_elements": 84,
+        "params": {}
+      },
+      {
+        "id": "V-BAR-01",
+        "kind": "ranked_bar",
+        "medium": "svg",
+        "title": "Citation coverage by predicate",
+        "question": "Which kinds of assertion in this graph are backed by a citation?",
+        "takeaway": "Composition and interaction edges are fully cited; the similarity edges are uncited because they are placeholders, which is exactly the pattern a real harvest must not show.",
+        "path": "docs/figures/demo_citation_coverage.svg",
+        "reads_from": [
+          "kg/demo/edges.jsonl"
+        ],
+        "encoding": {
+          "bar_length": "fraction of edges with at least one citation",
+          "bar_order": "descending by value",
+          "bar_fill": "highlighted vs not"
+        },
+        "color_maps": [],
+        "interactive": false,
+        "alt_text": "A horizontal bar chart of 13 items ranked by fraction of edges with at least one citation, from 1 at the top down to 0.",
+        "covers_metrics": [
+          "cited_edge_fraction",
+          "n_family_members"
+        ],
+        "n_elements": 13,
+        "params": {}
+      }
+    ],
+    "reading_order": [
+      "V-KG-EGO",
+      "V-HEAT-01",
+      "V-BAR-01"
+    ]
+  },
+  "handoff": {
+    "to_stage": "stage2_biochem",
+    "ready": false,
+    "payload": {
+      "target": "uniprot:O75469",
+      "neighbours_by_axis": {
+        "fold": [
+          "uniprot:Q14994",
+          "uniprot:P11473",
+          "uniprot:Q96RI1",
+          "uniprot:P37231",
+          "uniprot:Q07869"
+        ],
+        "promiscuity": [
+          "uniprot:P08684",
+          "uniprot:P08183",
+          "uniprot:P11712",
+          "uniprot:P10635"
+        ]
+      },
+      "family_corpus": [
+        "uniprot:P10275",
+        "uniprot:Q14994",
+        "uniprot:P03372",
+        "uniprot:Q96RI1",
+        "uniprot:P04150",
+        "uniprot:P41235",
+        "uniprot:P55055",
+        "uniprot:Q07869",
+        "uniprot:Q03181",
+        "uniprot:P37231",
+        "uniprot:O75469",
+        "uniprot:P51449",
+        "uniprot:P11473"
+      ],
+      "pocket_anchors": [
+        "residue:uniprot:O75469/Ser247",
+        "residue:uniprot:O75469/Gln285",
+        "residue:uniprot:O75469/His407",
+        "residue:uniprot:O75469/Arg410",
+        "residue:uniprot:O75469/Phe288",
+        "residue:uniprot:O75469/Trp299",
+        "residue:uniprot:O75469/Tyr306"
+      ],
+      "priors": [
+        {
+          "claim": "Promiscuous non-family proteins are candidate transfer sources.",
+          "valid_for": "targets with a large, chemically permissive pocket",
+          "invalid_for": "targets with a small, shape-selective pocket"
+        }
+      ]
+    },
+    "recommended_actions": [
+      "Treat the pocket-lining residues in the payload as a starting hypothesis and rank them by recurrence across the family corpus, not by proximity.",
+      "Run the interaction profilers in pairs and report their concordance; a single profiler recovers only part of the canonical contact set."
+    ],
+    "blocking_unknowns": [
+      "No measured similarity scores exist yet, so template ranking is not possible from this graph.",
+      "No dataset pointers have been harvested, so there is nothing for data-materialize to fetch."
+    ]
+  },
+  "metrics": {
+    "n_nodes": 41,
+    "n_edges": 70,
+    "cited_edge_fraction": 0.657,
+    "n_family_members": 13,
+    "n_fold_neighbours": 5
+  },
+  "limitations": [
+    "Every similarity score is an illustrative placeholder, not a measurement.",
+    "Five of seven declared axes are unpopulated: pocket, motif, and compound have no edges; promiscuity and family carry only asserted membership.",
+    "No domain-shift measurement was performed, because the fixture has no test compound set — that measurement is Stage 1's most decision-relevant output and its absence here is the largest gap.",
+    "One characteristic Stage 1 figure is still missing: a provenance chain tracing a claim through its evidence to its sources. `reagent report validate --strict` therefore fails this report, correctly."
+  ],
+  "open_questions": [
+    "Do the fold and pocket axes agree for this target, or does high fold similarity coexist with dissimilar pockets?",
+    "Which promiscuous non-family neighbours have co-crystal structures usable as templates, and is templating permitted by the challenge rules?",
+    "What is the chemotype distance between the test compounds and every known ligand of the target, and is that distribution bimodal?"
+  ],
+  "decision_ids": []
+}

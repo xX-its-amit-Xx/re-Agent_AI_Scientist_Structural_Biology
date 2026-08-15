@@ -22,13 +22,16 @@ reverse-engineered in
 
 ## The two ideas that make this different
 
-**1. Every stage must show its work.** A `Visualization` is a required, typed,
-validated field of the Model Report — not a nice-to-have. Each figure must
-declare the *question* it answers, its *visual grammar* (which data channel drives
-which visual channel), and the *artifacts* it was drawn from. A figure that
-cannot state its question is rejected by the validator. This is a direct response
-to the fact that AI pipelines are usually opaque: you get a number and a
+**1. Every stage must show its work.** `Visualization` is a typed, validated field
+of the Model Report, and `reagent report validate --strict` — the gate before any
+handoff — fails a stage that is missing its characteristic figures. Each figure
+must declare the *question* it answers, its *visual grammar* (which data channel
+drives which visual channel), and the *artifacts* it was drawn from. A figure whose
+question is not phrased as a question is rejected outright. This is a direct
+response to the fact that AI pipelines are usually opaque: you get a number and a
 paragraph, and no way to see whether either is real.
+
+(Non-strict validation only warns, so a mid-stage exploratory run is not blocked.)
 
 **2. Creativity is gated, not improvised.** Stage 0 deliberately sends subagents
 into unrelated fields — quantitative finance, cybersecurity, art, ecology — to
@@ -62,8 +65,21 @@ uv pip install -e ".[dev,graph]"
 reagent skills index                 # build the machine-readable skill registry
 reagent problem new --domain structural_biology --task complex_prediction \
     --target uniprot:O75469 --name "OpenADMET PXR"
-reagent run stage0 --run-id <run-id>
+reagent report new --stage stage0_scouting --run-id <run-id> --owner amit
+# ... an agent now invokes the Stage 0 skills and fills in the report ...
 reagent triage reports/<run-id>/stage0/proposals.json
+reagent report render reports/<run-id>/stage0_scouting/report.json
+```
+
+There is no `reagent run` command, on purpose. The CLI owns the typed artifacts —
+scaffolding, validating, rendering, querying, gating — and an agent owns execution
+by invoking skills. A `run` command would have to encode the scientific judgement
+that is the entire point of the skills.
+
+See the whole thing working on a fixture:
+
+```bash
+python examples/seed_demo_graph.py     # seeds a graph and renders the ego view
 ```
 
 Or drive it conversationally in Claude Code, which is the intended mode:
@@ -79,8 +95,10 @@ Or drive it conversationally in Claude Code, which is the intended mode:
   ai-scientist/            top-level orchestrator; plans stages, enforces gates
   pipeline-space-scouting/ Stage 0: map the method landscape
   cross-domain-analogy/    Stage 0: borrow mechanisms from other fields
-  literature-harvest/      shared: literature -> typed graph deltas
-  protein-neighborhood/    Stage 1: the similarity axes
+  literature-harvest/      shared: indexed full text -> typed graph deltas
+  source-scout/            Stage 1: patents, repos, Zenodo, Kaggle, grey literature
+  data-materialize/        shared: resolve dataset pointers into local files
+  target-neighborhood/     Stage 1: the similarity axes
   compound-neighborhood/   Stage 1: chemical space + domain shift
   esmc-sae-motifs/         Stage 1: learned structural motifs
   kg-visualize/            shared: the graph, made legible
@@ -98,12 +116,18 @@ src/reagent/
     problem.py             ProblemSpec: target, domain, metric, similarity axes
     report.py              ModelReport: the stage deliverable
     kg.py                  Node / Edge / GraphDelta, controlled predicate vocabulary
-    viz.py                 Visualization: required, with a declared question
+    viz.py                 Visualization: a figure must declare its question
     proposal.py            Proposal / AnalogyCard / DecisionLedger
+    data.py                DataRef / FetchPlan: discover now, download later
   domains/               pluggable per-domain definitions of "what counts as similar"
   kg/                    JSONL source of truth + SQLite query layer
-  reports/               renderers
+  viz/                   self-contained graph renderer + Obsidian exporter
+  reports/               Model Report scaffolding and HTML rendering
+  skills.py              registry generation and data-flow linting
   cli.py                 the `reagent` command
+
+assets/vendor/           third-party JS, inlined at render time (never fetched)
+data/cache/              materialised datasets (gitignored, disposable)
 
 kg/                      nodes.jsonl, edges.jsonl — append-only, git-diffable
 reports/<run-id>/        validated Model Reports per stage
@@ -126,16 +150,26 @@ The validators reject things on purpose:
 - A `Finding` of kind `observation` with no `Evidence` — an unciteable claim
   cannot be checked by the next agent.
 - A `Finding` above `speculative` whose only support is a cross-domain analogy.
-- A `Finding` claiming `established` with fewer than two independent sources.
-- A `Visualization` whose `question` is not a question.
+- A `Finding` claiming `established` with fewer than two independent sources, or
+  resting on grey literature alone.
+- A `Visualization` whose `question` is not a question, or whose `takeaway` merely
+  restates it.
 - A `ColorMap` assigning more than 8 categories to colour alone with no redundant
   channel — beyond that, colour is not discriminable.
-- A `GraphDelta` with a dangling edge endpoint, or an `Analogy` node that does not
-  name the domain it came from.
-- A `Proposal` claiming novelty with no prior-art search recorded.
+- A `GraphDelta` written with a dangling edge endpoint, an edge whose predicate
+  cannot connect those node types, or an `Analogy` node that does not name the
+  domain it came from.
+- A `Proposal` whose `mutates` names nothing specific, or that claims
+  `UNPRECEDENTED` novelty with no prior-art search recorded.
+- A `DataRef` behind a registration or API-key wall with no `fetch_hint`.
 
 Each of these is a failure mode we expect from an LLM writing science, made
 mechanically impossible rather than discouraged in a prompt.
+
+Two things are deliberately *warnings* rather than errors, because making them
+fatal would block legitimate mid-stage work: a report with no figures, and a
+headline metric that no figure reads from. `--strict` promotes both, and `--strict`
+is the gate before a handoff.
 
 ## For teammates starting a stage
 

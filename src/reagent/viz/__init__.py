@@ -5,7 +5,16 @@ a remote font, or a runtime fetch. Third-party JavaScript is vendored under
 ``assets/vendor/`` and inlined at render time.
 """
 
+from .charts import heatmap, histogram, ranked_bar, scatter
 from .graph_html import extract_ego, render
 from .obsidian import export as export_obsidian
 
-__all__ = ["export_obsidian", "extract_ego", "render"]
+__all__ = [
+    "export_obsidian",
+    "extract_ego",
+    "heatmap",
+    "histogram",
+    "ranked_bar",
+    "render",
+    "scatter",
+]

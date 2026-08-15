@@ -86,19 +86,35 @@ STRUCTURAL_BIOLOGY_AXES: list[AxisSpec] = [
             "Operationalise as measured breadth of BINDS — distinct chemotypes, not a "
             "literature adjective. Promiscuous proteins outside the target's family are "
             "often the most useful transfer sources, because they share the *problem* "
-            "(a large adaptable pocket) without sharing the fold."
+            "(a large adaptable pocket) without sharing the fold. "
+            "IMPORTANT: every listed method yields an UNBOUNDED count, but this axis "
+            "declares a 0-1 range, so you must apply and record a normalisation. Use "
+            "either rank-percentile within the candidate set, or "
+            "log1p(n_chemotypes)/log1p(max_in_set); put which one in the edge attrs as "
+            "`breadth_transform`. Two runs using different transforms produce "
+            "incomparable graphs."
         ),
     ),
     AxisSpec(
         name="family",
         question="Which proteins are in the target's family or superfamily?",
         predicate="MEMBER_OF_FAMILY",
-        score_key="confidence_numeric",
+        # Family membership is categorical, not graded. There is no honest similarity
+        # score here, so the axis declares `membership` (1.0 = asserted member) and the
+        # renderer draws every family edge at the same width — which is correct, since
+        # varying the width would imply a gradation that does not exist.
+        score_key="membership",
         score_range=(0.0, 1.0),
         methods=["pfam", "interpro", "uniprot-family", "rcsb-search"],
         notes=(
             "The most reliable axis and the least surprising. Its value is coverage: it "
-            "defines the corpus a downstream fine-tune can be weighted over."
+            "defines the corpus a downstream fine-tune is weighted over. "
+            "Membership is categorical — set `membership: 1.0` and put the real "
+            "confidence in the edge's `confidence` field, not in the score. "
+            "NOTE ON THE CORPUS: MEMBER_OF_FAMILY connects Protein to Family, so it "
+            "cannot itself carry a corpus of *structure* entries. The structure corpus "
+            "rides on HAS_STRUCTURE and CO_CRYSTALLIZED_WITH edges from the family's "
+            "member proteins; this axis identifies the members."
         ),
     ),
     AxisSpec(
@@ -146,7 +162,7 @@ DEL_ML_AXES: list[AxisSpec] = [
         name="target_class",
         question="Which other targets are in the same class as this selection's target?",
         predicate="MEMBER_OF_FAMILY",
-        score_key="confidence_numeric",
+        score_key="membership",
         score_range=(0.0, 1.0),
         methods=["chembl-target-class", "pfam", "uniprot-family"],
     ),
@@ -252,7 +268,7 @@ PROTEIN_DESIGN_AXES: list[AxisSpec] = [
         name="family",
         question="What is the target's family, and which members already have binders?",
         predicate="MEMBER_OF_FAMILY",
-        score_key="confidence_numeric",
+        score_key="membership",
         score_range=(0.0, 1.0),
         methods=["pfam", "interpro"],
     ),

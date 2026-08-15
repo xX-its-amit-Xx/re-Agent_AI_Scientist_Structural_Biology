@@ -242,7 +242,11 @@ def check_handoffs(registry: dict[str, Any]) -> list[str]:
     three stages against an imagined interface. A `consumes` with no producer is
     a stage that will fail at run time, discovered now instead of on demo day.
     """
-    produced: set[str] = set()
+    # External inputs legitimately have no producing skill: they enter the pipeline
+    # from outside it, written by a human or by the CLI. Without this the lint warns
+    # about every stage that reads the problem definition, which trains people to
+    # ignore the lint.
+    produced: set[str] = {"problem.spec", "decisions.pending"}
     for s in registry["skills"].values():
         produced.update(s.get("produces", []))
 

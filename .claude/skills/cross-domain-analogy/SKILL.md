@@ -39,8 +39,10 @@ output small, concrete, and falsifiable instead.
 - **Abstract before mapping.** Write `AnalogyCard.mechanism` so a reader cannot
   tell which domain it came from. If you cannot, you have found a surface
   resemblance ("proteins fold, origami folds") rather than a mechanism, and it
-  will not transfer. The contract rejects a mechanism that merely restates the
-  source practice.
+  will not transfer. The contract rejects a mechanism reusing more than 80 % of the
+  source practice's words — but that only catches the lazy case. A determined
+  paraphrase passes the check and still fails to transfer, so the real test is
+  whether you can state the `structural_precondition` without naming the domain.
 - **Every card needs a `structural_precondition`** — what must be true of a
   problem for the mechanism to help. This is the field that makes the analogy
   *checkable*, and it is where most candidates die. That is the point.

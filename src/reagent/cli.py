@@ -167,6 +167,42 @@ def cmd_report_validate(args: argparse.Namespace) -> int:
     return 1 if failures else 0
 
 
+def cmd_report_new(args: argparse.Namespace) -> int:
+    from reagent.contracts import Stage
+    from reagent.reports.scaffold import write_scaffold
+
+    try:
+        stage = Stage(args.stage)
+    except ValueError:
+        _err(f"unknown stage {args.stage!r}; one of {[s.value for s in Stage]}")
+        return 2
+    spec = None
+    spec_path = Path("reports") / args.run_id / "problem.json"
+    if spec_path.is_file():
+        spec = ProblemSpec.load(spec_path)
+    path = write_scaffold(stage, args.run_id, title=args.title, owner=args.owner, spec=spec)
+    print(f"wrote {path}")
+    print("  This scaffold is intentionally INVALID until you edit it — every")
+    print("  required field holds a TODO. Run `reagent report validate` as you go.")
+    return 0
+
+
+def cmd_report_render(args: argparse.Namespace) -> int:
+    from reagent.reports import render as render_report
+
+    try:
+        report = ModelReport.load(Path(args.path))
+    except Exception as exc:
+        _err(f"{args.path} is not a valid ModelReport:\n{exc}")
+        return 1
+    out = Path(args.out) if args.out else Path("docs/reports") / f"{report.report_id}.html"
+    path = render_report(report, out)
+    print(f"wrote {path}  ({path.stat().st_size / 1024:.0f} KB)")
+    if gaps := report.visual_gaps():
+        print(f"  warn  missing characteristic figures: {gaps}")
+    return 0
+
+
 # --------------------------------------------------------------------------
 # kg
 # --------------------------------------------------------------------------
@@ -405,6 +441,16 @@ def build_parser() -> argparse.ArgumentParser:
     v.add_argument("--strict", action="store_true",
                    help="promote visual/handoff/limitation warnings to failures (use in CI)")
     v.set_defaults(func=cmd_report_validate)
+    rn = rp.add_parser("new", help="scaffold a report skeleton (intentionally invalid until edited)")
+    rn.add_argument("--stage", required=True)
+    rn.add_argument("--run-id", required=True)
+    rn.add_argument("--title", default=None)
+    rn.add_argument("--owner", default=None)
+    rn.set_defaults(func=cmd_report_new)
+    rr = rp.add_parser("render", help="render a report to self-contained HTML")
+    rr.add_argument("path")
+    rr.add_argument("-o", "--out", default=None)
+    rr.set_defaults(func=cmd_report_render)
 
     # kg
     kg = sub.add_parser("kg", help="knowledge graph").add_subparsers(dest="sub", required=True)

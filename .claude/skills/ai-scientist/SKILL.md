@@ -44,9 +44,9 @@ yourself — you route.
 | Stage | Question it answers | Owner | Skills |
 |---|---|---|---|
 | 0 · Scouting | How has this problem been solved? What is state of the art, what is broken? | Amit | `pipeline-space-scouting`, `cross-domain-analogy` |
-| 1 · Literature | What is like our target, on every axis? | Amit | `protein-neighborhood`, `compound-neighborhood`, `literature-harvest`, `esmc-sae-motifs` |
+| 1 · Literature | What is like our target, on every axis? | Amit | `target-neighborhood`, `compound-neighborhood`, `source-scout`, `literature-harvest`, `esmc-sae-motifs` |
 | 2 · Biochem | Which atoms actually matter, and does the pocket move? | Denny | `pocket-anatomy`, `pocket-dynamics` |
-| 3 · Prior | Which models, templates, samples, and scores? | Sumer | `structure-prediction-ensemble`, `confidence-selection`, `template-and-finetune` |
+| 3 · Prior | Which models, templates, samples, and scores? | Sumer | `structure-ensemble`, `confidence-selection`, `template-and-finetune` |
 | 4 · Optimization | Can we squeeze the last tenth out? | Amit | `medchem-pass`, `dock-and-minimize` |
 
 Stage 0 is not preamble. It is where the pipeline architecture is chosen, and
@@ -72,11 +72,17 @@ it and guessing wastes the whole run.
 
 ### Step 2 — Stage 0, always
 
+Write the `ProblemSpec` first, because every stage reads it:
+
 ```bash
-reagent run stage0 --brief briefs/<challenge>.md
+reagent problem new --name "<challenge>" --domain <domain> --task <task> \
+    --target <namespaced-id> --metric "<metric>" --metric-def "<how it is computed>"
+reagent report new --stage stage0_scouting --run-id <run-id> --owner <you>
 ```
 
-Invoke `pipeline-space-scouting` first, then `cross-domain-analogy`. Scouting
+There is no `reagent run` — stage execution is *your* job, by invoking skills. The
+CLI only handles the typed artifacts. Invoke `pipeline-space-scouting` first, then
+`cross-domain-analogy`. Scouting
 produces the *method landscape*; analogy produces *candidate mutations* to it.
 Running analogy first produces untethered ideas — order matters.
 
@@ -97,12 +103,14 @@ target structure and can run concurrently; Stage 3 needs both.
 
 ### Step 4 — Execute stage by stage, chaining reports
 
-Each stage reads its predecessors' reports and writes its own:
+Each stage reads its predecessors' reports and writes its own. You invoke the
+stage's skills; the CLI scaffolds, validates, and renders the artifact:
 
 ```bash
-reagent run stage1 --run-id <run-id>          # writes reports/<run-id>/stage1/report.json
-reagent report validate reports/<run-id>/stage1/report.json
-reagent report render  reports/<run-id>/stage1/report.json -o docs/reports/
+reagent report new --stage stage1_literature --run-id <run-id> --owner amit
+# ... invoke the stage's skills, filling in the report as you go ...
+reagent report validate --strict reports/<run-id>/stage1_literature/report.json
+reagent report render reports/<run-id>/stage1_literature/report.json
 ```
 
 Delegate a stage you do not own to a subagent with the `Agent` tool, giving it:

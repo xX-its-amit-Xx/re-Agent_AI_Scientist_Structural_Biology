@@ -108,16 +108,24 @@ class KGStore:
     # -- writing --------------------------------------------------------
 
     def merge(self, delta: GraphDelta, *, strict: bool = True) -> list[str]:
-        """Validate then append a delta. Returns the problem list.
+        """Validate against the full graph, then append. Returns the problem list.
 
-        With ``strict=True`` (the default) a delta with any referential problem
-        is rejected wholesale rather than partially written — a half-merged
-        delta is much worse to debug than a rejected one.
+        With ``strict=True`` (the default) a delta with any referential problem is
+        rejected wholesale rather than partially written — a half-merged delta is
+        much worse to debug than a rejected one.
+
+        This is the sanctioned write path because it is the only one that knows the
+        *stored* nodes and their types, so an edge attaching to a pre-existing node
+        gets endpoint type-checking too.
         """
-        problems = delta.validate_referential_integrity(known_ids=self.node_ids())
+        problems = delta.validate_referential_integrity(
+            known_ids=self.node_ids(), known_types=self.node_types()
+        )
         if problems and strict:
             return problems
-        delta.write_jsonl(self.root)
+        # Already validated above with full graph knowledge; re-validating inside
+        # write_jsonl would fail on endpoints that exist only in the stored graph.
+        delta.write_jsonl(self.root, validate=False)
         self._invalidate()
         return problems
 
@@ -137,6 +145,20 @@ class KGStore:
                 line = line.strip()
                 if line:
                     out.add(json.loads(line)["id"])
+        return out
+
+    def node_types(self) -> dict[str, str]:
+        """Map stored node id -> type name, so a delta's edges can be type-checked
+        against endpoints that exist only in the stored graph."""
+        if not self.nodes_path.exists():
+            return {}
+        out: dict[str, str] = {}
+        with self.nodes_path.open("r", encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if line:
+                    rec = json.loads(line)
+                    out[rec["id"]] = rec["type"]
         return out
 
     def iter_nodes(self) -> Iterable[Node]:

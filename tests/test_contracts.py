@@ -551,7 +551,8 @@ def test_decision_must_be_attributable(tmp_path):
 
 
 def test_mechanism_must_be_abstracted():
-    with pytest.raises(ValidationError, match="abstract it"):
+    # Verbatim restatement.
+    with pytest.raises(ValidationError, match="paraphrase rather than an abstraction"):
         AnalogyCard(
             id="analogy:art/collage",
             source_domain="visual art",
@@ -561,6 +562,37 @@ def test_mechanism_must_be_abstracted():
             structural_precondition="The problem must involve combining parts into a whole.",
             discovered_by="test",
         )
+    # A light paraphrase must also fail — this is what string equality missed.
+    with pytest.raises(ValidationError, match="paraphrase rather than an abstraction"):
+        AnalogyCard(
+            id="analogy:art/collage2",
+            source_domain="visual art",
+            source_practice="combining fragments of different images into one composition",
+            mechanism=(
+                "the practice of combining fragments taken from different images "
+                "together into a single composition"
+            ),
+            why_it_works_there="It creates novel juxtapositions.",
+            structural_precondition="The problem must involve combining parts into a whole.",
+            discovered_by="test",
+        )
+    # A genuine abstraction passes: no noun from the source domain survives.
+    ok = AnalogyCard(
+        id="analogy:art/collage3",
+        source_domain="visual art",
+        source_practice="combining fragments of different images into one composition",
+        mechanism=(
+            "Assembling a whole from parts drawn out of unrelated wholes preserves "
+            "properties of each part while creating relationships that none of the "
+            "originals contained."
+        ),
+        why_it_works_there="It creates novel juxtapositions.",
+        structural_precondition=(
+            "The parts must retain meaning when removed from their original context."
+        ),
+        discovered_by="test",
+    )
+    assert ok.id.endswith("collage3")
 
 
 # --------------------------------------------------------------------------

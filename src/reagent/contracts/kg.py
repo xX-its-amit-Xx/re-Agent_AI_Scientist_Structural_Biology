@@ -144,19 +144,79 @@ PREDICATE_DOMAINS: dict[Predicate, tuple[set[NodeType] | None, set[NodeType] | N
 }
 
 
+#: The rest of the vocabulary. Kept as a separate update block only because it was
+#: added later; semantically it is one table. **Every predicate must appear here.**
+#: A predicate absent from this table gets no endpoint type-checking at all, which
+#: means a delta can quietly attach a Compound to a Family and nothing complains
+#: until a downstream query returns nonsense.
 PREDICATE_DOMAINS.update({
-    Predicate.HAS_DATA: (None, {NodeType.DATASET}),
-    Predicate.DATASET_COVERS: ({NodeType.DATASET}, None),
-    Predicate.DERIVED_FROM: ({NodeType.DATASET}, {NodeType.DATASET, NodeType.PAPER}),
+    # similarity
+    Predicate.SHARES_MOTIF: (
+        {NodeType.PROTEIN, NodeType.STRUCTURE, NodeType.POCKET, NodeType.COMPOUND},
+        {NodeType.MOTIF},
+    ),
     Predicate.SHARES_SCAFFOLD: (
         {NodeType.COMPOUND, NodeType.FRAGMENT},
         {NodeType.COMPOUND, NodeType.FRAGMENT},
     ),
-    Predicate.HAS_FRAGMENT: (
-        {NodeType.COMPOUND},
-        {NodeType.FRAGMENT, NodeType.MOTIF},
+    Predicate.SIMILAR_ASSAY_TO: ({NodeType.ASSAY}, {NodeType.ASSAY}),
+    # composition
+    Predicate.HAS_MOTIF: (
+        {NodeType.PROTEIN, NodeType.STRUCTURE, NodeType.POCKET, NodeType.COMPOUND},
+        {NodeType.MOTIF},
     ),
+    Predicate.HAS_FRAGMENT: ({NodeType.COMPOUND}, {NodeType.FRAGMENT, NodeType.MOTIF}),
+    # interaction
+    Predicate.CO_CRYSTALLIZED_WITH: (
+        {NodeType.STRUCTURE, NodeType.PROTEIN},
+        {NodeType.COMPOUND, NodeType.FRAGMENT},
+    ),
+    Predicate.MODULATES: ({NodeType.PROTEIN, NodeType.COMPOUND}, {NodeType.PROTEIN}),
+    Predicate.COMPETES_WITH: (
+        {NodeType.COMPOUND, NodeType.FRAGMENT},
+        {NodeType.COMPOUND, NodeType.FRAGMENT},
+    ),
+    # epistemics
+    Predicate.MEASURED_IN: (None, {NodeType.ASSAY}),
+    # data availability
+    Predicate.HAS_DATA: (
+        {NodeType.PROTEIN, NodeType.COMPOUND, NodeType.ASSAY, NodeType.STRUCTURE,
+         NodeType.FAMILY, NodeType.METHOD},
+        {NodeType.DATASET},
+    ),
+    Predicate.DATASET_COVERS: ({NodeType.DATASET}, None),
+    Predicate.MEASURED_BETWEEN: (
+        {NodeType.ASSAY},
+        {NodeType.PROTEIN, NodeType.COMPOUND, NodeType.FRAGMENT, NodeType.POCKET},
+    ),
+    Predicate.DERIVED_FROM: ({NodeType.DATASET}, {NodeType.DATASET, NodeType.PAPER}),
+    # method / pipeline space
+    Predicate.USED_IN: ({NodeType.METHOD}, {NodeType.PIPELINE_STEP}),
+    Predicate.EVALUATED_ON: ({NodeType.METHOD}, {NodeType.ASSAY, NodeType.DATASET}),
+    Predicate.OUTPERFORMS: (
+        {NodeType.METHOD, NodeType.PIPELINE_STEP},
+        {NodeType.METHOD, NodeType.PIPELINE_STEP},
+    ),
+    Predicate.FAILS_ON: (
+        {NodeType.METHOD, NodeType.PIPELINE_STEP},
+        None,  # a failure mode can be almost anything: a subpopulation, an assay, a motif
+    ),
+    Predicate.ALTERNATIVE_TO: (
+        {NodeType.METHOD, NodeType.PIPELINE_STEP},
+        {NodeType.METHOD, NodeType.PIPELINE_STEP},
+    ),
+    # cross-domain innovation
+    Predicate.INSPIRES: ({NodeType.ANALOGY}, {NodeType.PIPELINE_STEP, NodeType.METHOD}),
 })
+
+
+def unconstrained_predicates() -> list[str]:
+    """Predicates with no entry in PREDICATE_DOMAINS. Should always be empty.
+
+    Exercised by the test suite so that adding a predicate without registering its
+    endpoint types fails CI rather than silently disabling type-checking for it.
+    """
+    return sorted(p.value for p in Predicate if p not in PREDICATE_DOMAINS)
 
 
 class PredicateFamily(str, Enum):
@@ -303,7 +363,14 @@ class Node(BaseModel):
         Motif     -> ``motif:sae/esmc-6b/L24-F3097`` or ``motif:prosite/PS51843``
         Paper     -> ``doi:10.1016/j.cell.2004.01.008`` / ``pmid:...`` / ``patent:US...``
         Family    -> ``family:NR1I`` , ``family:nuclear-receptor``
+        Residue   -> ``residue:uniprot:O75469/Ser247``
+        Assay     -> ``assay:chembl:CHEMBL1613777``
+        Dataset   -> ``zenodo:10.5281/zenodo.1234567`` , ``hf:owner/name`` ,
+                     ``github:owner/repo#path/to/file.csv`` , ``kaggle:comp-slug``
+                     (the DataRef id doubles as the node id — see contracts.data)
+        Fragment  -> ``fragment:smarts:[CX3](=O)[OX2H1]`` , ``fragment:murcko:<smiles>``
         Method    -> ``method:boltz-2.1``
+        PipelineStep -> ``step:pose-selection`` , ``step:sampling``
         Analogy   -> ``analogy:finance/regime-switching-ensemble``
         Domain    -> ``domain:quantitative-finance``
     """
@@ -360,14 +427,25 @@ class GraphDelta(BaseModel):
     edges: list[Edge] = Field(default_factory=list)
     notes: list[str] = Field(default_factory=list)
 
-    def validate_referential_integrity(self, known_ids: Iterable[str] = ()) -> list[str]:
+    def validate_referential_integrity(
+        self,
+        known_ids: Iterable[str] = (),
+        known_types: dict[str, str] | None = None,
+    ) -> list[str]:
         """Return a list of problems. Empty list means the delta is safe to merge.
 
-        Checked here rather than at write time so a skill can fix its own delta
-        before polluting the graph.
+        Exposed separately from writing so a skill can inspect and fix its own delta
+        before touching the graph — but ``write_jsonl`` also calls it by default, so
+        a caller cannot skip it by accident.
+
+        ``known_types`` maps already-stored node ids to their type names. Without it,
+        predicate type-checking is blind to edges whose endpoints live only in the
+        existing graph, which is the common case for an incremental delta.
         """
         problems: list[str] = []
         ids = {n.id for n in self.nodes} | set(known_ids)
+        types: dict[str, str] = dict(known_types or {})
+        types.update({n.id: n.type.value for n in self.nodes})
 
         for n in self.nodes:
             if n.type is NodeType.ANALOGY and not any(
@@ -384,23 +462,41 @@ class GraphDelta(BaseModel):
                     problems.append(
                         f"edge {e.key} references unknown {side} node {endpoint!r}"
                     )
+            # Type-check against the merged view (delta nodes plus already-stored
+            # ones), so an incremental delta attaching to existing nodes is checked
+            # too — that is the common case, and it used to be unchecked.
             allowed = PREDICATE_DOMAINS.get(e.predicate)
             if allowed:
                 src_ok, dst_ok = allowed
-                by_id = {n.id: n for n in self.nodes}
-                s, d = by_id.get(e.src), by_id.get(e.dst)
-                if src_ok and s and s.type not in src_ok:
+                s_type, d_type = types.get(e.src), types.get(e.dst)
+                if src_ok and s_type and s_type not in {t.value for t in src_ok}:
                     problems.append(
-                        f"edge {e.key}: {e.predicate.value} cannot start at a {s.type.value}"
+                        f"edge {e.key}: {e.predicate.value} cannot start at a {s_type}"
                     )
-                if dst_ok and d and d.type not in dst_ok:
+                if dst_ok and d_type and d_type not in {t.value for t in dst_ok}:
                     problems.append(
-                        f"edge {e.key}: {e.predicate.value} cannot end at a {d.type.value}"
+                        f"edge {e.key}: {e.predicate.value} cannot end at a {d_type}"
                     )
         return problems
 
-    def write_jsonl(self, out_dir: Path) -> tuple[Path, Path]:
-        """Append this delta to the graph files."""
+    def write_jsonl(self, out_dir: Path, *, validate: bool = True) -> tuple[Path, Path]:
+        """Append this delta to the graph files.
+
+        Validates first by default. Passing ``validate=False`` is only correct when
+        the caller has already validated against the full graph — which is what
+        ``KGStore.merge`` does, since it knows the existing node ids and types and
+        this method does not. Writing an unvalidated delta puts dangling edges into
+        the source of truth, and they are much harder to find later than to reject now.
+        """
+        if validate:
+            problems = self.validate_referential_integrity()
+            if problems:
+                raise ValueError(
+                    "refusing to write an invalid GraphDelta:\n  "
+                    + "\n  ".join(problems)
+                    + "\n(if the endpoints exist in the stored graph, call KGStore.merge "
+                    "instead — it validates against the full graph)"
+                )
         out_dir.mkdir(parents=True, exist_ok=True)
         npath, epath = out_dir / "nodes.jsonl", out_dir / "edges.jsonl"
         with npath.open("a", encoding="utf-8") as fh:

@@ -90,10 +90,17 @@ class SourceType(str, Enum):
 
     @property
     def is_grey(self) -> bool:
-        """Unreviewed sources. Usable, but never sufficient alone for 'established'."""
+        """Unreviewed sources. Usable, but never sufficient alone for 'established'.
+
+        ``CODE_REPO`` counts as grey even though it sits in the structured-data block
+        above, because the thing being cited is usually a claim in a README or an
+        issue rather than a measurement. A repository's *data* is a `DATASET`; a
+        repository's *assertion about its own performance* is grey, and treating a
+        self-reported benchmark as consensus is exactly the mistake this guards.
+        """
         return self in {
             SourceType.BLOG, SourceType.SOCIAL, SourceType.DOCS,
-            SourceType.TALK, SourceType.COMPETITION,
+            SourceType.TALK, SourceType.COMPETITION, SourceType.CODE_REPO,
         }
 
 
@@ -362,15 +369,37 @@ class ModelReport(BaseModel):
         return [k.value for k in missing_expected(self.stage.value, self.visuals)]
 
     def unvisualized_metrics(self) -> list[str]:
-        """Headline metrics that no figure reads from. A number nobody can see is a claim."""
+        """Headline metrics that no figure shows. A number nobody can see is a claim.
+
+        Primarily reads each figure's declared ``covers_metrics``. A text fallback
+        catches the case where an author populated the captions but not the
+        declaration — it is deliberately generous, because a false "this is
+        unvisualized" warning is more annoying than a missed one, and the declaration
+        is the mechanism we actually want people to use.
+        """
         if self.visuals is None:
             return list(self.metrics)
-        mentioned = " ".join(
-            f"{v.question} {v.takeaway} {' '.join(v.encoding.values())}"
+
+        declared: set[str] = set()
+        for v in self.visuals.visualizations:
+            declared.update(v.covers_metrics)
+
+        remaining = [k for k in self.metrics if k not in declared]
+        if not remaining:
+            return []
+
+        haystack = " ".join(
+            f"{v.question} {v.takeaway} {' '.join(v.encoding.values())} "
+            f"{' '.join(str(x) for x in v.params.values())}"
             for v in self.visuals.visualizations
         ).lower()
-        return [k for k in self.metrics if k.lower().replace("_", " ") not in mentioned
-                and k.lower() not in mentioned]
+        # Match on the metric's meaningful words, ignoring a leading count prefix,
+        # so `n_fold_neighbours` is satisfied by a caption saying "fold neighbours".
+        def shown(key: str) -> bool:
+            words = [w for w in key.lower().lstrip("n_").split("_") if len(w) > 2]
+            return bool(words) and all(w in haystack for w in words)
+
+        return [k for k in remaining if not shown(k)]
 
     def grounded_findings(self) -> list[Finding]:
         return [

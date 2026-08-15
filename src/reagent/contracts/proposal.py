@@ -32,6 +32,18 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 from .report import Stage
 
+#: Answers to `Proposal.mutates` that name no specific thing to change. A proposal
+#: that mutates "everything" cannot be reviewed, costed, or reverted.
+#:
+#: Defined at module level rather than as a class attribute because pydantic treats
+#: a leading-underscore class attribute as a private attribute, which then is not a
+#: plain frozenset at validation time.
+VAGUE_MUTATES = frozenset({
+    "the whole pipeline", "whole pipeline", "the pipeline", "pipeline",
+    "everything", "all of it", "the approach", "the method", "the model",
+    "tbd", "todo", "n/a", "-",
+})
+
 
 class Novelty(str, Enum):
     ESTABLISHED_PRACTICE = "established_practice"  # everyone in the field does this
@@ -77,12 +89,34 @@ class AnalogyCard(BaseModel):
 
     @model_validator(mode="after")
     def _mechanism_is_abstract(self) -> AnalogyCard:
-        # A cheap but surprisingly effective guard: the mechanism should not
-        # simply restate the source practice verbatim.
-        if self.mechanism.strip().lower() == self.source_practice.strip().lower():
+        """Reject a mechanism that merely paraphrases the source practice.
+
+        A token-overlap check rather than string equality, because a scout that
+        changes three words would sail past an equality test while having done none
+        of the abstraction work. This is still a weak guard — a determined
+        paraphrase passes — so the real check is the reviewer reading the card. It
+        catches the common lazy case, which is the most it should claim to do.
+        """
+        def tokens(s: str) -> set[str]:
+            return {
+                w for w in "".join(
+                    c.lower() if c.isalnum() else " " for c in s
+                ).split()
+                if len(w) > 3
+            }
+
+        mech, practice = tokens(self.mechanism), tokens(self.source_practice)
+        if not practice:
+            return self
+        overlap = len(mech & practice) / len(practice)
+        if overlap > 0.8:
+            shared = sorted(mech & practice)
             raise ValueError(
-                f"analogy {self.id}: `mechanism` restates `source_practice` — abstract it "
-                "into domain-neutral terms first"
+                f"analogy {self.id}: `mechanism` reuses {overlap:.0%} of the words in "
+                f"`source_practice` ({shared}), so it is a paraphrase rather than an "
+                "abstraction. Rewrite it so a reader cannot tell which domain it came "
+                "from — if nothing survives that rewrite, the analogy is a surface "
+                "resemblance and will not transfer."
             )
         return self
 
@@ -140,6 +174,18 @@ class Proposal(BaseModel):
 
     proposed_by: str
     created_utc: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+    @field_validator("mutates")
+    @classmethod
+    def _mutates_is_specific(cls, v: str) -> str:
+        cleaned = v.strip().rstrip(".").lower()
+        if cleaned in VAGUE_MUTATES or len(cleaned) < 8:
+            raise ValueError(
+                f"`mutates` is {v!r}, which names nothing specific. Name the pipeline "
+                "step, skill, or parameter this replaces or adds — a proposal whose "
+                "target is 'the whole pipeline' cannot be reviewed, costed, or reverted."
+            )
+        return v.strip()
 
     @model_validator(mode="after")
     def _unprecedented_needs_justification(self) -> Proposal:
