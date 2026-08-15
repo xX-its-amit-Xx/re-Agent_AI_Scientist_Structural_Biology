@@ -1,0 +1,18 @@
+{
+  "stage": "stage1_literature",
+  "owner": "amit",
+  "status": "stub",
+  "summary": "Chemical space around the test items; quantifies train/test chemotype shift.",
+  "consumes": [
+    "problem.spec"
+  ],
+  "produces": [
+    "stage1.compound_neighbourhood",
+    "stage1.chemotype_split"
+  ],
+  "external_tools": [
+    "rdkit",
+    "chembl"
+  ],
+  "credits": []
+}

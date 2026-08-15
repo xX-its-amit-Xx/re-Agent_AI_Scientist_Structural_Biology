@@ -1,0 +1,71 @@
+[project]
+name = "reagent"
+version = "0.1.0"
+description = "An AI scientist that designs computational pipelines, with a knowledge graph and a visual model report at every stage."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+# Kept deliberately small. The intelligence lives in skills/ as Markdown an agent
+# reads; this package only supplies what an agent must not improvise. Anything
+# heavier (rdkit, mdanalysis, chimerax) is an optional extra so `uv sync` stays
+# fast on a hackathon laptop and a teammate can run the contracts with no
+# scientific stack installed at all.
+dependencies = [
+    "pydantic>=2.7",
+]
+
+[project.optional-dependencies]
+# Stage 1 chemistry + structure work
+chem = [
+    "rdkit>=2024.3.1",
+    "numpy>=1.26",
+    "pandas>=2.2",
+    "requests>=2.32",
+]
+# Graph analysis beyond what SQLite gives us
+graph = [
+    "networkx>=3.3",
+]
+# Stage 2/3 structural analysis
+struct = [
+    "biopython>=1.83",
+    "mdanalysis>=2.7",
+    "prolif>=2.0",
+]
+dev = [
+    "pytest>=8.2",
+    "ruff>=0.5",
+]
+
+[project.scripts]
+reagent = "reagent.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/reagent"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+ignore = [
+    "E501",    # line length is handled by the formatter
+    "RUF012",  # mutable class defaults are fine in pydantic models
+    # `class Foo(str, Enum)` rather than `StrEnum`, deliberately. StrEnum's
+    # __str__ returns the bare value, so an f-string silently prints "paper"
+    # where the explicit `.value` we write everywhere prints the same thing —
+    # but a plain `str(SourceType.PAPER)` would differ between the two forms.
+    # Keeping (str, Enum) means every serialisation path is explicit, which
+    # matters because these enums are written into JSONL that other tools parse.
+    "UP042",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

@@ -1,0 +1,22 @@
+{
+  "stage": "stage2_biochem",
+  "owner": "denny",
+  "status": "stub",
+  "summary": "How much the pocket moves, and which conformer a prediction should target.",
+  "consumes": [
+    "stage2.critical_residues",
+    "stage1.template_candidates"
+  ],
+  "produces": [
+    "stage2.conformer_ensemble",
+    "stage2.flexibility_map"
+  ],
+  "external_tools": [
+    "chimerax",
+    "mdanalysis",
+    "openmm"
+  ],
+  "credits": [
+    "tamarind"
+  ]
+}

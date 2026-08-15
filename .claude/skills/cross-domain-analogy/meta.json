@@ -1,0 +1,20 @@
+{
+  "stage": "stage0_scouting",
+  "owner": "amit",
+  "status": "implemented",
+  "summary": "Borrow mechanisms from unrelated fields; emit gated, falsifiable proposals.",
+  "consumes": [
+    "stage0.open_gaps"
+  ],
+  "produces": [
+    "stage0.proposals",
+    "kg.analogy_nodes",
+    "decisions.pending"
+  ],
+  "external_tools": [
+    "Agent",
+    "WebSearch",
+    "paperclip"
+  ],
+  "credits": []
+}

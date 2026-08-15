@@ -1,0 +1,851 @@
+{
+  "version": 1,
+  "generated_from": ".claude/skills",
+  "n_skills": 18,
+  "by_stage": {
+    "shared": [
+      "ai-scientist",
+      "data-materialize",
+      "kg-visualize",
+      "literature-harvest",
+      "model-report"
+    ],
+    "stage0_scouting": [
+      "cross-domain-analogy",
+      "pipeline-space-scouting"
+    ],
+    "stage1_literature": [
+      "compound-neighborhood",
+      "esmc-sae-motifs",
+      "source-scout",
+      "target-neighborhood"
+    ],
+    "stage2_biochem": [
+      "pocket-anatomy",
+      "pocket-dynamics"
+    ],
+    "stage3_prior": [
+      "confidence-selection",
+      "structure-ensemble",
+      "template-and-finetune"
+    ],
+    "stage4_optimization": [
+      "dock-and-minimize",
+      "medchem-pass"
+    ]
+  },
+  "by_status": {
+    "implemented": [
+      "ai-scientist",
+      "cross-domain-analogy",
+      "data-materialize",
+      "kg-visualize",
+      "literature-harvest",
+      "model-report",
+      "pipeline-space-scouting",
+      "source-scout",
+      "target-neighborhood"
+    ],
+    "stub": [
+      "compound-neighborhood",
+      "confidence-selection",
+      "dock-and-minimize",
+      "esmc-sae-motifs",
+      "medchem-pass",
+      "pocket-anatomy",
+      "pocket-dynamics",
+      "structure-ensemble",
+      "template-and-finetune"
+    ]
+  },
+  "skills": {
+    "ai-scientist": {
+      "name": "ai-scientist",
+      "path": ".claude/skills/ai-scientist",
+      "description": "Top-level orchestrator for designing a structural-biology pipeline from a challenge brief. Plans which stages and skills to run, enforces the human decision gate on creative proposals, and chains Model Reports between stages. Use when the user names a structure-prediction or protein-ligand challenge and wants a pipeline designed, or wants to run/resume the multi-stage pipeline. Trigger on: \"design a pipeline\", \"AI scientist\", \"run the pipeline\", \"what pipeline should we use for\", \"scope this challenge\", or /ai-scientist.",
+      "stage": "shared",
+      "owner": "amit",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash",
+        "Agent",
+        "WebSearch",
+        "WebFetch",
+        "Skill",
+        "AskUserQuestion"
+      ],
+      "consumes": [
+        "problem.spec",
+        "stage0.report",
+        "stage1.report",
+        "stage2.report",
+        "stage3.report",
+        "stage4.report"
+      ],
+      "produces": [
+        "run.plan",
+        "synthesis.report"
+      ],
+      "external_tools": [
+        "Agent",
+        "WebSearch"
+      ],
+      "triggers": [
+        "design a pipeline",
+        "AI scientist",
+        "run the pipeline",
+        "what pipeline should we use for",
+        "scope this challenge"
+      ],
+      "references": [
+        "reference/contracts.md",
+        "reference/delegation-patterns.md",
+        "reference/pxr-case-study.md",
+        "reference/why-stage-zero.md"
+      ],
+      "body_lines": 168,
+      "summary": "Top-level orchestrator: plans stages, enforces gates, chains reports."
+    },
+    "data-materialize": {
+      "name": "data-materialize",
+      "path": ".claude/skills/data-materialize",
+      "description": "Turn Dataset pointers in the knowledge graph into actual local files, on demand. Queries the graph for datasets matching a question, builds a costed fetch plan, surfaces anything gated or oversized for approval, then downloads, checksums, and caches \u2014 writing the retrieval provenance back onto the graph node. Use when a stage needs the bytes rather than the metadata, typically at the start of biochemical analysis. Trigger on: \"download the data\", \"fetch the datasets\", \"pull that data locally\", \"materialize\", \"I need the actual numbers\", or /data-materialize.",
+      "stage": "shared",
+      "owner": "amit",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash",
+        "WebFetch"
+      ],
+      "consumes": [
+        "kg.dataset_nodes",
+        "data.availability"
+      ],
+      "produces": [
+        "data.local_cache",
+        "data.fetch_report"
+      ],
+      "external_tools": [
+        "WebFetch",
+        "curl"
+      ],
+      "triggers": [
+        "download the data",
+        "fetch the datasets",
+        "pull that data locally",
+        "materialize",
+        "I need the actual numbers"
+      ],
+      "body_lines": 114,
+      "summary": "Resolve Dataset pointers into local files, costed and checksummed."
+    },
+    "kg-visualize": {
+      "name": "kg-visualize",
+      "path": ".claude/skills/kg-visualize",
+      "description": "Make the knowledge graph legible. Renders a self-contained interactive ego view with the target at the centre, one edge colour per predicate family, thickness from the similarity score, and evidence on hover \u2014 plus exports to GraphML for Gephi or Cytoscape desktop and an optional Obsidian vault for wiki-style browsing. Also covers the quantitative figures that accompany a graph: axis agreement heatmaps, domain-shift distributions, and data availability matrices. Use whenever a stage must show its graph, or when asked to visualize relationships, export the graph, or produce report figures. Trigger on: \"visualize the graph\", \"show me the knowledge graph\", \"graph figure\", \"export to Gephi\", \"Obsidian\", \"make a diagram of the relationships\", or /kg-visualize.",
+      "stage": "shared",
+      "owner": "amit",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash"
+      ],
+      "consumes": [
+        "kg.neighbourhood"
+      ],
+      "produces": [
+        "viz.kg_html",
+        "viz.obsidian_vault",
+        "viz.graphml"
+      ],
+      "external_tools": [
+        "cytoscape.js"
+      ],
+      "triggers": [
+        "visualize the graph",
+        "show me the knowledge graph",
+        "graph figure",
+        "export to Gephi",
+        "Obsidian",
+        "make a diagram of the relationships"
+      ],
+      "references": [
+        "reference/encoding-rules.md",
+        "reference/obsidian-export.md"
+      ],
+      "body_lines": 162,
+      "summary": "Render the graph as a self-contained interactive ego view, plus exports."
+    },
+    "literature-harvest": {
+      "name": "literature-harvest",
+      "path": ".claude/skills/literature-harvest",
+      "description": "Turn literature into typed, cited knowledge-graph deltas rather than prose. Runs Paperclip full-text search plus schema-forced structured extraction over papers, preprints, clinical trials, and FDA documents, emitting Paper nodes and provenanced edges with line-level citation anchors. The shared evidence engine used by Stage 0 scouting and every Stage 1 axis. Use when a claim needs literature support, when building the knowledge graph from sources, or when asked what is known about something. Trigger on: \"what does the literature say\", \"find papers on\", \"cite this\", \"harvest the literature\", \"build the knowledge graph from papers\", or /literature-harvest.",
+      "stage": "shared",
+      "owner": "amit",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash",
+        "Agent",
+        "WebSearch",
+        "WebFetch"
+      ],
+      "consumes": [
+        "problem.spec"
+      ],
+      "produces": [
+        "kg.paper_nodes",
+        "kg.claim_edges",
+        "literature.assertions"
+      ],
+      "external_tools": [
+        "paperclip",
+        "WebSearch"
+      ],
+      "triggers": [
+        "what does the literature say",
+        "find papers on",
+        "cite this",
+        "harvest the literature",
+        "build the knowledge graph from papers"
+      ],
+      "references": [
+        "reference/citation-hygiene.md",
+        "reference/extraction-schemas.md",
+        "reference/paperclip-cli.md"
+      ],
+      "body_lines": 161,
+      "summary": "Literature to typed, line-cited graph deltas via schema-forced extraction."
+    },
+    "model-report": {
+      "name": "model-report",
+      "path": ".claude/skills/model-report",
+      "description": "How to write, visualize, and validate the Model Report that every pipeline stage must emit. Covers the required structure, the evidence and confidence rules the validator enforces, what each stage is expected to show visually, and the handoff contract that lets the next stage build without reading your internals. Use whenever writing or reviewing a stage report, when a report fails validation, or when starting work on a stage. Trigger on: \"write the report\", \"model report\", \"validate the report\", \"what goes in the report\", \"report failed validation\", or /model-report.",
+      "stage": "shared",
+      "owner": "amit",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash"
+      ],
+      "produces": [
+        "report.rendered",
+        "report.validated"
+      ],
+      "triggers": [
+        "write the report",
+        "model report",
+        "validate the report",
+        "what goes in the report",
+        "report failed validation"
+      ],
+      "body_lines": 133,
+      "summary": "How to write, visualize, and validate a stage's Model Report."
+    },
+    "cross-domain-analogy": {
+      "name": "cross-domain-analogy",
+      "path": ".claude/skills/cross-domain-analogy",
+      "description": "Stage 0. Find mechanisms in unrelated fields \u2014 quantitative finance, cybersecurity, art, ecology, logistics, sport \u2014 that transfer to the current problem, and convert them into costed, falsifiable proposals a human accepts or denies. Sends scout subagents into foreign literature, forces each finding through a domain-neutral abstraction step, then grounds it against the problem's structure and files it in the decision ledger. Use when the in-field literature is exhausted or stuck, when a Stage 0 scouting pass produced open gaps, or when the user asks for creative or non-obvious approaches. Trigger on: \"creative ideas\", \"what would X do\", \"think outside the field\", \"analogies from other domains\", \"we're stuck\", \"novel approach\", or /cross-domain-analogy.",
+      "stage": "stage0_scouting",
+      "owner": "amit",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash",
+        "Agent",
+        "WebSearch",
+        "WebFetch",
+        "Skill"
+      ],
+      "consumes": [
+        "stage0.open_gaps"
+      ],
+      "produces": [
+        "stage0.proposals",
+        "kg.analogy_nodes",
+        "decisions.pending"
+      ],
+      "external_tools": [
+        "Agent",
+        "WebSearch",
+        "paperclip"
+      ],
+      "triggers": [
+        "creative ideas",
+        "what would X do",
+        "think outside the field",
+        "analogies from other domains",
+        "we're stuck",
+        "novel approach"
+      ],
+      "references": [
+        "reference/abstraction-ladder.md",
+        "reference/domain-map.md",
+        "reference/scout-prompt.md"
+      ],
+      "body_lines": 180,
+      "summary": "Borrow mechanisms from unrelated fields; emit gated, falsifiable proposals."
+    },
+    "pipeline-space-scouting": {
+      "name": "pipeline-space-scouting",
+      "path": ".claude/skills/pipeline-space-scouting",
+      "description": "Stage 0. Map the space of pipelines that have been tried for a computational challenge before designing a new one: what the state of the art is, what actually gets used in practice, what the known failure modes are, and which baselines must be beaten. Produces a method landscape, a benchmark table, and a failure-mode catalogue as a Model Report plus knowledge-graph nodes. Use when starting a new challenge, onboarding to an unfamiliar problem class, or asking whether an approach has been tried. Trigger on: \"how has this been done before\", \"state of the art\", \"scope the problem\", \"what's the baseline\", \"has anyone tried\", \"prior art\", or /pipeline-space-scouting.",
+      "stage": "stage0_scouting",
+      "owner": "amit",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash",
+        "Agent",
+        "WebSearch",
+        "WebFetch",
+        "Skill"
+      ],
+      "consumes": [
+        "problem.spec"
+      ],
+      "produces": [
+        "stage0.report",
+        "stage0.method_landscape",
+        "stage0.open_gaps",
+        "stage0.baselines",
+        "kg.method_nodes"
+      ],
+      "external_tools": [
+        "paperclip",
+        "WebSearch",
+        "WebFetch"
+      ],
+      "triggers": [
+        "how has this been done before",
+        "state of the art",
+        "scope the problem",
+        "what's the baseline",
+        "has anyone tried",
+        "prior art"
+      ],
+      "references": [
+        "reference/evidence-modalities.md",
+        "reference/failure-mode-catalogue.md",
+        "reference/generation-vs-selection.md",
+        "reference/method-card.md"
+      ],
+      "body_lines": 142,
+      "summary": "Map the method landscape, baselines, and failure modes for a problem class."
+    },
+    "compound-neighborhood": {
+      "name": "compound-neighborhood",
+      "path": ".claude/skills/compound-neighborhood",
+      "description": "Stage 1. Map the chemical space around the items a pipeline must predict for, and quantify how far they sit from the compounds anything was trained or measured on. Produces chemotype clusters, a scaffold census, and the train/test similarity distribution that decides whether one model can serve the whole test set. Use when characterising test compounds, choosing a chemical split, or checking whether a chemical prior will transfer. Trigger on: \"what compounds are similar\", \"chemical space\", \"scaffold split\", \"chemotype\", \"will this prior transfer\", or /compound-neighborhood.",
+      "stage": "stage1_literature",
+      "owner": "amit",
+      "status": "stub",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash",
+        "Agent"
+      ],
+      "consumes": [
+        "problem.spec"
+      ],
+      "produces": [
+        "stage1.compound_neighbourhood",
+        "stage1.chemotype_split"
+      ],
+      "external_tools": [
+        "rdkit",
+        "chembl"
+      ],
+      "triggers": [
+        "what compounds are similar",
+        "chemical space",
+        "scaffold split",
+        "chemotype",
+        "will this prior transfer"
+      ],
+      "body_lines": 54,
+      "summary": "Chemical space around the test items; quantifies train/test chemotype shift."
+    },
+    "esmc-sae-motifs": {
+      "name": "esmc-sae-motifs",
+      "path": ".claude/skills/esmc-sae-motifs",
+      "description": "Stage 1. Use sparse-autoencoder features over a protein language model (ESM-C) to find structural or functional motifs the target shares with other proteins, including motifs that sequence and fold search miss. Emits Motif nodes and SHARES_MOTIF edges, but only for features that survive a structural interpretation check. Use for the motif similarity axis, or when conventional homology search returns nothing useful. Trigger on: \"structural motif\", \"SAE features\", \"ESM-C\", \"latent features\", \"what motifs does it share\", or /esmc-sae-motifs.",
+      "stage": "stage1_literature",
+      "owner": "amit",
+      "status": "stub",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash"
+      ],
+      "consumes": [
+        "problem.spec"
+      ],
+      "produces": [
+        "motif.features",
+        "kg.motif_nodes"
+      ],
+      "credits": [
+        "esmc"
+      ],
+      "external_tools": [
+        "esm-c",
+        "sae"
+      ],
+      "triggers": [
+        "structural motif",
+        "SAE features",
+        "ESM-C",
+        "latent features",
+        "what motifs does it share"
+      ],
+      "body_lines": 62,
+      "summary": "Sparse-autoencoder features over a protein LM as candidate structural motifs."
+    },
+    "source-scout": {
+      "name": "source-scout",
+      "path": ".claude/skills/source-scout",
+      "description": "Find what the papers do not contain. Sweeps patents, preprints, blog posts, Substack, LinkedIn and forum threads, GitHub repositories, Zenodo and Figshare deposits, HuggingFace datasets, and old Kaggle or benchmark competitions, then records each find as a graph node \u2014 datasets as metadata-plus-URL pointers that a later stage materialises only if it needs the bytes. Use alongside literature-harvest whenever coverage matters, when a needed dataset might exist somewhere unindexed, or when the peer-reviewed record is thin. Trigger on: \"find the data\", \"is there a dataset\", \"search GitHub\", \"patents\", \"grey literature\", \"Kaggle\", \"Zenodo\", \"what else is out there\", or /source-scout.",
+      "stage": "stage1_literature",
+      "owner": "amit",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash",
+        "Agent",
+        "WebSearch",
+        "WebFetch",
+        "Skill"
+      ],
+      "consumes": [
+        "problem.spec",
+        "kg.neighbourhood"
+      ],
+      "produces": [
+        "kg.dataset_nodes",
+        "data.availability",
+        "kg.paper_nodes"
+      ],
+      "external_tools": [
+        "WebSearch",
+        "WebFetch",
+        "github",
+        "zenodo",
+        "huggingface",
+        "kaggle",
+        "chembl",
+        "bindingdb"
+      ],
+      "triggers": [
+        "find the data",
+        "is there a dataset",
+        "search GitHub",
+        "patents",
+        "grey literature",
+        "Kaggle",
+        "Zenodo",
+        "what else is out there"
+      ],
+      "references": [
+        "reference/grey-evidence.md",
+        "reference/lazy-data.md",
+        "reference/source-recipes.md"
+      ],
+      "body_lines": 168,
+      "summary": "Patents, repos, Zenodo, Kaggle, blogs \u2014 plus dataset pointers, not downloads."
+    },
+    "target-neighborhood": {
+      "name": "target-neighborhood",
+      "path": ".claude/skills/target-neighborhood",
+      "description": "Stage 1. Build the multi-axis neighbourhood of a target entity in the knowledge graph \u2014 what resembles it by sequence, fold, pocket, structural motif, promiscuity, and family \u2014 and measure the domain shift between what is known and what must be predicted. Dispatches over the similarity axes declared in the ProblemSpec, so it works for a protein, a compound library, or an assay endpoint without modification. Use when starting the literature/knowledge-graph stage, when asked what is similar to a target, or when a downstream stage needs templates or transfer sources. Trigger on: \"what proteins are similar to\", \"build the knowledge graph\", \"find templates for\", \"neighbourhood of\", \"what's related to the target\", or /target-neighborhood.",
+      "stage": "stage1_literature",
+      "owner": "amit",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash",
+        "Agent",
+        "WebSearch",
+        "WebFetch",
+        "Skill"
+      ],
+      "consumes": [
+        "problem.spec",
+        "kg.paper_nodes",
+        "kg.claim_edges",
+        "motif.features"
+      ],
+      "produces": [
+        "stage1.report",
+        "kg.neighbourhood",
+        "stage1.template_candidates",
+        "stage1.corpus_for_finetune",
+        "stage1.subpopulations",
+        "stage1.priors"
+      ],
+      "external_tools": [
+        "foldseek",
+        "mmseqs2",
+        "rcsb-search-api",
+        "uniprot",
+        "chembl"
+      ],
+      "triggers": [
+        "what proteins are similar to",
+        "build the knowledge graph",
+        "find templates for",
+        "neighbourhood of",
+        "what's related to the target"
+      ],
+      "references": [
+        "reference/axis-methods.md",
+        "reference/domain-shift.md",
+        "reference/structured-corpus-harvest.md"
+      ],
+      "body_lines": 158,
+      "summary": "Multi-axis neighbourhood of the target; measures the domain shift."
+    },
+    "pocket-anatomy": {
+      "name": "pocket-anatomy",
+      "path": ".claude/skills/pocket-anatomy",
+      "description": "Stage 2. Work out which residues in a binding site actually matter and which ligand fragments are complementary to each, producing an interaction map that downstream sampling and scoring can be conditioned on. Detects hydrogen bonds, hydrophobic contacts, pi-stacking, and salt bridges across known complexes, and renders publication-quality pocket figures. Use when characterising a binding site, choosing restraints, or explaining why a pose is or is not plausible. Trigger on: \"critical residues\", \"binding site\", \"pocket residues\", \"which amino acids matter\", \"interaction map\", \"anchor residues\", or /pocket-anatomy.",
+      "stage": "stage2_biochem",
+      "owner": "denny",
+      "status": "stub",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash",
+        "Agent"
+      ],
+      "consumes": [
+        "stage1.report",
+        "kg.neighbourhood",
+        "stage1.template_candidates",
+        "data.availability",
+        "data.local_cache"
+      ],
+      "produces": [
+        "stage2.report",
+        "stage2.critical_residues",
+        "stage2.fragment_map",
+        "kg.residue_nodes",
+        "viz.interaction_2d"
+      ],
+      "external_tools": [
+        "chimerax",
+        "plip",
+        "prolif",
+        "fpocket"
+      ],
+      "triggers": [
+        "critical residues",
+        "binding site",
+        "pocket residues",
+        "which amino acids matter",
+        "interaction map",
+        "anchor residues"
+      ],
+      "body_lines": 62,
+      "summary": "Critical residues and the ligand fragments complementary to them."
+    },
+    "pocket-dynamics": {
+      "name": "pocket-dynamics",
+      "path": ".claude/skills/pocket-dynamics",
+      "description": "Stage 2. Characterise how much a binding site moves, which conformational states it occupies, and therefore which conformer a structure prediction should be targeting. Produces a conformer ensemble and a per-residue flexibility map, with movies and overlays that make the motion visible. Use when a pocket is suspected to be plastic, when predictions disagree in a flexible region, or when choosing a receptor conformer for docking. Trigger on: \"pocket dynamics\", \"flexibility\", \"conformational change\", \"is the pocket rigid\", \"which conformer\", \"induced fit\", or /pocket-dynamics.",
+      "stage": "stage2_biochem",
+      "owner": "denny",
+      "status": "stub",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash"
+      ],
+      "consumes": [
+        "stage2.critical_residues",
+        "stage1.template_candidates"
+      ],
+      "produces": [
+        "stage2.conformer_ensemble",
+        "stage2.flexibility_map"
+      ],
+      "credits": [
+        "tamarind"
+      ],
+      "external_tools": [
+        "chimerax",
+        "mdanalysis",
+        "openmm"
+      ],
+      "triggers": [
+        "pocket dynamics",
+        "flexibility",
+        "conformational change",
+        "is the pocket rigid",
+        "which conformer",
+        "induced fit"
+      ],
+      "body_lines": 54,
+      "summary": "How much the pocket moves, and which conformer a prediction should target."
+    },
+    "confidence-selection": {
+      "name": "confidence-selection",
+      "path": ".claude/skills/confidence-selection",
+      "description": "Stage 3. Choose one candidate per item from a generated pool. In a pipeline with a fixed pool and no ground truth, this step usually decides the score outright, so it is treated as a first-class modelling problem: normalise non-commensurable confidence signals, select per item, then rescue the failure tail with a decorrelated generator. Use when ranking candidates, picking a final answer, or diagnosing why a good pool scores badly. Trigger on: \"select poses\", \"rank candidates\", \"which pose do we submit\", \"confidence score\", \"z-score selection\", \"failure tail\", or /confidence-selection.",
+      "stage": "stage3_prior",
+      "owner": "sumer",
+      "status": "stub",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash"
+      ],
+      "consumes": [
+        "stage3.pose_pool",
+        "stage3.pool_oracle",
+        "stage2.critical_residues"
+      ],
+      "produces": [
+        "stage3.report",
+        "stage3.selection",
+        "stage3.failure_tail"
+      ],
+      "triggers": [
+        "select poses",
+        "rank candidates",
+        "which pose do we submit",
+        "confidence score",
+        "z-score selection",
+        "failure tail"
+      ],
+      "body_lines": 68,
+      "summary": "Pick one candidate per item from the pool; the step that decides the score."
+    },
+    "structure-ensemble": {
+      "name": "structure-ensemble",
+      "path": ".claude/skills/structure-ensemble",
+      "description": "Stage 3. Generate a diverse pool of candidate structures or poses across multiple models, seeds, and templates, and measure the pool's achievable ceiling. Widening the pool is one of only two levers that reliably improve a prediction pipeline, so this stage is about diversity and oracle gap rather than any single model's quality. Use when producing candidates, choosing which models to run, or deciding whether the bottleneck is generation or selection. Trigger on: \"generate poses\", \"run co-folding\", \"sampling\", \"pose pool\", \"which models should we run\", \"oracle gap\", or /structure-ensemble.",
+      "stage": "stage3_prior",
+      "owner": "sumer",
+      "status": "stub",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash",
+        "Agent"
+      ],
+      "consumes": [
+        "stage1.priors",
+        "stage2.conformer_ensemble",
+        "stage1.template_candidates"
+      ],
+      "produces": [
+        "stage3.pose_pool",
+        "stage3.pool_oracle"
+      ],
+      "credits": [
+        "boltz",
+        "modal",
+        "tamarind"
+      ],
+      "external_tools": [
+        "boltz",
+        "openprotein",
+        "modal",
+        "tamarind",
+        "esm"
+      ],
+      "triggers": [
+        "generate poses",
+        "run co-folding",
+        "sampling",
+        "pose pool",
+        "which models should we run",
+        "oracle gap"
+      ],
+      "body_lines": 63,
+      "summary": "Generate a diverse candidate pool across multiple models and seeds."
+    },
+    "template-and-finetune": {
+      "name": "template-and-finetune",
+      "path": ".claude/skills/template-and-finetune",
+      "description": "Stage 3. Inject the biological prior into the model itself, via structural templating and curriculum fine-tuning on the corpus Stage 1 assembled. Escalates specificity in stages with decreasing learning rate, and gates every checkpoint against held-out complexes before it is allowed near a prediction. Use when a general model underperforms on a specific target family, or when a curated corpus with sample weights is available. Trigger on: \"fine-tune\", \"curriculum\", \"structural template\", \"LoRA\", \"transfer learning\", \"train on the family\", or /template-and-finetune.",
+      "stage": "stage3_prior",
+      "owner": "sumer",
+      "status": "stub",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash"
+      ],
+      "consumes": [
+        "stage1.corpus_for_finetune",
+        "stage1.subpopulations"
+      ],
+      "produces": [
+        "stage3.finetuned_model",
+        "stage3.template_set"
+      ],
+      "credits": [
+        "modal",
+        "openprotein"
+      ],
+      "external_tools": [
+        "openprotein",
+        "modal",
+        "slurm"
+      ],
+      "triggers": [
+        "fine-tune",
+        "curriculum",
+        "structural template",
+        "LoRA",
+        "transfer learning",
+        "train on the family"
+      ],
+      "body_lines": 52,
+      "summary": "Structural templating and curriculum fine-tuning on the Stage 1 corpus."
+    },
+    "dock-and-minimize": {
+      "name": "dock-and-minimize",
+      "path": ".claude/skills/dock-and-minimize",
+      "description": "Stage 4. Refine selected poses with docking and restrained minimization, gated on ground truth so refinement is only adopted where it demonstrably helps. Targets the failure tail rather than the whole set, because physics-based refinement reliably improves some cases and destroys others. Use when polishing final predictions, relieving clashes, or attempting to rescue low-confidence items. Trigger on: \"dock\", \"minimize\", \"refine the poses\", \"Vina\", \"MD refinement\", \"relieve clashes\", or /dock-and-minimize.",
+      "stage": "stage4_optimization",
+      "owner": "amit",
+      "status": "stub",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash"
+      ],
+      "consumes": [
+        "stage3.selection",
+        "stage3.failure_tail",
+        "stage2.conformer_ensemble"
+      ],
+      "produces": [
+        "stage4.report",
+        "stage4.refined_poses"
+      ],
+      "credits": [
+        "tamarind"
+      ],
+      "external_tools": [
+        "vina",
+        "openmm",
+        "tamarind"
+      ],
+      "triggers": [
+        "dock",
+        "minimize",
+        "refine the poses",
+        "Vina",
+        "MD refinement",
+        "relieve clashes"
+      ],
+      "body_lines": 30,
+      "summary": "Docking and restrained minimization as a refinement, gated on ground truth."
+    },
+    "medchem-pass": {
+      "name": "medchem-pass",
+      "path": ".claude/skills/medchem-pass",
+      "description": "Stage 4. Review selected poses for chemistry that a medicinal chemist would reject \u2014 clashes, strained conformers, implausible placements \u2014 and apply conservative coordinate-only corrections tiered by severity. Every edit is logged and reversible, and the pass is validated as a whole before it is allowed to replace the incumbent. Use when polishing final poses or triaging geometry problems. Trigger on: \"medchem review\", \"fix the poses\", \"clashes\", \"strained conformer\", \"geometry cleanup\", or /medchem-pass.",
+      "stage": "stage4_optimization",
+      "owner": "amit",
+      "status": "stub",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash",
+        "Agent"
+      ],
+      "consumes": [
+        "stage3.selection",
+        "stage2.fragment_map"
+      ],
+      "produces": [
+        "stage4.edited_poses",
+        "stage4.edit_ledger"
+      ],
+      "external_tools": [
+        "rdkit",
+        "chimerax"
+      ],
+      "triggers": [
+        "medchem review",
+        "fix the poses",
+        "clashes",
+        "strained conformer",
+        "geometry cleanup"
+      ],
+      "body_lines": 30,
+      "summary": "Chemistry-aware geometry review of selected poses, tiered by severity."
+    }
+  }
+}

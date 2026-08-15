@@ -1,0 +1,27 @@
+{
+  "stage": "stage2_biochem",
+  "owner": "denny",
+  "status": "stub",
+  "summary": "Critical residues and the ligand fragments complementary to them.",
+  "consumes": [
+    "stage1.report",
+    "kg.neighbourhood",
+    "stage1.template_candidates",
+    "data.availability",
+    "data.local_cache"
+  ],
+  "produces": [
+    "stage2.report",
+    "stage2.critical_residues",
+    "stage2.fragment_map",
+    "kg.residue_nodes",
+    "viz.interaction_2d"
+  ],
+  "external_tools": [
+    "chimerax",
+    "plip",
+    "prolif",
+    "fpocket"
+  ],
+  "credits": []
+}

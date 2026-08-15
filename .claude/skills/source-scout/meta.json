@@ -1,0 +1,26 @@
+{
+  "stage": "stage1_literature",
+  "owner": "amit",
+  "status": "implemented",
+  "summary": "Patents, repos, Zenodo, Kaggle, blogs \u2014 plus dataset pointers, not downloads.",
+  "consumes": [
+    "problem.spec",
+    "kg.neighbourhood"
+  ],
+  "produces": [
+    "kg.dataset_nodes",
+    "data.availability",
+    "kg.paper_nodes"
+  ],
+  "external_tools": [
+    "WebSearch",
+    "WebFetch",
+    "github",
+    "zenodo",
+    "huggingface",
+    "kaggle",
+    "chembl",
+    "bindingdb"
+  ],
+  "credits": []
+}

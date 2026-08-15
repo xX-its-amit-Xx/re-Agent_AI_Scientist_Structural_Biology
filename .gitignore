@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Secrets
+.env
+
+# Knowledge-graph query cache. The JSONL files ARE tracked — they are the source
+# of truth and are meant to be diffable. The SQLite file is rebuilt from them on
+# demand, so deleting it is always safe and committing it would just create
+# conflicts.
+kg/**/kg.sqlite
+
+# Materialised datasets. The graph stores the pointer (a Dataset node with its
+# DataRef); the bytes are fetched on demand and are disposable.
+data/cache/
+
+# Large intermediate outputs
+*.zip
+*.tar.gz

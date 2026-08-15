@@ -1,0 +1,19 @@
+{
+  "stage": "shared",
+  "owner": "amit",
+  "status": "implemented",
+  "summary": "Literature to typed, line-cited graph deltas via schema-forced extraction.",
+  "consumes": [
+    "problem.spec"
+  ],
+  "produces": [
+    "kg.paper_nodes",
+    "kg.claim_edges",
+    "literature.assertions"
+  ],
+  "external_tools": [
+    "paperclip",
+    "WebSearch"
+  ],
+  "credits": []
+}

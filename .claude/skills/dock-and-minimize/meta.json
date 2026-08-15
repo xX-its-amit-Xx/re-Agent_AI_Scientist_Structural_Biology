@@ -1,0 +1,23 @@
+{
+  "stage": "stage4_optimization",
+  "owner": "amit",
+  "status": "stub",
+  "summary": "Docking and restrained minimization as a refinement, gated on ground truth.",
+  "consumes": [
+    "stage3.selection",
+    "stage3.failure_tail",
+    "stage2.conformer_ensemble"
+  ],
+  "produces": [
+    "stage4.report",
+    "stage4.refined_poses"
+  ],
+  "external_tools": [
+    "vina",
+    "openmm",
+    "tamarind"
+  ],
+  "credits": [
+    "tamarind"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "stage": "stage0_scouting",
+  "owner": "amit",
+  "status": "implemented",
+  "summary": "Map the method landscape, baselines, and failure modes for a problem class.",
+  "consumes": [
+    "problem.spec"
+  ],
+  "produces": [
+    "stage0.report",
+    "stage0.method_landscape",
+    "stage0.open_gaps",
+    "stage0.baselines",
+    "kg.method_nodes"
+  ],
+  "external_tools": [
+    "paperclip",
+    "WebSearch",
+    "WebFetch"
+  ],
+  "credits": []
+}

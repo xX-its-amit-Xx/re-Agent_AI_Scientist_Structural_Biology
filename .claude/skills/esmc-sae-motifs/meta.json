@@ -1,0 +1,20 @@
+{
+  "stage": "stage1_literature",
+  "owner": "amit",
+  "status": "stub",
+  "summary": "Sparse-autoencoder features over a protein LM as candidate structural motifs.",
+  "consumes": [
+    "problem.spec"
+  ],
+  "produces": [
+    "motif.features",
+    "kg.motif_nodes"
+  ],
+  "external_tools": [
+    "esm-c",
+    "sae"
+  ],
+  "credits": [
+    "esmc"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "stage": "shared",
+  "owner": "amit",
+  "status": "implemented",
+  "summary": "How to write, visualize, and validate a stage's Model Report.",
+  "consumes": [],
+  "produces": [
+    "report.rendered",
+    "report.validated"
+  ],
+  "external_tools": [],
+  "credits": []
+}

@@ -1,0 +1,19 @@
+{
+  "stage": "shared",
+  "owner": "amit",
+  "status": "implemented",
+  "summary": "Resolve Dataset pointers into local files, costed and checksummed.",
+  "consumes": [
+    "kg.dataset_nodes",
+    "data.availability"
+  ],
+  "produces": [
+    "data.local_cache",
+    "data.fetch_report"
+  ],
+  "external_tools": [
+    "WebFetch",
+    "curl"
+  ],
+  "credits": []
+}

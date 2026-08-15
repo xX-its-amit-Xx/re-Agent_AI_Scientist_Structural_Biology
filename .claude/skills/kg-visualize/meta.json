@@ -1,0 +1,18 @@
+{
+  "stage": "shared",
+  "owner": "amit",
+  "status": "implemented",
+  "summary": "Render the graph as a self-contained interactive ego view, plus exports.",
+  "consumes": [
+    "kg.neighbourhood"
+  ],
+  "produces": [
+    "viz.kg_html",
+    "viz.obsidian_vault",
+    "viz.graphml"
+  ],
+  "external_tools": [
+    "cytoscape.js"
+  ],
+  "credits": []
+}

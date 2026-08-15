@@ -1,0 +1,167 @@
+{
+  "spec_version": "1.0.0",
+  "run_id": "demo",
+  "name": "Demo — PXR neighbourhood",
+  "domain": "structural_biology",
+  "task_type": "complex_prediction",
+  "targets": [
+    {
+      "id": "uniprot:O75469",
+      "kind": "protein",
+      "label": "PXR (NR1I2)",
+      "organism": "human",
+      "aliases": [],
+      "known_structures": [
+        "pdb:1M13",
+        "pdb:1NRL",
+        "pdb:4X1G",
+        "pdb:5A86",
+        "pdb:8SVO"
+      ],
+      "attrs": {}
+    }
+  ],
+  "test_items": {},
+  "metric": {
+    "name": "LDDT-PLI",
+    "direction": "maximize",
+    "definition": "OpenStructure ligand_scoring over the predicted complex.",
+    "eval_set": "demo",
+    "known_caveats": [],
+    "proxy_metrics": []
+  },
+  "axes": [
+    {
+      "name": "sequence",
+      "question": "Which proteins are related to the target by primary sequence?",
+      "predicate": "SIMILAR_SEQUENCE_TO",
+      "score_key": "identity",
+      "score_range": [
+        0.0,
+        1.0
+      ],
+      "methods": [
+        "blast",
+        "mmseqs2",
+        "jackhmmer"
+      ],
+      "required": true,
+      "notes": "Cheap and reliable, but sequence identity is a weak predictor of pocket similarity for promiscuous targets. Do not let it dominate the ranking."
+    },
+    {
+      "name": "fold",
+      "question": "Which proteins share the target's three-dimensional fold?",
+      "predicate": "SIMILAR_FOLD_TO",
+      "score_key": "tm_score",
+      "score_range": [
+        0.0,
+        1.0
+      ],
+      "methods": [
+        "foldseek",
+        "tmalign",
+        "dali",
+        "us-align"
+      ],
+      "required": true,
+      "notes": "Requires a structure for the target — experimental or predicted. If only a prediction is available, record its confidence, because fold-similarity scores inherit the model's error."
+    },
+    {
+      "name": "pocket",
+      "question": "Which proteins have a binding pocket geometrically like the target's?",
+      "predicate": "SIMILAR_POCKET_TO",
+      "score_key": "score",
+      "score_range": [
+        0.0,
+        1.0
+      ],
+      "methods": [
+        "fpocket+comparison",
+        "prank",
+        "sitehound",
+        "probis",
+        "apoc"
+      ],
+      "required": true,
+      "notes": "Often more predictive than fold for ligand-transfer questions, and more fragile. Pocket definition is a free parameter — record it."
+    },
+    {
+      "name": "motif",
+      "question": "Which proteins share a local structural or learned-feature motif with the target?",
+      "predicate": "SHARES_MOTIF",
+      "score_key": "score",
+      "score_range": [
+        0.0,
+        1.0
+      ],
+      "methods": [
+        "esmc-sae",
+        "prosite",
+        "interpro",
+        "3d-motif-search",
+        "pyscomotif"
+      ],
+      "required": true,
+      "notes": "The axis with the most upside and the least established practice. Sparse autoencoder features over a protein language model can surface motifs no sequence or fold method finds, but a feature is only evidence once it has been given a structural interpretation — see the esmc-sae-motifs skill."
+    },
+    {
+      "name": "promiscuity",
+      "question": "Which proteins bind a comparably broad and chemically diverse ligand set?",
+      "predicate": "PROMISCUOUS_WITH",
+      "score_key": "breadth_score",
+      "score_range": [
+        0.0,
+        1.0
+      ],
+      "methods": [
+        "pdb-ligand-census",
+        "chembl-breadth",
+        "bindingdb"
+      ],
+      "required": true,
+      "notes": "Operationalise as measured breadth of BINDS — distinct chemotypes, not a literature adjective. Promiscuous proteins outside the target's family are often the most useful transfer sources, because they share the *problem* (a large adaptable pocket) without sharing the fold."
+    },
+    {
+      "name": "family",
+      "question": "Which proteins are in the target's family or superfamily?",
+      "predicate": "MEMBER_OF_FAMILY",
+      "score_key": "confidence_numeric",
+      "score_range": [
+        0.0,
+        1.0
+      ],
+      "methods": [
+        "pfam",
+        "interpro",
+        "uniprot-family",
+        "rcsb-search"
+      ],
+      "required": true,
+      "notes": "The most reliable axis and the least surprising. Its value is coverage: it defines the corpus a downstream fine-tune can be weighted over."
+    },
+    {
+      "name": "compound",
+      "question": "Which known compounds resemble the test compounds we must predict for?",
+      "predicate": "SIMILAR_COMPOUND_TO",
+      "score_key": "tanimoto",
+      "score_range": [
+        0.0,
+        1.0
+      ],
+      "methods": [
+        "rdkit-morgan",
+        "rdkit-scaffold",
+        "mces",
+        "shape-tanimoto"
+      ],
+      "required": true,
+      "notes": "Run this on the *test* compounds, not only the target's known ligands. The gap between them is the domain shift the whole pipeline must survive, and measuring it early is the highest-value thing Stage 1 does."
+    }
+  ],
+  "budget": {
+    "credit_pools": [],
+    "compute": []
+  },
+  "output_contract": {},
+  "withheld": []
+}

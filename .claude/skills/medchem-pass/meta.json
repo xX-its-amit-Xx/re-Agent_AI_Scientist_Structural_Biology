@@ -1,0 +1,19 @@
+{
+  "stage": "stage4_optimization",
+  "owner": "amit",
+  "status": "stub",
+  "summary": "Chemistry-aware geometry review of selected poses, tiered by severity.",
+  "consumes": [
+    "stage3.selection",
+    "stage2.fragment_map"
+  ],
+  "produces": [
+    "stage4.edited_poses",
+    "stage4.edit_ledger"
+  ],
+  "external_tools": [
+    "rdkit",
+    "chimerax"
+  ],
+  "credits": []
+}

@@ -1,0 +1,79 @@
+{
+  "collapse-filter": false,
+  "search": "",
+  "showTags": false,
+  "showAttachments": false,
+  "hideUnresolved": true,
+  "showOrphans": false,
+  "collapse-color-groups": false,
+  "colorGroups": [
+    {
+      "query": "tag:#type/Compound",
+      "color": {
+        "a": 1,
+        "rgb": 3050327
+      }
+    },
+    {
+      "query": "tag:#type/Family",
+      "color": {
+        "a": 1,
+        "rgb": 5925772
+      }
+    },
+    {
+      "query": "tag:#type/Motif",
+      "color": {
+        "a": 1,
+        "rgb": 9268395
+      }
+    },
+    {
+      "query": "tag:#type/Paper",
+      "color": {
+        "a": 1,
+        "rgb": 10132122
+      }
+    },
+    {
+      "query": "tag:#type/Pocket",
+      "color": {
+        "a": 1,
+        "rgb": 8368836
+      }
+    },
+    {
+      "query": "tag:#type/Protein",
+      "color": {
+        "a": 1,
+        "rgb": 2060171
+      }
+    },
+    {
+      "query": "tag:#type/Residue",
+      "color": {
+        "a": 1,
+        "rgb": 12113117
+      }
+    },
+    {
+      "query": "tag:#type/Structure",
+      "color": {
+        "a": 1,
+        "rgb": 4034216
+      }
+    }
+  ],
+  "collapse-display": false,
+  "showArrow": true,
+  "textFadeMultiplier": 0,
+  "nodeSizeMultiplier": 1.1,
+  "lineSizeMultiplier": 1,
+  "collapse-forces": false,
+  "centerStrength": 0.4,
+  "repelStrength": 12,
+  "linkStrength": 0.7,
+  "linkDistance": 180,
+  "scale": 1,
+  "close": false
+}

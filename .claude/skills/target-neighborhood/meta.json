@@ -1,0 +1,28 @@
+{
+  "stage": "stage1_literature",
+  "owner": "amit",
+  "status": "implemented",
+  "summary": "Multi-axis neighbourhood of the target; measures the domain shift.",
+  "consumes": [
+    "problem.spec",
+    "kg.paper_nodes",
+    "kg.claim_edges",
+    "motif.features"
+  ],
+  "produces": [
+    "stage1.report",
+    "kg.neighbourhood",
+    "stage1.template_candidates",
+    "stage1.corpus_for_finetune",
+    "stage1.subpopulations",
+    "stage1.priors"
+  ],
+  "external_tools": [
+    "foldseek",
+    "mmseqs2",
+    "rcsb-search-api",
+    "uniprot",
+    "chembl"
+  ],
+  "credits": []
+}

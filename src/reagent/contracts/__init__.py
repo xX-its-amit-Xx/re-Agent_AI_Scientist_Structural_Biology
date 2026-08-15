@@ -1,0 +1,147 @@
+"""Typed contracts shared by every pipeline stage.
+
+Import from here, not from the submodules, so the public surface stays stable
+while the internals move:
+
+    from reagent.contracts import ModelReport, Stage, Finding, Evidence
+
+The three contracts and who owns them:
+
+    ModelReport   every stage emits exactly one          (all)
+    GraphDelta    Stage 1 writes, Stages 2-4 read        (Amit)
+    ProposalSet   Stage 0 writes, humans gate            (Amit)
+"""
+
+from .data import (
+    Access,
+    DataFormat,
+    DataRef,
+    FetchPlan,
+    MeasurementKind,
+)
+from .kg import (
+    DASH_CYCLE,
+    FAMILY_COLOR,
+    HIDDEN_BY_DEFAULT,
+    KG_SCHEMA_VERSION,
+    PREDICATE_DOMAINS,
+    PREDICATE_FAMILY,
+    Edge,
+    GraphDelta,
+    Node,
+    NodeType,
+    Predicate,
+    PredicateFamily,
+    dash_for,
+    family_of,
+    read_jsonl,
+    visual_encoding_summary,
+)
+from .problem import (
+    AxisSpec,
+    Budget,
+    Domain,
+    Metric,
+    MetricDirection,
+    ProblemSpec,
+    TargetEntity,
+    TaskType,
+)
+from .proposal import (
+    AnalogyCard,
+    Decision,
+    DecisionLedger,
+    Novelty,
+    Proposal,
+    ProposalSet,
+    Verdict,
+    render_triage_markdown,
+)
+from .report import (
+    SCHEMA_VERSION,
+    AgentIdentity,
+    Artifact,
+    Confidence,
+    Evidence,
+    Finding,
+    FindingKind,
+    Handoff,
+    InputRef,
+    MethodStep,
+    ModelReport,
+    SourceType,
+    Stage,
+    json_schema,
+)
+from .viz import (
+    EXPECTED_VIZ,
+    MAX_CATEGORICAL_COLORS,
+    ColorMap,
+    Visualization,
+    VizBundle,
+    VizKind,
+    VizMedium,
+    missing_expected,
+)
+
+__all__ = [
+    "DASH_CYCLE",
+    "EXPECTED_VIZ",
+    "FAMILY_COLOR",
+    "HIDDEN_BY_DEFAULT",
+    "KG_SCHEMA_VERSION",
+    "MAX_CATEGORICAL_COLORS",
+    "PREDICATE_DOMAINS",
+    "PREDICATE_FAMILY",
+    "SCHEMA_VERSION",
+    "Access",
+    "AgentIdentity",
+    "AnalogyCard",
+    "Artifact",
+    "AxisSpec",
+    "Budget",
+    "ColorMap",
+    "Confidence",
+    "DataFormat",
+    "DataRef",
+    "Decision",
+    "DecisionLedger",
+    "Domain",
+    "Edge",
+    "Evidence",
+    "FetchPlan",
+    "Finding",
+    "FindingKind",
+    "GraphDelta",
+    "Handoff",
+    "InputRef",
+    "MeasurementKind",
+    "MethodStep",
+    "Metric",
+    "MetricDirection",
+    "ModelReport",
+    "Node",
+    "NodeType",
+    "Novelty",
+    "Predicate",
+    "PredicateFamily",
+    "ProblemSpec",
+    "Proposal",
+    "ProposalSet",
+    "SourceType",
+    "Stage",
+    "TargetEntity",
+    "TaskType",
+    "Verdict",
+    "Visualization",
+    "VizBundle",
+    "VizKind",
+    "VizMedium",
+    "dash_for",
+    "family_of",
+    "json_schema",
+    "missing_expected",
+    "read_jsonl",
+    "render_triage_markdown",
+    "visual_encoding_summary",
+]

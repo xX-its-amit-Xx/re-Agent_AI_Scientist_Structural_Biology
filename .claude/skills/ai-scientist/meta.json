@@ -1,0 +1,23 @@
+{
+  "stage": "shared",
+  "owner": "amit",
+  "status": "implemented",
+  "summary": "Top-level orchestrator: plans stages, enforces gates, chains reports.",
+  "consumes": [
+    "problem.spec",
+    "stage0.report",
+    "stage1.report",
+    "stage2.report",
+    "stage3.report",
+    "stage4.report"
+  ],
+  "produces": [
+    "run.plan",
+    "synthesis.report"
+  ],
+  "external_tools": [
+    "Agent",
+    "WebSearch"
+  ],
+  "credits": []
+}
