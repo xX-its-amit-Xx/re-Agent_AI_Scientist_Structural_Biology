@@ -18,7 +18,7 @@ MEMBER_OF_FAMILY:
 
 ### MEMBER_OF_FAMILY  *(composition)*
 
-- MEMBER_OF_FAMILY:: [[family xenobiotic-handler]] [confidence:: supported] [confidence_numeric:: 0.8] [evidence:: pmc:PMC8864553]
+- MEMBER_OF_FAMILY:: [[family xenobiotic-handler]] [confidence:: supported] [membership:: 1.0] [evidence:: pmc:PMC8864553]
 
 ## Referenced by
 

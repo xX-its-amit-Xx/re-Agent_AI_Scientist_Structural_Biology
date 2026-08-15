@@ -363,10 +363,11 @@ def cmd_decide(args: argparse.Namespace) -> int:
 
 
 def cmd_decide_status(args: argparse.Namespace) -> int:
+    """Exit 0 only when a named proposal is ACCEPTED — this is the gate a skill checks."""
     ledger = DecisionLedger(Path(args.ledger))
     if args.proposal_id:
         v = ledger.verdict_for(args.proposal_id)
-        print(f"{args.proposal_id}: {v.value if v else 'pending'}")
+        print(f"{args.proposal_id}: {v.value if v else 'pending — no verdict recorded'}")
         return 0 if v is Verdict.ACCEPTED else 1
     cur = ledger.current()
     if not cur:
@@ -508,18 +509,25 @@ def build_parser() -> argparse.ArgumentParser:
     t.add_argument("--out", default=None)
     t.set_defaults(func=cmd_triage)
 
+    # `decide` and `decisions` are separate top-level commands rather than
+    # `decide status`: argparse cannot tell a subcommand name from a positional
+    # proposal id, so `decide P-001 accept` was being parsed as an unknown
+    # subcommand and failing outright.
     d = sub.add_parser("decide", help="record a verdict on a proposal (append-only)")
-    dsub = d.add_subparsers(dest="sub")
-    st = dsub.add_parser("status", help="show effective verdicts")
-    st.add_argument("proposal_id", nargs="?", default=None)
-    st.add_argument("--ledger", default=str(LEDGER))
-    st.set_defaults(func=cmd_decide_status)
-    d.add_argument("proposal_id", nargs="?")
-    d.add_argument("verdict", nargs="?", choices=["accept", "reject", "defer", "info"])
+    d.add_argument("proposal_id")
+    d.add_argument("verdict", choices=["accept", "reject", "defer", "info"])
     d.add_argument("-m", "--message", default="", help="why. Future-you will want this.")
     d.add_argument("--by", default="human", help="who decided")
     d.add_argument("--ledger", default=str(LEDGER))
     d.set_defaults(func=cmd_decide)
+
+    st = sub.add_parser(
+        "decisions",
+        help="show effective verdicts; exits 0 only if a named proposal is accepted",
+    )
+    st.add_argument("proposal_id", nargs="?", default=None)
+    st.add_argument("--ledger", default=str(LEDGER))
+    st.set_defaults(func=cmd_decide_status)
 
     # assets
     a = sub.add_parser("assets", help="vendored third-party files").add_subparsers(
@@ -533,14 +541,13 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    if args.cmd == "decide" and getattr(args, "func", None) is cmd_decide:
-        if not args.proposal_id or not args.verdict:
-            print("usage: reagent decide <proposal-id> accept|reject|defer|info -m 'why'")
-            print("       reagent decide status [proposal-id]")
-            return 2
-        if not args.message:
-            print("a decision needs a rationale: pass -m 'why'")
-            return 2
+    # A verdict with no reason is worthless six weeks later, so require one here
+    # rather than accepting an empty string into the immutable ledger.
+    if args.cmd == "decide" and not args.message.strip():
+        print("a decision needs a rationale: pass -m 'why'")
+        print("usage: reagent decide <proposal-id> accept|reject|defer|info -m 'why'")
+        print("       reagent decisions [proposal-id]")
+        return 2
     return args.func(args)
 
 

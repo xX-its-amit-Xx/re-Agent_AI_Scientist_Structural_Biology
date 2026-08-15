@@ -432,7 +432,7 @@ surface-level puns.
 a `Decision`.
 
 **Who reads them.** The orchestrator, before executing anything creative, through
-`DecisionLedger.is_accepted(proposal_id)` or `reagent decide status <id>`. The
+`DecisionLedger.is_accepted(proposal_id)` or `reagent decisions <id>`. The
 triage sheet rendered by `reagent triage` is what the human actually reads.
 
 **Required fields.** `AnalogyCard` needs `id`, `source_domain`, `source_practice`,

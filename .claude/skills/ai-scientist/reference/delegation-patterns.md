@@ -170,7 +170,7 @@ holds for any scout — give it the specific unanswered question, restated
 structurally, not the whole problem.
 
 **Delegating the decision.** A subagent may propose; it may not accept. Nothing
-outside the ledger authorises execution, and `reagent decide status <proposal-id>`
+outside the ledger authorises execution, and `reagent decisions <proposal-id>`
 is the authority, not the conversation.
 
 ## Zero results is an acceptable answer

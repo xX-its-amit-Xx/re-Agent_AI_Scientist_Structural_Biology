@@ -26,8 +26,8 @@ SHARES_MOTIF:
 
 ### MEMBER_OF_FAMILY  *(composition)*
 
-- MEMBER_OF_FAMILY:: [[family nuclear-receptor]] [confidence:: established] [source:: Pfam PF00104] [confidence_numeric:: 1.0] [evidence:: pmc:PMC9563780; pmc:PMC8864553]
-- MEMBER_OF_FAMILY:: [[family NR1I]] [confidence:: established] [confidence_numeric:: 1.0] [evidence:: pmc:PMC9563780; pmc:PMC8864553]
+- MEMBER_OF_FAMILY:: [[family nuclear-receptor]] [confidence:: established] [source:: Pfam PF00104] [membership:: 1.0] [evidence:: pmc:PMC9563780; pmc:PMC8864553]
+- MEMBER_OF_FAMILY:: [[family NR1I]] [confidence:: established] [membership:: 1.0] [evidence:: pmc:PMC9563780; pmc:PMC8864553]
 
 ### SHARES_MOTIF  *(structural)*
 

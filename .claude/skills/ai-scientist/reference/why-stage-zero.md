@@ -188,7 +188,7 @@ confident garbage. In the reference case an agentic ligand-redrawing attempt too
 one complex from 3.88 Å to 24.63 Å — the agent generated a pose that was chemically
 narratable and physically absurd. That is the strongest available argument for why an
 AI scientist proposes and a human disposes, and it is why the orchestrator checks
-`reagent decide status <proposal-id>` rather than the conversation before executing
+`reagent decisions <proposal-id>` rather than the conversation before executing
 anything creative. The ledger is the authority, it is append-only, and changing your
 mind means appending a superseding entry rather than editing the old one — the trail
 of reversals is itself evidence about the pipeline.

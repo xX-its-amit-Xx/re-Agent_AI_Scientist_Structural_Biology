@@ -27,7 +27,7 @@ parallel without a daily sync.
 ```bash
 uv venv .venv --python 3.12
 uv pip install -e ".[dev,graph]"
-./.venv/Scripts/python.exe -m pytest tests/ -q        # 34 tests, should be green
+./.venv/Scripts/python.exe -m pytest tests/ -q        # 48 tests, should be green
 ./.venv/Scripts/python.exe scripts/bootstrap_skills.py
 ./.venv/Scripts/python.exe -m reagent.cli skills check
 ```
@@ -39,8 +39,14 @@ contracts is not waiting on a scientific stack.
 The demo end-to-end, which is the fastest way to see the shape of things:
 
 ```bash
-./.venv/Scripts/python.exe examples/seed_demo_graph.py   # seeds a graph and renders it
+./.venv/Scripts/python.exe examples/seed_demo_graph.py   # graph + interactive figure
+./.venv/Scripts/python.exe examples/seed_demo_report.py  # full Model Report + HTML
 ```
+
+That second one writes `docs/reports/stage1-demo.html` — a single self-contained file
+with the graph embedded, two SVG charts, and six findings carrying inline citations.
+It is the shape your stage's output should take. See [`docs/STATUS.md`](docs/STATUS.md)
+for what is built and what is not.
 
 ## Nothing is hardcoded to a target or a domain
 
@@ -102,7 +108,7 @@ estimate the cost, write it into a `Proposal`, and get an `ACCEPTED` verdict in 
 ledger. Then record actual spend in `MethodStep.cost_usd` and `MethodStep.credits`.
 
 ```bash
-reagent decide status P-014          # exit 0 only if accepted
+reagent decisions P-014          # exit 0 only if accepted
 reagent decide P-014 accept -m "why" --by <your-name>
 ```
 

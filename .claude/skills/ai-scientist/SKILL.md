@@ -24,7 +24,7 @@ yourself — you route.
   not happen. `reagent report validate` must pass before you advance.
 - **NEVER execute a `Proposal` that lacks an ACCEPTED `Decision`.** The ledger is
   the authority, not the conversation. Check with
-  `reagent decide status <proposal-id>`. This is not a formality: Stage 0
+  `reagent decisions <proposal-id>`. This is not a formality: Stage 0
   deliberately generates ideas from outside biology, and the gate is what keeps
   those from silently becoming method.
 - **NEVER let a cross-domain analogy be cited as biological evidence.** It is
