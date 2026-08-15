@@ -1,8 +1,22 @@
 {
+  "_comment": [
+    "Registers the reagent-report MCP server for Claude Code, which launches it with",
+    "this directory as the working directory.",
+    "",
+    "The command is the PROJECT VENV interpreter, by relative path, and that is",
+    "deliberate. `python` on PATH is frequently a different interpreter with reagent",
+    "not installed, and the resulting failure is silent: the client shows no tools and",
+    "says nothing about why. `uv run` is not a safe substitute either — it can resolve",
+    "to a parent-directory venv.",
+    "",
+    "On macOS or Linux change the command to '.venv/bin/python'.",
+    "",
+    "Verify independently of any client with:  python -m reagent.mcp --list-tools"
+  ],
   "mcpServers": {
     "reagent-report": {
       "type": "stdio",
-      "command": "python",
+      "command": ".venv/Scripts/python.exe",
       "args": ["-m", "reagent.mcp"],
       "env": {
         "PYTHONUTF8": "1",

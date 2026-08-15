@@ -47,11 +47,23 @@ and a working instrument.
 ## Installing it
 
 `.mcp.json` at the repo root registers the server, so Claude Code picks it up when
-started in this directory. Verify without a client:
+started in this directory.
+
+**The command must be the project venv's interpreter, by relative path**
+(`.venv/Scripts/python.exe` on Windows, `.venv/bin/python` on macOS and Linux). This
+is the one configuration mistake worth spelling out, because its failure mode is
+silent: `python` on PATH is often a different interpreter with reagent not installed,
+the server never starts, and the client simply shows no tools without saying why.
+`uv run` is not a safe substitute — it can resolve to a venv in a parent directory.
+
+Verify independently of any client:
 
 ```bash
 python -m reagent.mcp --list-tools          # names and one-line descriptions
 ```
+
+If that works but the client shows nothing, the problem is the command in
+`.mcp.json`, not the server.
 
 To drive it by hand, pipe newline-delimited JSON-RPC to stdin:
 
@@ -166,9 +178,12 @@ rather than merely callable:
 
 The failure modes, in the order you will meet them:
 
-- **Client shows no tools.** Almost always a stdout violation — something printed
-  outside the protocol. Run `python -m reagent.mcp --list-tools` to confirm the
-  registry loads, then check for `print` calls.
+- **Client shows no tools.** Two causes, in order of likelihood. First, the command
+  in `.mcp.json` is not the venv interpreter, so the process dies on
+  `ModuleNotFoundError: No module named 'reagent'` before saying anything. Second, a
+  stdout violation — something printed outside the protocol. Run
+  `python -m reagent.mcp --list-tools` to tell them apart: if that works, it is the
+  command; if it fails, it is the code.
 - **Client disconnects mid-session.** Look at stderr. An unhandled exception in
   `serve()` rather than in a tool will do this; tools are individually wrapped.
 - **`UnicodeDecodeError` in the client.** `_configure_streams()` was removed or the

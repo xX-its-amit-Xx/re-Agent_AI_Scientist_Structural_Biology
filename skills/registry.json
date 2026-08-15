@@ -306,7 +306,7 @@
       "references": [
         "reference/protocol-notes.md"
       ],
-      "body_lines": 173,
+      "body_lines": 188,
       "summary": "Serve a report and its graph over MCP; compare two structures in 3D."
     },
     "cross-domain-analogy": {
