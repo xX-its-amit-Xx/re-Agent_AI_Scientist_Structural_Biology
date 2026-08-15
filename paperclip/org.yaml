@@ -1,0 +1,73 @@
+# Paperclip agent org for PXR Track 2.
+#
+# Phase 5 artifact. Do not wire this up until stages 01-04 run end-to-end by
+# hand and eval/score.py returns real numbers — debugging orchestration and
+# science at the same time is how this project stalls.
+#
+# The agents mirror the stages exactly, so a failure localises to one stage
+# rather than to "the pipeline".
+
+version: 1
+name: pxr-track2
+
+defaults:
+  model: claude-opus-5
+  workspace: /Users/sumershinde/re-Agent_AI_Scientist_Structural_Biology/pxr-track2
+  budget:
+    max_usd: 25
+    max_wall_clock_min: 120
+
+agents:
+  - name: retrieval
+    stage: stages/01_retrieve.py
+    description: >
+      Owns the manifests. Rebuilds ligands/receptors/holdout from data/ and
+      verifies the counts that everything downstream assumes: 184 targets,
+      92/92 dev-holdout, 184/184 ground-truth coverage, 64 receptors.
+    permissions: [read_data, write_manifest]
+    approval_required: false
+
+  - name: cofold
+    stage: stages/02_cofold.py
+    description: >
+      Expands the job plan and dispatches cofolds through proto-tools. The only
+      agent that spends GPU, so the only one with a hard budget gate.
+    permissions: [read_manifest, write_runs, proto_tools_run, gpu_spend]
+    approval_required: true      # any run whose projected cost exceeds budget.max_usd
+    limits:
+      max_jobs_per_dispatch: 200
+      max_concurrent: 4
+
+  - name: rescore
+    stage: stages/03_rescore.py
+    description: >
+      Collapses each target's ensemble to one pose. Reads confidences and
+      pose-agreement only — never reads data/challenge/structure_ground_truth.
+    permissions: [read_runs, write_runs]
+    approval_required: false
+
+  - name: submit
+    stage: stages/04_submit.py
+    description: >
+      Assembles the zip and runs the organizers' validator. Refuses to emit a
+      partial submission unless explicitly overridden.
+    permissions: [read_runs, write_submission]
+    approval_required: true      # human confirms before anything leaves the machine
+
+  - name: eval
+    stage: eval/score.py
+    description: >
+      Scores poses against ground truth with OpenStructure. Holds the only
+      legitimate read on structure_ground_truth/, and may score the holdout
+      exactly once, in Phase 7.
+    permissions: [read_runs, read_ground_truth, write_eval_results]
+    approval_required: false
+    limits:
+      holdout_scoring_runs: 1
+
+pipeline:
+  - retrieval
+  - cofold
+  - rescore
+  - eval
+  - submit

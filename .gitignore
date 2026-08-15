@@ -1,0 +1,27 @@
+# Run outputs — large, regenerable, and traced in Benchling instead.
+runs/
+
+# Challenge data — 310 MB, fetched by Phase 0. See notes/phase0-report.md.
+data/
+
+# AlphaFold3 weights — 973 MB, and DeepMind's terms forbid redistribution.
+# Never commit this. Staged into a Modal volume by modal/stage_af3_weights.py.
+af3.bin.zst
+af3.bin
+*.bin.zst
+
+# Submission archives
+submission/*.zip
+
+# Local env
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Scored results are small and worth versioning; keep them.
+!eval/results/
+
+# proto-tools scratch outputs
+proto_tools_outputs/
+logs/

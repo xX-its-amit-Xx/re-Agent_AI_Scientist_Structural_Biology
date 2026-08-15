@@ -1,0 +1,70 @@
+# Capability grants referenced by org.yaml.
+#
+# The one that matters is read_ground_truth. data/challenge/structure_ground_truth/
+# holds the answers for all 184 targets. Any agent that can read it while poses
+# are being produced or selected can leak the answer into the prediction, and
+# the leak is invisible in the final score because the score is computed from
+# the same files. Only `eval` gets it.
+
+version: 1
+
+capabilities:
+  read_data:
+    paths: [data/**]
+    mode: read
+    # Even here, the answers are excluded — retrieval only needs the manifests.
+    deny: [data/challenge/structure_ground_truth/**]
+
+  read_manifest:
+    paths: [manifest/**]
+    mode: read
+
+  write_manifest:
+    paths: [manifest/**]
+    mode: write
+
+  read_runs:
+    paths: [runs/**]
+    mode: read
+
+  write_runs:
+    paths: [runs/**]
+    mode: write
+
+  write_submission:
+    paths: [submission/**]
+    mode: write
+
+  write_eval_results:
+    paths: [eval/results/**]
+    mode: write
+
+  read_ground_truth:
+    paths: [data/challenge/structure_ground_truth/**]
+    mode: read
+    granted_to: [eval]
+    rationale: >
+      Scoring requires the reference complexes. Granting this to cofold or
+      rescore would let a pose be selected using its own answer.
+
+  proto_tools_run:
+    tools:
+      - boltz2-prediction
+      - chai1-prediction
+      - protenix-prediction
+      - rf3-prediction
+      - alphafold3-prediction
+      - pdb-fetch-entry
+      - pdb-fetch-fasta
+    mode: execute
+
+  gpu_spend:
+    backend: modal
+    workspace: sumershinde22
+    environment: proto-env
+    requires_approval_above_usd: 10
+
+audit:
+  # Mirrored into Benchling per benchling/schema.json.
+  log_path: runs/_audit.jsonl
+  record: [agent, capability, path_or_tool, timestamp, run_id, outcome]

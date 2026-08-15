@@ -1,0 +1,86 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PXR Track 2 run provenance",
+  "description": "One record per cofold run, mirrored into Benchling. The point is that any submitted pose can be traced back to the exact model, weights, seed, receptor and code that produced it -- a structure whose provenance is 'boltz2, some seed, Saturday' cannot be defended or reproduced.",
+  "type": "object",
+  "required": [
+    "run_id",
+    "structure_id",
+    "model",
+    "model_version",
+    "seed",
+    "proto_tools_commit",
+    "timestamp",
+    "status"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "description": "Groups all jobs dispatched together; names the directory under runs/."
+    },
+    "structure_id": {
+      "type": "string",
+      "pattern": "^x[0-9]{5}-[0-9]+$",
+      "description": "Challenge target id, e.g. x01378-1. One of the 184."
+    },
+    "smiles": { "type": "string", "description": "Ligand SMILES as given in the blinded test set." },
+    "split": { "type": "string", "enum": ["dev", "holdout"], "description": "phase 1 -> dev, phase 2 -> holdout." },
+
+    "model": {
+      "type": "string",
+      "enum": [
+        "boltz2-prediction",
+        "chai1-prediction",
+        "protenix-prediction",
+        "rf3-prediction",
+        "alphafold3-prediction"
+      ]
+    },
+    "model_version": { "type": "string", "description": "Weights/checkpoint identifier as reported by the tool." },
+    "seed": { "type": "integer" },
+
+    "receptor_pdb_id": {
+      "type": ["string", "null"],
+      "description": "Re-refined receptor used as template, if any; null for pure sequence cofolding."
+    },
+    "receptor_refinement": {
+      "type": ["string", "null"],
+      "enum": ["refinement_1", "refinement_2", "original_deposition", null],
+      "description": "Which coordinate set, per pxr_structures.csv."
+    },
+
+    "proto_tools_commit": { "type": "string", "description": "proto-tools version or commit that executed the call." },
+    "modal_workspace": { "type": "string" },
+    "modal_environment": { "type": "string" },
+    "gpu_type": { "type": ["string", "null"], "description": "e.g. A100-40GB, H100." },
+
+    "status": { "type": "string", "enum": ["pending", "running", "succeeded", "failed"] },
+    "wall_clock_s": { "type": ["number", "null"] },
+    "cost_usd": { "type": ["number", "null"] },
+    "error": { "type": ["string", "null"] },
+
+    "output_pdb": { "type": ["string", "null"], "description": "Repo-relative path to the predicted complex." },
+    "model_confidence": {
+      "type": ["object", "null"],
+      "description": "Whatever the model self-reports; keys differ per model, so stored as-is rather than coerced.",
+      "additionalProperties": { "type": "number" }
+    },
+
+    "selected": { "type": "boolean", "description": "True if stage 03 chose this pose for submission." },
+    "selection_strategy": { "type": ["string", "null"], "enum": ["confidence", "medoid", "hybrid", null] },
+
+    "scores": {
+      "type": ["object", "null"],
+      "description": "Official OpenStructure metrics, populated by eval/score.py.",
+      "properties": {
+        "LDDT-PLI": { "type": "number" },
+        "BiSyRMSD": { "type": "number" },
+        "LDDT-LP": { "type": "number" },
+        "coverage": { "type": "number", "enum": [0.0, 1.0] }
+      }
+    },
+
+    "timestamp": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}
