@@ -1,0 +1,27 @@
+{
+  "stage": "stage3_prior",
+  "owner": "sumer",
+  "status": "stub",
+  "summary": "Generate a diverse candidate pool across multiple models and seeds.",
+  "consumes": [
+    "stage1.priors",
+    "stage2.conformer_ensemble",
+    "stage1.template_candidates"
+  ],
+  "produces": [
+    "stage3.pose_pool",
+    "stage3.pool_oracle"
+  ],
+  "external_tools": [
+    "boltz",
+    "openprotein",
+    "modal",
+    "tamarind",
+    "esm"
+  ],
+  "credits": [
+    "boltz",
+    "modal",
+    "tamarind"
+  ]
+}

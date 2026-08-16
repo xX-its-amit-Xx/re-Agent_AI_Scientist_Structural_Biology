@@ -1,0 +1,23 @@
+{
+  "stage": "stage3_prior",
+  "owner": "sumer",
+  "status": "stub",
+  "summary": "Structural templating and curriculum fine-tuning on the Stage 1 corpus.",
+  "consumes": [
+    "stage1.corpus_for_finetune",
+    "stage1.subpopulations"
+  ],
+  "produces": [
+    "stage3.finetuned_model",
+    "stage3.template_set"
+  ],
+  "external_tools": [
+    "openprotein",
+    "modal",
+    "slurm"
+  ],
+  "credits": [
+    "modal",
+    "openprotein"
+  ]
+}

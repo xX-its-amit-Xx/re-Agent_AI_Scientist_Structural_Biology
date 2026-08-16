@@ -1,5 +1,30 @@
 # PXR Track 2 — Structure Prediction
 
+## What is a skill here, and what is a script
+
+This repo's intelligence lives in `.claude/skills/` as Markdown an agent reads.
+Code exists only to supply **what an agent must not improvise** — deployment,
+deterministic format hygiene, and measured facts. Anything that encodes
+*scientific judgement* — which models to run, how many seeds, how to pick a
+pose — belongs in a skill, because a script that decides those things hides the
+decision that is the whole point.
+
+| Kind | Where | Why |
+|---|---|---|
+| Judgement | `.claude/skills/*/SKILL.md` | An agent must be able to reason about it, and change its mind |
+| Measured fact | `.claude/skills/*/reference/*.md` | Costly to rediscover, and contradicts a plausible assumption |
+| Infrastructure | `modal/` | Deploying AF3 correctly is not a judgement call |
+| Mechanical helper | `stages/`, `eval/` | Manifest building, OST scoring, submission validation |
+
+`stages/03_rescore.py` was deleted rather than fixed: it encoded a selection
+strategy, and both the strategy and the decision to script it were wrong. Its
+replacement is `confidence-selection/SKILL.md`.
+
+Stage 3 skills owned here: `structure-ensemble`, `confidence-selection`,
+`template-and-finetune`. Their `meta.json` `consumes`/`produces` keys are other
+people's contracts — changing one changes someone else's stage, so say so first.
+
+
 Agentic pipeline predicting bound protein-ligand complexes for the OpenADMET PXR
 Blind Challenge structure track. The original July 1 2026 deadline has passed;
 this is a hackathon rebuild scored against the now-unblinded ground truth.

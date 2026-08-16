@@ -1,0 +1,18 @@
+{
+  "stage": "stage3_prior",
+  "owner": "sumer",
+  "status": "stub",
+  "summary": "Pick one candidate per item from the pool; the step that decides the score.",
+  "consumes": [
+    "stage3.pose_pool",
+    "stage3.pool_oracle",
+    "stage2.critical_residues"
+  ],
+  "produces": [
+    "stage3.report",
+    "stage3.selection",
+    "stage3.failure_tail"
+  ],
+  "external_tools": [],
+  "credits": []
+}
