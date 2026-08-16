@@ -73,9 +73,10 @@ through proto-tools.
 ## Layout
 
 ```
+.claude/skills/  structure-ensemble · confidence-selection · template-and-finetune
 manifest/     ligands.csv (184) · receptors.csv (64) · holdout.csv (92)
-stages/       01_retrieve → 02_cofold → 03_rescore → 04_submit
-eval/         score.py (OST metrics) · benchflow.yaml · structure_validation.py (vendored)
+stages/       01_retrieve · 02_cofold · 04_submit   (mechanical helpers only)
+eval/         score.py (OST metrics) · skill_lint.py · benchflow.yaml · structure_validation.py
 modal/        alphafold3_service.py (our AF3 app) · client.py (unified cofold dispatch)
 paperclip/    org.yaml · permissions.yaml       — Phase 5, do not wire early
 benchling/    schema.json                        — run provenance
@@ -108,8 +109,12 @@ PXR's binding pocket is large, hydrophobic and promiscuous, the adjacent loops
 are disordered, and the receptor adopts multiple documented conformations. Six of
 the 64 re-refined structures have **two** ligands bound simultaneously. Any single
 cofold run is a sample from a wide distribution, not an answer — hence the
-ensemble in Phase 4 and consensus selection in `stages/03_rescore.py`, rather
-than trusting one model's confidence head.
+ensemble.
+
+That argument justifies a **wide pool**, and stops there. It does *not* justify
+consensus selection, which is the intuitive next step and is refuted: agreeing
+models share correlated errors, so voting amplifies them. Widen with diversity;
+select with z-scored native confidence. See `confidence-selection/SKILL.md`.
 
 Targets are fragment-sized: MW 127–474 (median 309), 9–32 heavy atoms
 (median 21). Small ligands in a large pocket is the regime where pose placement
