@@ -21,6 +21,11 @@ __pycache__/
 
 # Scored results are small and worth versioning; keep them.
 !eval/results/
+# ...but not the OST container's scratch (driver + pair spec), which is
+# regenerated on every scoring call and carries machine-local paths.
+eval/results/*_ost/
+eval/results/*/_ost_driver.py
+eval/results/*/_ost_pairs.json
 
 # proto-tools scratch outputs
 proto_tools_outputs/
