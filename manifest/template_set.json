@@ -1,0 +1,15 @@
+{
+  "k": 6,
+  "representatives": [
+    "1nrl",
+    "6bns",
+    "7ax9",
+    "7riu",
+    "8svp",
+    "8svr"
+  ],
+  "n_fingerprinted": 64,
+  "n_skipped": 0,
+  "skipped": [],
+  "injection_blocked": "No deployed cofolder exposes a `templates` input; all five accept only `complexes` and `msas` under additionalProperties:false. This set is selected but cannot currently be injected via proto-tools."
+}
