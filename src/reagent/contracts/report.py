@@ -37,6 +37,7 @@ from .interpret import (
     mean_sentence_length,
     undefined_jargon,
 )
+from .parts import Anatomy
 from .reasoning import ReasoningTrace
 from .viz import EXPECTED_VIZ, VizBundle, missing_expected
 
@@ -315,6 +316,15 @@ class ModelReport(BaseModel):
             "disagree with a boundary they cannot otherwise see."
         ),
     )
+    anatomy: Anatomy | None = Field(
+        default=None,
+        description=(
+            "Stage 2's decomposition: every piece of the target, every piece of every test "
+            "compound, and the interaction grid between them. The Stage 1 analogue of a "
+            "`sweep` — where that recorded which relations were worked, this records which "
+            "pieces were accounted for and which cells of the grid were actually measured."
+        ),
+    )
 
     metrics: dict[str, Any] = Field(
         default_factory=dict, description="Headline numbers, e.g. {'n_proteins': 42}."
@@ -501,7 +511,25 @@ class ModelReport(BaseModel):
             out += [f"search: {p}" for p in self.search.problems()]
         if self.sweep:
             out += [f"sweep: {p}" for p in self.sweep.problems()]
+        if self.anatomy:
+            out += [f"anatomy: {p}" for p in self.anatomy.problems()]
         return out
+
+    def anatomy_coverage(self) -> dict[str, float]:
+        """Stage 2's three completeness numbers, or empty when there is no anatomy.
+
+        Reported together because they fail independently: a run can account for every atom
+        of every compound and still have measured one corner of the interaction grid.
+        """
+        if self.anatomy is None:
+            return {}
+        a = self.anatomy
+        cells = [m.cell_coverage for m in a.matrices]
+        return {
+            "target_parts": round(a.target_inventory.coverage, 3),
+            "test_batch": round(a.batch_coverage(), 3),
+            "matrix_cells": round(sum(cells) / len(cells), 3) if cells else 0.0,
+        }
 
     def neglected_sources(self) -> list[tuple[str, list[str]]]:
         """Cited sources flagged as under-attended, with why. Feeds the report's

@@ -1,41 +1,49 @@
-{"id":"family:nuclear-receptor","type":"Family","label":"Nuclear receptor (PF00104 LBD)","aliases":[],"attrs":{"pfam":"PF00104","ligand_bound_pdb_entries":1264},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.770751Z"}
-{"id":"family:NR1I","type":"Family","label":"NR1I subfamily","aliases":[],"attrs":{},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.770751Z"}
-{"id":"family:xenobiotic-handler","type":"Family","label":"Xenobiotic-handling proteins","aliases":[],"attrs":{},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.770751Z"}
-{"id":"uniprot:O75469","type":"Protein","label":"PXR (NR1I2)","aliases":[],"attrs":{"ligand_bound_pdb_entries":70},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.770751Z"}
-{"id":"uniprot:Q14994","type":"Protein","label":"CAR (NR1I3)","aliases":[],"attrs":{"ligand_bound_pdb_entries":2},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.770751Z"}
-{"id":"uniprot:P11473","type":"Protein","label":"VDR (NR1I1)","aliases":[],"attrs":{"ligand_bound_pdb_entries":48},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.770751Z"}
-{"id":"uniprot:Q96RI1","type":"Protein","label":"FXR (NR1H4)","aliases":[],"attrs":{"ligand_bound_pdb_entries":79},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.770751Z"}
-{"id":"uniprot:P37231","type":"Protein","label":"PPARG","aliases":[],"attrs":{"ligand_bound_pdb_entries":88},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.770751Z"}
-{"id":"uniprot:Q07869","type":"Protein","label":"PPARA","aliases":[],"attrs":{"ligand_bound_pdb_entries":44},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"uniprot:Q03181","type":"Protein","label":"PPARD","aliases":[],"attrs":{"ligand_bound_pdb_entries":50},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"uniprot:P03372","type":"Protein","label":"ESR1","aliases":[],"attrs":{"ligand_bound_pdb_entries":312},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"uniprot:P10275","type":"Protein","label":"AR (NR3C4)","aliases":[],"attrs":{"ligand_bound_pdb_entries":92},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"uniprot:P04150","type":"Protein","label":"GR (NR3C1)","aliases":[],"attrs":{"ligand_bound_pdb_entries":34},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"uniprot:P51449","type":"Protein","label":"RORC","aliases":[],"attrs":{"ligand_bound_pdb_entries":158},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"uniprot:P55055","type":"Protein","label":"LXRB (NR1H2)","aliases":[],"attrs":{"ligand_bound_pdb_entries":12},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"uniprot:P41235","type":"Protein","label":"HNF4A","aliases":[],"attrs":{"ligand_bound_pdb_entries":1},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"uniprot:P08684","type":"Protein","label":"CYP3A4","aliases":[],"attrs":{},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"uniprot:P11712","type":"Protein","label":"CYP2C9","aliases":[],"attrs":{},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"uniprot:P10635","type":"Protein","label":"CYP2D6","aliases":[],"attrs":{},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"uniprot:P08183","type":"Protein","label":"P-glycoprotein (ABCB1)","aliases":[],"attrs":{},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"pdb:1M13","type":"Structure","label":"1M13","aliases":[],"attrs":{"method":"X-ray"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"pdb:1NRL","type":"Structure","label":"1NRL","aliases":[],"attrs":{"method":"X-ray"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"pdb:4X1G","type":"Structure","label":"4X1G","aliases":[],"attrs":{"method":"X-ray"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"pdb:5A86","type":"Structure","label":"5A86","aliases":[],"attrs":{"method":"X-ray"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"pdb:8SVO","type":"Structure","label":"8SVO","aliases":[],"attrs":{"method":"X-ray"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"pocket:pdb:1M13/LBD","type":"Pocket","label":"PXR LBD pocket","aliases":[],"attrs":{"volume_A3":1600,"character":"large, hydrophobic"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"residue:uniprot:O75469/Ser247","type":"Residue","label":"Ser247","aliases":[],"attrs":{"role":"polar, agonist-defining"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"residue:uniprot:O75469/Gln285","type":"Residue","label":"Gln285","aliases":[],"attrs":{"role":"polar"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"residue:uniprot:O75469/His407","type":"Residue","label":"His407","aliases":[],"attrs":{"role":"protonatable, flexible helix 10"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"residue:uniprot:O75469/Arg410","type":"Residue","label":"Arg410","aliases":[],"attrs":{"role":"salt bridge"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"residue:uniprot:O75469/Phe288","type":"Residue","label":"Phe288","aliases":[],"attrs":{"role":"aromatic cage"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"residue:uniprot:O75469/Trp299","type":"Residue","label":"Trp299","aliases":[],"attrs":{"role":"aromatic cage"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"residue:uniprot:O75469/Tyr306","type":"Residue","label":"Tyr306","aliases":[],"attrs":{"role":"aromatic cage"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"motif:aromatic-cage/PXR-LBD","type":"Motif","label":"Aromatic cage (Phe/Trp/Tyr)","aliases":[],"attrs":{"members":["Phe288","Trp299","Tyr306"]},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"pmc:PMC12690452","type":"Paper","label":"Subtle changes in ligand-receptor interactions alter PXR outcomes","aliases":[],"attrs":{"year":2025},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"pmc:PMC9563780","type":"Paper","label":"PXR ligand-binding pocket architecture","aliases":[],"attrs":{"year":2022},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"pmc:PMC8864553","type":"Paper","label":"Promiscuity of the PXR ligand-binding domain","aliases":[],"attrs":{"year":2022},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"chembl:CHEMBL432657","type":"Compound","label":"SR12813","aliases":[],"attrs":{},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"chembl:CHEMBL374478","type":"Compound","label":"Rifampicin","aliases":[],"attrs":{},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"chembl:CHEMBL427448","type":"Compound","label":"Hyperforin","aliases":[],"attrs":{},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
-{"id":"chembl:CHEMBL46740","type":"Compound","label":"T0901317","aliases":[],"attrs":{},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-15T21:36:41.771751Z"}
+{"id":"family:nuclear-receptor","type":"Family","label":"Nuclear receptor (PF00104 LBD)","aliases":[],"attrs":{"pfam":"PF00104","ligand_bound_pdb_entries":1264},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.630695Z"}
+{"id":"family:NR1I","type":"Family","label":"NR1I subfamily","aliases":[],"attrs":{},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"family:xenobiotic-handler","type":"Family","label":"Xenobiotic-handling proteins","aliases":[],"attrs":{},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"uniprot:O75469","type":"Protein","label":"PXR (NR1I2)","aliases":[],"attrs":{"ligand_bound_pdb_entries":70},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"uniprot:Q14994","type":"Protein","label":"CAR (NR1I3)","aliases":[],"attrs":{"ligand_bound_pdb_entries":2},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"uniprot:P11473","type":"Protein","label":"VDR (NR1I1)","aliases":[],"attrs":{"ligand_bound_pdb_entries":48},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"uniprot:Q96RI1","type":"Protein","label":"FXR (NR1H4)","aliases":[],"attrs":{"ligand_bound_pdb_entries":79},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"uniprot:P37231","type":"Protein","label":"PPARG","aliases":[],"attrs":{"ligand_bound_pdb_entries":88},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"uniprot:Q07869","type":"Protein","label":"PPARA","aliases":[],"attrs":{"ligand_bound_pdb_entries":44},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"uniprot:Q03181","type":"Protein","label":"PPARD","aliases":[],"attrs":{"ligand_bound_pdb_entries":50},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"uniprot:P03372","type":"Protein","label":"ESR1","aliases":[],"attrs":{"ligand_bound_pdb_entries":312},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"uniprot:P10275","type":"Protein","label":"AR (NR3C4)","aliases":[],"attrs":{"ligand_bound_pdb_entries":92},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"uniprot:P04150","type":"Protein","label":"GR (NR3C1)","aliases":[],"attrs":{"ligand_bound_pdb_entries":34},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"uniprot:P51449","type":"Protein","label":"RORC","aliases":[],"attrs":{"ligand_bound_pdb_entries":158},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"uniprot:P55055","type":"Protein","label":"LXRB (NR1H2)","aliases":[],"attrs":{"ligand_bound_pdb_entries":12},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"uniprot:P41235","type":"Protein","label":"HNF4A","aliases":[],"attrs":{"ligand_bound_pdb_entries":1},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"uniprot:P08684","type":"Protein","label":"CYP3A4","aliases":[],"attrs":{},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"uniprot:P11712","type":"Protein","label":"CYP2C9","aliases":[],"attrs":{},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"uniprot:P10635","type":"Protein","label":"CYP2D6","aliases":[],"attrs":{},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"uniprot:P08183","type":"Protein","label":"P-glycoprotein (ABCB1)","aliases":[],"attrs":{},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"pdb:1M13","type":"Structure","label":"1M13","aliases":[],"attrs":{"method":"X-ray"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"pdb:1NRL","type":"Structure","label":"1NRL","aliases":[],"attrs":{"method":"X-ray"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"pdb:4X1G","type":"Structure","label":"4X1G","aliases":[],"attrs":{"method":"X-ray"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"pdb:5A86","type":"Structure","label":"5A86","aliases":[],"attrs":{"method":"X-ray"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"pdb:8SVO","type":"Structure","label":"8SVO","aliases":[],"attrs":{"method":"X-ray"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"pocket:pdb:1M13/LBD","type":"Pocket","label":"PXR LBD pocket","aliases":[],"attrs":{"volume_A3":1600,"character":"large, hydrophobic"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.631702Z"}
+{"id":"residue:uniprot:O75469/Ser247","type":"Residue","label":"Ser247","aliases":[],"attrs":{"role":"polar, agonist-defining"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.632697Z"}
+{"id":"residue:uniprot:O75469/Gln285","type":"Residue","label":"Gln285","aliases":[],"attrs":{"role":"polar"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.632697Z"}
+{"id":"residue:uniprot:O75469/His407","type":"Residue","label":"His407","aliases":[],"attrs":{"role":"protonatable, flexible helix 10"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.632697Z"}
+{"id":"residue:uniprot:O75469/Arg410","type":"Residue","label":"Arg410","aliases":[],"attrs":{"role":"salt bridge"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.632697Z"}
+{"id":"residue:uniprot:O75469/Phe288","type":"Residue","label":"Phe288","aliases":[],"attrs":{"role":"aromatic cage"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.632697Z"}
+{"id":"residue:uniprot:O75469/Trp299","type":"Residue","label":"Trp299","aliases":[],"attrs":{"role":"aromatic cage"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.632697Z"}
+{"id":"residue:uniprot:O75469/Tyr306","type":"Residue","label":"Tyr306","aliases":[],"attrs":{"role":"aromatic cage"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.632697Z"}
+{"id":"residue:uniprot:O75469/Leu209","type":"Residue","label":"Leu209","aliases":[],"attrs":{"role":"apolar wall"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.632697Z"}
+{"id":"residue:uniprot:O75469/Leu240","type":"Residue","label":"Leu240","aliases":[],"attrs":{"role":"apolar wall"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.632697Z"}
+{"id":"residue:uniprot:O75469/Met243","type":"Residue","label":"Met243","aliases":[],"attrs":{"role":"apolar wall, conformationally mobile"},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.632697Z"}
+{"id":"motif:aromatic-cage/PXR-LBD","type":"Motif","label":"Aromatic cage (Phe/Trp/Tyr)","aliases":[],"attrs":{"members":["Phe288","Trp299","Tyr306"]},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.632697Z"}
+{"id":"pmc:PMC12690452","type":"Paper","label":"Subtle changes in ligand-receptor interactions alter PXR outcomes","aliases":[],"attrs":{"year":2025},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.632697Z"}
+{"id":"pmc:PMC9563780","type":"Paper","label":"PXR ligand-binding pocket architecture","aliases":[],"attrs":{"year":2022},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.632697Z"}
+{"id":"pmc:PMC8864553","type":"Paper","label":"Promiscuity of the PXR ligand-binding domain","aliases":[],"attrs":{"year":2022},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.632697Z"}
+{"id":"chembl:CHEMBL432657","type":"Compound","label":"SR12813","aliases":[],"attrs":{},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.632697Z"}
+{"id":"chembl:CHEMBL374478","type":"Compound","label":"Rifampicin","aliases":[],"attrs":{},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.632697Z"}
+{"id":"chembl:CHEMBL427448","type":"Compound","label":"Hyperforin","aliases":[],"attrs":{},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.632697Z"}
+{"id":"chembl:CHEMBL46740","type":"Compound","label":"T0901317","aliases":[],"attrs":{},"asserted_by":"demo-seed","run_id":"demo","created_utc":"2026-08-16T03:58:29.632697Z"}
+{"id":"pocket:pdb:1M13/LBD/hydrophobic-lobe","type":"Pocket","label":"Hydrophobic lobe","aliases":[],"attrs":{"members":["Leu209","Leu240","Met243"],"n_residues":3},"asserted_by":"parts-inventory","run_id":"demo","created_utc":"2026-08-16T03:58:29.632697Z"}
+{"id":"pocket:pdb:1M13/LBD/polar-rim","type":"Pocket","label":"Polar rim","aliases":[],"attrs":{"members":["Ser247","Gln285"],"n_residues":2},"asserted_by":"parts-inventory","run_id":"demo","created_utc":"2026-08-16T03:58:29.632697Z"}
+{"id":"pocket:pdb:1M13/LBD/aromatic-face","type":"Pocket","label":"Aromatic face","aliases":[],"attrs":{"members":["Phe288","Trp299","Tyr306"],"n_residues":3},"asserted_by":"parts-inventory","run_id":"demo","created_utc":"2026-08-16T03:58:29.632697Z"}
+{"id":"fragment:murcko:c1ccc2ccccc2c1","type":"Fragment","label":"Naphthalene core","aliases":[],"attrs":{},"asserted_by":"parts-inventory","run_id":"demo","created_utc":"2026-08-16T03:58:29.632697Z"}
+{"id":"fragment:smarts:[CX3](=O)[OX2H1]","type":"Fragment","label":"Carboxylate","aliases":[],"attrs":{},"asserted_by":"parts-inventory","run_id":"demo","created_utc":"2026-08-16T03:58:29.632697Z"}

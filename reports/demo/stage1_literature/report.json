@@ -4,7 +4,7 @@
   "run_id": "demo",
   "stage": "stage1_literature",
   "title": "Stage 1 demo — target neighbourhood on a fixture graph",
-  "created_utc": "2026-08-16T02:33:35.841167Z",
+  "created_utc": "2026-08-16T04:07:49.566673Z",
   "produced_by": {
     "model": "claude-fable-5",
     "skill": "target-neighborhood",
@@ -12,7 +12,7 @@
     "human_owner": "amit"
   },
   "objective": "Demonstrate the Stage 1 contract end to end on a fixture: build a multi-axis neighbourhood, render it, and report honestly on what the graph does and does not contain.",
-  "executive_summary": "Built a 41-node, 70-edge fixture graph around the target and rendered it as a self-contained interactive ego view. Two of seven declared similarity axes are populated, both with illustrative placeholder scores rather than measurements, so this report demonstrates the machinery rather than characterising the target. The promiscuity axis is the interesting one even in fixture form: its top neighbours sit outside the target's family, which is where non-obvious transfer sources live.",
+  "executive_summary": "Built a 49-node, 82-edge fixture graph around the target and rendered it as a self-contained interactive ego view. Two of seven declared similarity axes are populated, both with illustrative placeholder scores rather than measurements, so this report demonstrates the machinery rather than characterising the target. The promiscuity axis is the interesting one even in fixture form: its top neighbours sit outside the target's family, which is where non-obvious transfer sources live.",
   "plain_summary": "We were asked what other proteins resemble our target, so that later steps can borrow their known shapes. This run built the machinery for that question and mapped out the relationships, but the numbers attached to them are stand-ins rather than measurements, and five of the seven planned comparisons have not been made yet. The one result worth carrying forward is not a number: the proteins most like our target in the way that matters are not its close relatives but liver enzymes that face the same problem of having to grip many different molecules. That is where the useful comparisons are likely to be, and it is not where a family tree would have pointed.",
   "glossary": {
     "terms": [
@@ -130,7 +130,7 @@
       "params": {
         "max_depth": 2,
         "max_fanout": 30,
-        "n_elements": 95
+        "n_elements": 99
       },
       "n_calls": 1,
       "failed": false
@@ -187,7 +187,7 @@
           "F-NEG-01"
         ],
         "produced_artifacts": [],
-        "at_utc": "2026-08-16T02:33:35.832168Z"
+        "at_utc": "2026-08-16T04:07:49.556488Z"
       },
       {
         "id": "R-02",
@@ -233,7 +233,7 @@
           "F-PROMISC-01"
         ],
         "produced_artifacts": [],
-        "at_utc": "2026-08-16T02:33:35.832168Z"
+        "at_utc": "2026-08-16T04:07:49.556488Z"
       },
       {
         "id": "R-03",
@@ -273,7 +273,7 @@
           "F-PROMISC-01"
         ],
         "produced_artifacts": [],
-        "at_utc": "2026-08-16T02:33:35.832168Z"
+        "at_utc": "2026-08-16T04:07:49.556488Z"
       },
       {
         "id": "R-04",
@@ -296,7 +296,7 @@
         "produced_artifacts": [
           "docs/figures/demo_kg.html"
         ],
-        "at_utc": "2026-08-16T02:33:35.832168Z"
+        "at_utc": "2026-08-16T04:07:49.556488Z"
       },
       {
         "id": "R-05",
@@ -328,7 +328,7 @@
           "F-DESIGN-01"
         ],
         "produced_artifacts": [],
-        "at_utc": "2026-08-16T02:33:35.832168Z"
+        "at_utc": "2026-08-16T04:07:49.556488Z"
       }
     ],
     "open_decisions": [
@@ -674,11 +674,15 @@
       "data": {
         "predicates_used": [
           "BINDS",
+          "CONTACTS",
+          "HAS_FRAGMENT",
           "HAS_MOTIF",
           "HAS_POCKET",
           "HAS_STRUCTURE",
           "MEMBER_OF_FAMILY",
           "MODULATES",
+          "OCCUPIES",
+          "PART_OF",
           "POCKET_LINED_BY",
           "PROMISCUOUS_WITH",
           "SHARES_MOTIF",
@@ -762,7 +766,7 @@
         }
       ],
       "data": {
-        "cited_edge_fraction": 0.657
+        "cited_edge_fraction": 0.659
       },
       "kg_nodes": [],
       "tags": [],
@@ -774,22 +778,22 @@
       "path": "kg/demo/nodes.jsonl",
       "kind": "kg-nodes",
       "description": "Graph nodes, one JSON object per line",
-      "sha256": "7c0b34cca5fb65b2ed303bc2702a7528f69eb8c796b5437d6f4adf1b8a20c62a",
-      "bytes": 8113
+      "sha256": "ef09b9fa0877d00c108aacd939ca0f8bfddf414aa2db7ab7980951467cabb179",
+      "bytes": 9899
     },
     {
       "path": "kg/demo/edges.jsonl",
       "kind": "kg-edges",
       "description": "Graph edges with provenance and evidence",
-      "sha256": "667986a2e8c389f0f25b45b03dbeece7c5a72270a8a234f383036f9019540a24",
-      "bytes": 26040
+      "sha256": "41bf977edd6adf4a7c6af86efd57397c271653da20df93f3df582bc16a259bff",
+      "bytes": 40585
     },
     {
       "path": "docs/figures/demo_kg.html",
       "kind": "figure",
       "description": "Self-contained interactive ego view",
-      "sha256": "15374fd810e58ebbb5934a9fe47c3e2698ecba842ac14e0fe166457ba4e543f6",
-      "bytes": 487897
+      "sha256": "bade72383f41d81073e94362036d66977ecbf3b0aa9468af66d8c3b1c18bf2bb",
+      "bytes": 502001
     },
     {
       "path": "docs/figures/demo_axis_agreement.svg",
@@ -802,8 +806,8 @@
       "path": "docs/figures/demo_citation_coverage.svg",
       "kind": "figure",
       "description": "Citation coverage per predicate",
-      "sha256": "e2c1b6602ae13a98697291f4ff1b0cfd4ae4be06005be015007e1258ce07c7a8",
-      "bytes": 4576
+      "sha256": "663b61979193e4105a443c69e8e61ca04997de85e60410ac4f2b8f505b5d1a30",
+      "bytes": 5458
     }
   ],
   "visuals": {
@@ -815,7 +819,7 @@
         "medium": "html_self_contained",
         "title": "Target neighbourhood across the declared axes",
         "question": "Which entities are closest to PXR (NR1I2) on each similarity axis, and how strong is each relationship?",
-        "takeaway": "34 entities within 2 hops, connected by 61 typed edges across 6 predicate families. Truncated: fan-out capped at uniprot:O75469 (+8 hidden).",
+        "takeaway": "36 entities within 2 hops, connected by 63 typed edges across 6 predicate families. Truncated: fan-out capped at uniprot:O75469 (+8 hidden).",
         "path": "docs/figures/demo_kg.html",
         "reads_from": [
           "kg/nodes.jsonl",
@@ -853,7 +857,7 @@
           "n_edges"
         ],
         "focal_node": "uniprot:O75469",
-        "n_elements": 95,
+        "n_elements": 99,
         "params": {
           "filtered": true,
           "max_depth": 2,
@@ -862,8 +866,8 @@
             "data",
             "evidence"
           ],
-          "n_nodes": 34,
-          "n_edges": 61
+          "n_nodes": 36,
+          "n_edges": 63
         }
       },
       {
@@ -922,12 +926,12 @@
         },
         "color_maps": [],
         "interactive": false,
-        "alt_text": "A horizontal bar chart of 13 items ranked by fraction of edges with at least one citation, from 1 at the top down to 0.",
+        "alt_text": "A horizontal bar chart of 17 items ranked by fraction of edges with at least one citation, from 1 at the top down to 0.",
         "covers_metrics": [
           "cited_edge_fraction",
           "n_family_members"
         ],
-        "n_elements": 13,
+        "n_elements": 17,
         "params": {}
       },
       {
@@ -1006,7 +1010,10 @@
         "residue:uniprot:O75469/Arg410",
         "residue:uniprot:O75469/Phe288",
         "residue:uniprot:O75469/Trp299",
-        "residue:uniprot:O75469/Tyr306"
+        "residue:uniprot:O75469/Tyr306",
+        "residue:uniprot:O75469/Leu209",
+        "residue:uniprot:O75469/Leu240",
+        "residue:uniprot:O75469/Met243"
       ],
       "priors": [
         {
@@ -1148,9 +1155,9 @@
     ]
   },
   "metrics": {
-    "n_nodes": 41,
-    "n_edges": 70,
-    "cited_edge_fraction": 0.657,
+    "n_nodes": 49,
+    "n_edges": 82,
+    "cited_edge_fraction": 0.659,
     "n_family_members": 13,
     "n_fold_neighbours": 5
   },

@@ -27,6 +27,40 @@ telling Sumer, because his stage consumes them.
 2. For each load-bearing residue, what ligand chemistry is complementary to it?
 3. Which interactions recur across *all* known complexes, and which are idiosyncratic?
 
+## What you are handed, and the split with `parts-inventory`
+
+Run `parts-inventory` first. It does the arithmetic; this skill does the judgement, and the
+split is deliberate — **merging them lets judgement hide inside a coverage number.**
+
+| `parts-inventory` gives you | This skill decides |
+|---|---|
+| every sub-region of the pocket, with its lining residues accounted for | which of those residues are load-bearing |
+| every piece of every test compound, with atom accounting | which pieces matter and which are dead weight |
+| the interaction grid, each cell measured or explicitly out of scope | the recurrence ranking and the required-vs-optional call |
+
+So you inherit `stage2.parts_inventory` and `stage2.interaction_matrix`, and you do **not**
+have to build the fingerprint matrix yourself — it arrives with the measured-empty cells
+already distinguished from the unmeasured ones. `InteractionMatrix.parts_touching_nothing()`
+is the free win: compound parts measured against every protein part that engage none of them,
+which is either a group to delete or a handle to grow from.
+
+**And it is all in the Stage 1 graph, not a new one.** `PART_OF`, `CONTACTS`, `OCCUPIES` and
+`COMPLEMENTARY_TO` extend the same store the literature axes populated, so *"does this
+substituent engage a residue that is conserved across the promiscuous non-family templates
+Stage 1 found?"* is a query rather than a project.
+
+Two things to add on the edges you write:
+
+- **`Edge.commentary` on every anatomy edge.** The reading of the connection in med-chem
+  terms, not a restatement of the predicate. This is the sentence any side-by-side view of two
+  nodes displays, and `KGStore.uncommented_edges()` lists scored edges still missing one. A
+  scored edge with no commentary tells a reader that two things are related by 0.72 of
+  something and leaves them to work out what to do.
+- **`viz.part_comparison`** — `compare_parts <node-a> <node-b>` renders two parts side by side
+  with contacts coloured by interaction kind and directional ones dashed. `INTERACTION_3D` is
+  now a *required* Stage 2 figure, because a contact heatmap is a summary of a thing the reader
+  has never actually seen.
+
 ## Read this before installing anything
 
 [interaction-toolchain.md](reference/interaction-toolchain.md) records findings
@@ -85,6 +119,10 @@ afternoon each if you meet them cold:
 
 ## Required visuals
 
+- **Part-vs-part 3D comparison** (`INTERACTION_3D`) — two nodes side by side, each panel zoomed
+  to the part rather than the protein, contacts as sticks coloured by interaction kind,
+  directional contacts dashed, and a table of which interactions both sides make. This is the
+  figure a med chemist actually reads; the heatmap below summarises it.
 - **2D interaction diagram** (PLIP/LigPlot style) for a representative complex.
 - **Interaction fingerprint heatmap**: ligand x residue, cell coloured by
   interaction type — the figure that shows the pocket's grammar at a glance.

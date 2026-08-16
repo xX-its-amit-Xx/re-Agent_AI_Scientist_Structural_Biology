@@ -154,8 +154,8 @@ def extract_ego(
     try:
         adj: dict[str, list[dict[str, Any]]] = defaultdict(list)
         rows = con.execute(
-            "SELECT src, predicate, dst, confidence, conf_rank, attrs_json, n_evidence,"
-            " evidence_json, asserted_by FROM edges WHERE conf_rank >= ?",
+            "SELECT src, predicate, dst, confidence, conf_rank, attrs_json, commentary,"
+            " n_evidence, evidence_json, asserted_by FROM edges WHERE conf_rank >= ?",
             (min_confidence_rank,),
         ).fetchall()
         for r in rows:
@@ -321,6 +321,9 @@ def build_elements(
                     "hasDash": 1 if dash else 0,
                     "fan": k,
                     "attrs": attrs,
+                    # The reading of the edge, carried into the figure so selecting a
+                    # pair answers "why are these two together?" without a round trip.
+                    "commentary": e["commentary"] or None,
                     "nEvidence": e["n_evidence"],
                     "evidence": evidence[:6],
                     "assertedBy": e["asserted_by"],
@@ -516,6 +519,18 @@ _HTML = r"""<title>__TITLE__</title>
   button { font: inherit; font-size: 12px; padding: 5px 9px; border: 1px solid var(--line);
       background: var(--bg); color: var(--ink); border-radius: 5px; cursor: pointer; }
   button:hover { border-color: var(--accent); }
+  /* two-node comparison panel */
+  #pair { font-size: .82rem; }
+  .pairrow { padding: .35rem 0; }
+  .pairedge { border-left: 3px solid var(--accent); padding: .3rem .5rem; margin: .35rem 0;
+              background: var(--code); border-radius: 0 6px 6px 0; }
+  .pcomment { margin-top: .25rem; line-height: 1.45; }
+  .pcomment.miss { color: var(--muted); font-style: italic; }
+  .pchip { display: inline-block; font-size: .68rem; padding: .02rem .32rem;
+           border-radius: 9px; background: var(--panel); color: var(--muted); }
+  .pchip.warn { color: #D55E00; }
+  code.cmd { display: block; margin: .3rem 0; padding: .3rem .4rem; background: var(--code);
+             border-radius: 5px; font-size: .74rem; word-break: break-all; }
   #tip { position: fixed; z-index: 20; max-width: 330px; display: none;
       background: var(--panel); color: var(--ink); border: 1px solid var(--line);
       border-radius: 6px; padding: 9px 11px; font-size: 12.5px; line-height: 1.45;
@@ -535,6 +550,11 @@ _HTML = r"""<title>__TITLE__</title>
 <div id="wrap">
   <div id="cy"></div>
   <div id="side">
+    <h2>Compare two</h2>
+    <div class="note">Click a node, then <b>shift-click</b> a second. The edge between them
+      explains why they belong side by side.</div>
+    <div id="pair"></div>
+
     <h2>Find</h2>
     <input type="search" id="q" placeholder="Search label or id…" autocomplete="off">
     <div class="note">Click an edge to isolate its predicate. Click empty space to reset.</div>
@@ -594,6 +614,12 @@ const cy = cytoscape({
     { selector: '.dim',  style: { 'opacity': 0.06, 'z-index': 0 } },
     { selector: '.hide', style: { 'display': 'none' } },
     { selector: '.hit',  style: { 'border-width': 3, 'border-color': 'var(--accent)' } },
+    // The two comparison picks. Distinguished by border colour and by a numeral, so the
+    // pair is legible without relying on hue alone.
+    { selector: 'node.pickA', style: { 'border-width': 4, 'border-color': '#0072B2',
+                                      'border-style': 'solid' } },
+    { selector: 'node.pickB', style: { 'border-width': 4, 'border-color': '#D55E00',
+                                      'border-style': 'double' } },
   ],
 });
 
@@ -702,13 +728,113 @@ cy.on('tap', 'edge', ev => {
   const sel = cy.edges(`[predicate = "${p}"]`);
   sel.removeClass('dim'); sel.connectedNodes().removeClass('dim');
 });
+// ---- two-node comparison ----------------------------------------------
+// The affordance the whole graph exists for: pick two things and ask what relates them.
+// A static page cannot render 3D structures on demand, so it does the half it can do
+// honestly — surface the edge's own commentary immediately — and hands over the exact
+// command for the half it cannot.
+let pairA = null, pairB = null;
+
+function edgesBetween(a, b) {
+  return cy.edges().filter(e => {
+    const s = e.data('source'), t = e.data('target');
+    return (s === a && t === b) || (s === b && t === a);
+  });
+}
+
+function sharedNeighbours(a, b) {
+  const na = new Set(cy.getElementById(a).neighborhood('node').map(n => n.id()));
+  return cy.getElementById(b).neighborhood('node')
+    .filter(n => na.has(n.id()) && n.id() !== a && n.id() !== b);
+}
+
+function renderPair() {
+  const box = document.getElementById('pair');
+  if (!pairA) { box.innerHTML = '<div class="note">Nothing selected.</div>'; return; }
+  const la = cy.getElementById(pairA).data('label') || pairA;
+  if (!pairB) {
+    box.innerHTML = `<div class="pairrow"><b>${esc(la)}</b><div class="k">` +
+      `shift-click a second node</div></div>`;
+    return;
+  }
+  const lb = cy.getElementById(pairB).data('label') || pairB;
+  const es = edgesBetween(pairA, pairB);
+  let h = `<div class="pairrow"><b>${esc(la)}</b><br><span class="k">and</span> ` +
+          `<b>${esc(lb)}</b></div>`;
+
+  if (es.length) {
+    es.forEach(e => {
+      const d = e.data();
+      const num = Object.entries(d.attrs || {}).find(([, v]) => typeof v === 'number');
+      h += `<div class="pairedge"><code>${esc(d.predicate)}</code> ` +
+        `<span class="pchip">${esc(d.confidence)}</span>` +
+        (num ? ` <span class="pchip">${esc(num[0])} ${esc(num[1])}</span>` : '') +
+        (d.attrs && d.attrs.illustrative ? ' <span class="pchip warn">placeholder</span>' : '') +
+        (d.nEvidence ? ` <span class="pchip">${d.nEvidence} cited</span>`
+                     : ' <span class="pchip warn">uncited</span>');
+      h += d.commentary
+        ? `<div class="pcomment">${esc(d.commentary)}</div>`
+        : `<div class="pcomment miss">No commentary on this edge — the graph records that ` +
+          `these two are related and not what it means for what to do next.</div>`;
+      h += '</div>';
+    });
+  } else {
+    const via = sharedNeighbours(pairA, pairB);
+    h += via.length
+      ? `<div class="pairedge"><span class="k">No direct edge. Shared with ` +
+        `${via.length}:</span><div class="pcomment">` +
+        via.map(n => esc(n.data('label') || n.id())).slice(0, 8).join(', ') + '</div></div>'
+      : `<div class="pairedge"><div class="pcomment miss">No direct edge and no shared ` +
+        `neighbour in this view. They may still be connected outside the ego cut-off.</div></div>`;
+  }
+
+  h += `<div class="pairrow"><span class="k">See the interactions side by side:</span>` +
+       `<code class="cmd" id="cmd">compare_parts ${esc(pairA)} ${esc(pairB)}</code>` +
+       `<button id="cpy">Copy</button></div>`;
+  box.innerHTML = h;
+  const btn = document.getElementById('cpy');
+  if (btn) btn.onclick = () => {
+    const t = document.getElementById('cmd').textContent;
+    if (navigator.clipboard) navigator.clipboard.writeText(t);
+    btn.textContent = 'Copied';
+    setTimeout(() => { btn.textContent = 'Copy'; }, 1400);
+  };
+}
+
+function markPair() {
+  cy.nodes().removeClass('pickA pickB');
+  if (pairA) cy.getElementById(pairA).addClass('pickA');
+  if (pairB) cy.getElementById(pairB).addClass('pickB');
+}
+
 cy.on('tap', 'node', ev => {
-  cy.elements().addClass('dim');
-  ev.target.removeClass('dim');
-  ev.target.neighborhood().removeClass('dim');
-  ev.target.connectedEdges().removeClass('dim');
+  const id = ev.target.id();
+  const additive = ev.originalEvent && (ev.originalEvent.shiftKey || ev.originalEvent.metaKey);
+  if (additive && pairA && id !== pairA) {
+    pairB = id;
+    cy.elements().addClass('dim');
+    cy.getElementById(pairA).removeClass('dim');
+    cy.getElementById(pairB).removeClass('dim');
+    edgesBetween(pairA, pairB).removeClass('dim');
+    sharedNeighbours(pairA, pairB).removeClass('dim');
+  } else {
+    pairA = id; pairB = null;
+    cy.elements().addClass('dim');
+    ev.target.removeClass('dim');
+    ev.target.neighborhood().removeClass('dim');
+    ev.target.connectedEdges().removeClass('dim');
+  }
+  markPair();
+  renderPair();
 });
-cy.on('tap', ev => { if (ev.target === cy) cy.elements().removeClass('dim'); });
+cy.on('tap', ev => {
+  if (ev.target === cy) {
+    cy.elements().removeClass('dim');
+    pairA = pairB = null;
+    markPair(); renderPair();
+  }
+});
+renderPair();
 
 // ---- search -----------------------------------------------------------
 document.getElementById('q').addEventListener('input', e => {

@@ -47,6 +47,7 @@ class VizKind(str, Enum):
     STRUCTURE_3D = "structure_3d"        # interactive 3D viewer
     STRUCTURE_RENDER = "structure_render"  # ray-traced still (ChimeraX/PyMOL)
     INTERACTION_2D = "interaction_2d"    # PLIP / LigPlot-style contact diagram
+    INTERACTION_3D = "interaction_3d"    # two parts side by side, contacts by kind
     POCKET_SURFACE = "pocket_surface"    # pocket volume / lipophilicity surface
     ENSEMBLE_OVERLAY = "ensemble_overlay"  # N poses or N models superposed
     # quantitative
@@ -225,7 +226,11 @@ class VizBundle(BaseModel):
 EXPECTED_VIZ: dict[str, list[VizKind]] = {
     "stage0_scouting": [VizKind.DECISION_TREE, VizKind.RANKED_BAR],
     "stage1_literature": [VizKind.KG_SUBGRAPH, VizKind.HEATMAP, VizKind.PROVENANCE_CHAIN],
-    "stage2_biochem": [VizKind.INTERACTION_2D, VizKind.STRUCTURE_RENDER, VizKind.HEATMAP],
+    # INTERACTION_3D is required rather than optional: Stage 2 exists to show which piece
+    # touches which, and a heatmap of contacts is a summary of a thing the reader has
+    # never seen. The side-by-side part view is the thing itself.
+    "stage2_biochem": [VizKind.INTERACTION_2D, VizKind.INTERACTION_3D,
+                      VizKind.STRUCTURE_RENDER, VizKind.HEATMAP],
     "stage3_prior": [VizKind.ENSEMBLE_OVERLAY, VizKind.SCATTER, VizKind.PARALLEL_COORDS],
     "stage4_optimization": [VizKind.STRUCTURE_3D, VizKind.SCATTER, VizKind.RANKED_BAR],
     "synthesis": [VizKind.DECISION_TREE, VizKind.PROVENANCE_CHAIN],

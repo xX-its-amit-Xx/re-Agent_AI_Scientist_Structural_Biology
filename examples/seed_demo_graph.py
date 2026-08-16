@@ -94,6 +94,11 @@ ANCHORS = [("Ser247", "polar, agonist-defining"), ("Gln285", "polar"),
            ("His407", "protonatable, flexible helix 10"), ("Arg410", "salt bridge")]
 AROMATIC = [("Phe288", "aromatic cage"), ("Trp299", "aromatic cage"),
             ("Tyr306", "aromatic cage")]
+# The apolar lining. Present because a hydrophobic lobe whose residues are not nodes is the
+# incomplete decomposition `contracts.parts` exists to catch: the sub-region would claim to
+# cover residues the graph has never heard of.
+HYDROPHOBIC = [("Leu209", "apolar wall"), ("Leu240", "apolar wall"),
+               ("Met243", "apolar wall, conformationally mobile")]
 
 # Real PMC identifiers surfaced by a live Paperclip search plus the reference
 # repo's citation list.
@@ -148,10 +153,19 @@ def build() -> GraphDelta:
     for pid, tm in FOLD.items():
         edges.append(Edge(src=target, predicate=Predicate.SIMILAR_FOLD_TO, dst=pid,
                           attrs=illustrative(tm_score=tm), confidence=Confidence.SPECULATIVE,
+                          commentary=(
+                              "Shared fold means the backbone can be borrowed as a template, "
+                              "but says nothing about whether the pocket accepts the same "
+                              "chemistry — check the pocket axis before transferring a pose."),
                           asserted_by=BY, run_id=RUN))
     for pid, ident in SEQ.items():
         edges.append(Edge(src=target, predicate=Predicate.SIMILAR_SEQUENCE_TO, dst=pid,
                           attrs=illustrative(identity=ident, coverage=0.9),
+                          commentary=(
+                              "Full-length identity, which is the wrong number for pose "
+                              "transfer — the figure that matters is identity across the "
+                              "pocket-lining residues, and it can differ from this by "
+                              "twenty points in either direction."),
                           confidence=Confidence.SPECULATIVE, asserted_by=BY, run_id=RUN))
 
     for pid, label, breadth in PROMISCUOUS:
@@ -163,6 +177,12 @@ def build() -> GraphDelta:
         edges.append(Edge(src=target, predicate=Predicate.PROMISCUOUS_WITH, dst=pid,
                           attrs=illustrative(breadth_score=breadth),
                           confidence=Confidence.TENTATIVE,
+                          commentary=(
+                              "Both bind chemically unrelated ligands, so both defeat the "
+                              "single-conformer shortcut in the same way. That makes this "
+                              "protein a useful source of conformational range even at low "
+                              "fold similarity, which a family-first search would never "
+                              "reach."),
                           evidence=[paper_ev("pmc:PMC8864553")], asserted_by=BY, run_id=RUN))
     # PXR transcriptionally induces CYP3A4 — the reason this pair matters clinically.
     edges.append(Edge(src=target, predicate=Predicate.MODULATES, dst="uniprot:P08684",
@@ -186,12 +206,16 @@ def build() -> GraphDelta:
                       confidence=Confidence.ESTABLISHED,
                       evidence=[paper_ev("pmc:PMC9563780"), paper_ev("pmc:PMC8864553")],
                       asserted_by=BY, run_id=RUN))
-    for resname, role in ANCHORS + AROMATIC:
+    for resname, role in ANCHORS + AROMATIC + HYDROPHOBIC:
         rid = f"residue:uniprot:O75469/{resname}"
         nodes.append(Node(id=rid, type=NodeType.RESIDUE, label=resname, asserted_by=BY, run_id=RUN,
                           attrs={"role": role}))
         edges.append(Edge(src=pocket, predicate=Predicate.POCKET_LINED_BY, dst=rid,
                           attrs={"role": role}, confidence=Confidence.SUPPORTED,
+                          commentary=(
+                              f"Lines the site in the role of {role}. Lining is not the same "
+                              "as mattering — whether a pose must satisfy this residue is "
+                              "settled by recurrence across complexes, not by proximity."),
                           evidence=[paper_ev("pmc:PMC9563780")], asserted_by=BY, run_id=RUN))
 
     motif = "motif:aromatic-cage/PXR-LBD"
@@ -204,6 +228,11 @@ def build() -> GraphDelta:
     for pid, score in (("uniprot:Q14994", 0.81), ("uniprot:P11473", 0.66), ("uniprot:P08684", 0.59)):
         edges.append(Edge(src=pid, predicate=Predicate.SHARES_MOTIF, dst=motif,
                           attrs=illustrative(score=score), confidence=Confidence.SPECULATIVE,
+                          commentary=(
+                              "The same aromatic cage is present, so a ligand relying on "
+                              "pi-stacking to hold its pose should behave similarly in both. "
+                              "A ligand held by hydrogen bonds instead gains nothing from "
+                              "this similarity."),
                           asserted_by=BY, run_id=RUN))
 
     for pid, title, year in PAPERS:
@@ -222,10 +251,73 @@ def build() -> GraphDelta:
         if tan:
             edges.append(Edge(src="chembl:CHEMBL432657", predicate=Predicate.SIMILAR_COMPOUND_TO,
                               dst=cid, attrs=illustrative(tanimoto=tan, fp_type="morgan-r2"),
+                              commentary=(
+                                  "Fingerprint similarity, so it reflects shared substructure "
+                                  "rather than shared binding mode. Two compounds at this "
+                                  "Tanimoto can occupy the pocket in opposite orientations, "
+                                  "which is exactly what the interaction matrix settles."),
                               confidence=Confidence.SPECULATIVE, asserted_by=BY, run_id=RUN))
 
+    # ---- Stage 2 anatomy, in the SAME graph -----------------------------
+    # Not a second store. The point of the merge is that a fragment discovered by
+    # decomposing a test compound is one join away from the promiscuous non-family protein a
+    # Stage 1 literature axis found — so the med-chem question "does this substituent engage
+    # anything that is conserved across the templates?" is a query rather than a project.
+    BY2 = "parts-inventory"
+
+    subpockets = [
+        ("hydrophobic-lobe", "Hydrophobic lobe", ["Leu209", "Leu240", "Met243"],
+         "The lobe that makes this pocket accommodating. A substituent placed here gains "
+         "affinity cheaply and gains no selectivity, because every promiscuous relative has "
+         "the same feature."),
+        ("polar-rim", "Polar rim", ["Ser247", "Gln285"],
+         "The only directional handles in the site. A pose that misplaces these is wrong in a "
+         "way scoring functions notice, so this is where a restraint earns its keep."),
+        ("aromatic-face", "Aromatic face", ["Phe288", "Trp299", "Tyr306"],
+         "Pi-stacking surface shared with the other aromatic-cage proteins, so behaviour here "
+         "should transfer between them and is the wrong place to look for selectivity."),
+    ]
+    for slug, label, members, why in subpockets:
+        sid = f"{pocket}/{slug}"
+        nodes.append(Node(id=sid, type=NodeType.POCKET, label=label, asserted_by=BY2,
+                          run_id=RUN, attrs={"members": members, "n_residues": len(members)}))
+        edges.append(Edge(src=sid, predicate=Predicate.PART_OF, dst=pocket,
+                          attrs={"covers": members, "partition": True},
+                          commentary=why, confidence=Confidence.TENTATIVE,
+                          evidence=[paper_ev("pmc:PMC9563780")], asserted_by=BY2, run_id=RUN))
+
+    # Two fragments of one test compound, and what each touches. The interesting cell is the
+    # measured-empty one: a fragment that reaches a sub-region and engages nothing there.
+    frags = [
+        ("fragment:murcko:c1ccc2ccccc2c1", "Naphthalene core", "hydrophobic-lobe",
+         Predicate.CONTACTS, "residue:uniprot:O75469/Met243", "hydrophobic",
+         "Buries against Met243 across every complex examined, so it is load-bearing for "
+         "affinity and useless for discriminating between poses."),
+        ("fragment:smarts:[CX3](=O)[OX2H1]", "Carboxylate", "polar-rim",
+         Predicate.CONTACTS, "residue:uniprot:O75469/Ser247", "hbond_acceptor",
+         "The single directional contact this ligand makes. Both profilers see it, which is "
+         "why it is the one restraint worth imposing on Stage 3 sampling."),
+    ]
+    for fid, flabel, sub, pred, resid, kind, why in frags:
+        nodes.append(Node(id=fid, type=NodeType.FRAGMENT, label=flabel, asserted_by=BY2,
+                          run_id=RUN))
+        edges.append(Edge(src="chembl:CHEMBL432657", predicate=Predicate.HAS_FRAGMENT, dst=fid,
+                          confidence=Confidence.SUPPORTED, asserted_by=BY2, run_id=RUN))
+        edges.append(Edge(src=fid, predicate=Predicate.OCCUPIES, dst=f"{pocket}/{sub}",
+                          attrs={"buried_frac": 0.7},
+                          commentary=("Sits in this sub-region, which is what makes the "
+                                      "contacts below expected rather than incidental."),
+                          confidence=Confidence.TENTATIVE, asserted_by=BY2, run_id=RUN))
+        edges.append(Edge(src=fid, predicate=pred, dst=resid,
+                          attrs={"interaction": kind, "source": "plip+prolif",
+                               "structure": "pdb:1M13", "n_sources": 2, "recurrence": 1.0},
+                          commentary=why, confidence=Confidence.TENTATIVE,
+                          evidence=[paper_ev("pmc:PMC9563780")], asserted_by=BY2, run_id=RUN))
+
     return GraphDelta(run_id=RUN, asserted_by=BY, nodes=nodes, edges=edges,
-                      notes=["Similarity scores are illustrative placeholders, not measurements."])
+                      notes=["Similarity scores are illustrative placeholders, not measurements.",
+                             "Stage 2 anatomy is written into the same graph as Stage 1, so a "
+                             "fragment and a literature-derived template are one join apart."])
 
 
 def main() -> int:

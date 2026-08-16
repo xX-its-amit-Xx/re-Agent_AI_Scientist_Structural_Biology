@@ -8,14 +8,17 @@
     "kg.neighbourhood",
     "stage1.template_candidates",
     "data.availability",
-    "data.local_cache"
+    "data.local_cache",
+    "stage2.parts_inventory",
+    "stage2.interaction_matrix"
   ],
   "produces": [
     "stage2.report",
     "stage2.critical_residues",
     "stage2.fragment_map",
     "kg.residue_nodes",
-    "viz.interaction_2d"
+    "viz.interaction_2d",
+    "viz.part_comparison"
   ],
   "external_tools": [
     "chimerax",

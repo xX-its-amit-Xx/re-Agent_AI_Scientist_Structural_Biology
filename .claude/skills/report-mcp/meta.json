@@ -2,11 +2,13 @@
   "stage": "shared",
   "owner": "amit",
   "status": "implemented",
-  "summary": "Serve a report and its graph over MCP; compare two structures in 3D.",
+  "summary": "Serve a report and its graph over MCP; compare two structures, or two parts and their interactions, in 3D.",
   "consumes": [
     "report.validated",
     "kg.neighbourhood",
-    "kg.dataset_nodes"
+    "kg.dataset_nodes",
+    "kg.contact_edges",
+    "stage2.interaction_matrix"
   ],
   "produces": [
     "mcp.server",

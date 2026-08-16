@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS edges (
     confidence  TEXT,
     conf_rank   INTEGER,
     attrs_json  TEXT,
+    commentary  TEXT,
     n_evidence  INTEGER DEFAULT 0,
     evidence_json TEXT,
     asserted_by TEXT,
@@ -212,36 +213,44 @@ class KGStore:
                 # Keep the highest-confidence version of a duplicated triple,
                 # and merge its attrs so nobody loses a measurement.
                 cur = con.execute(
-                    "SELECT conf_rank, attrs_json FROM edges WHERE src=? AND predicate=? AND dst=?",
+                    "SELECT conf_rank, attrs_json, commentary FROM edges "
+                    "WHERE src=? AND predicate=? AND dst=?",
                     (e.src, e.predicate.value, e.dst),
                 )
                 existing = cur.fetchone()
                 attrs = dict(e.attrs)
+                commentary = e.commentary
                 if existing:
-                    prev_rank, prev_attrs = existing
+                    prev_rank, prev_attrs, prev_comment = existing
                     merged = json.loads(prev_attrs or "{}")
                     merged.update(attrs)
                     attrs = merged
+                    # Never drop an existing reading in favour of nothing. A lower-confidence
+                    # re-assertion of the same triple often carries the better sentence.
+                    commentary = commentary or prev_comment
                     if prev_rank >= rank:
                         con.execute(
-                            "UPDATE edges SET attrs_json=? WHERE src=? AND predicate=? AND dst=?",
-                            (json.dumps(attrs), e.src, e.predicate.value, e.dst),
+                            "UPDATE edges SET attrs_json=?, commentary=? "
+                            "WHERE src=? AND predicate=? AND dst=?",
+                            (json.dumps(attrs), commentary, e.src, e.predicate.value, e.dst),
                         )
                         self._write_attrs(con, e, attrs)
                         continue
                 con.execute(
                     """INSERT INTO edges(src,predicate,dst,confidence,conf_rank,attrs_json,
-                                         n_evidence,evidence_json,asserted_by,run_id,created_utc)
-                       VALUES(?,?,?,?,?,?,?,?,?,?,?)
+                                         commentary,n_evidence,evidence_json,asserted_by,
+                                         run_id,created_utc)
+                       VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
                        ON CONFLICT(src,predicate,dst) DO UPDATE SET
                          confidence=excluded.confidence,
                          conf_rank=excluded.conf_rank,
                          attrs_json=excluded.attrs_json,
+                         commentary=COALESCE(excluded.commentary, edges.commentary),
                          n_evidence=excluded.n_evidence,
                          evidence_json=excluded.evidence_json""",
                     (
                         e.src, e.predicate.value, e.dst, e.confidence.value, rank,
-                        json.dumps(attrs), len(e.evidence),
+                        json.dumps(attrs), commentary, len(e.evidence),
                         json.dumps([ev.model_dump(mode="json", exclude_none=True) for ev in e.evidence]),
                         e.asserted_by, e.run_id, e.created_utc.isoformat(),
                     ),
@@ -458,6 +467,86 @@ class KGStore:
             (src, predicate.value, dst),
         )
         return json.loads(rows[0]["evidence_json"]) if rows else []
+
+    def between(self, a: str, b: str, *, max_hops: int = 2) -> dict[str, Any]:
+        """Everything the graph knows about a *pair* of nodes.
+
+        This is what a side-by-side comparison of two nodes has to be built on. A viewer that
+        shows two things next to each other and does not say why they are together leaves the
+        reader to guess, and the answer is already in the graph — in the edge's predicate, its
+        score, its confidence, its citations, and its ``commentary``.
+
+        Returns direct edges in either direction, and when there are none, the two-hop paths
+        through a shared neighbour — because "no direct edge" is not the same as "unrelated",
+        and the intermediate is usually the interesting part.
+        """
+        direct = self.query(
+            """
+            SELECT e.src, e.predicate, e.dst, e.confidence, e.commentary, e.attrs_json,
+                   e.n_evidence, e.asserted_by,
+                   ns.label AS src_label, ns.type AS src_type,
+                   nd.label AS dst_label, nd.type AS dst_type
+            FROM edges e
+            LEFT JOIN nodes ns ON ns.id = e.src
+            LEFT JOIN nodes nd ON nd.id = e.dst
+            WHERE (e.src = ? AND e.dst = ?) OR (e.src = ? AND e.dst = ?)
+            ORDER BY e.conf_rank DESC, e.predicate
+            """,
+            (a, b, b, a),
+        )
+        for r in direct:
+            r["attrs"] = json.loads(r.pop("attrs_json") or "{}")
+            r["direction"] = "forward" if r["src"] == a else "reverse"
+
+        paths: list[dict[str, Any]] = []
+        if not direct and max_hops >= 2:
+            # Undirected two-hop, excluding the endpoints themselves as intermediates.
+            paths = self.query(
+                """
+                WITH ends AS (
+                  SELECT src AS other, predicate, dst AS anchor, commentary FROM edges
+                  UNION ALL
+                  SELECT dst AS other, predicate, src AS anchor, commentary FROM edges
+                )
+                SELECT x.other AS via, n.label AS via_label, n.type AS via_type,
+                       x.predicate AS pred_a, y.predicate AS pred_b,
+                       x.commentary AS comment_a, y.commentary AS comment_b
+                FROM ends x
+                JOIN ends y ON y.other = x.other
+                LEFT JOIN nodes n ON n.id = x.other
+                WHERE x.anchor = ? AND y.anchor = ?
+                  AND x.other NOT IN (?, ?)
+                ORDER BY x.predicate, y.predicate
+                LIMIT 40
+                """,
+                (a, b, a, b),
+            )
+
+        return {
+            "a": a, "b": b,
+            "direct": direct,
+            "paths": paths,
+            "commentary": [r["commentary"] for r in direct if r.get("commentary")],
+        }
+
+    def uncommented_edges(self, *, scored_only: bool = True) -> list[dict[str, Any]]:
+        """Edges carrying a number but no reading of it.
+
+        Advisory. A scored edge with no ``commentary`` is checkable and unusable: it tells a
+        reader that two things are related by 0.72 of something and leaves them to work out
+        what to do about it. These are the edges a side-by-side view will render as a bare
+        number.
+        """
+        sql = (
+            "SELECT src, predicate, dst, confidence, asserted_by FROM edges "
+            "WHERE (commentary IS NULL OR TRIM(commentary) = '')"
+        )
+        if scored_only:
+            sql += (
+                " AND EXISTS (SELECT 1 FROM edge_attrs a WHERE a.src = edges.src "
+                "AND a.predicate = edges.predicate AND a.dst = edges.dst AND a.num IS NOT NULL)"
+            )
+        return self.query(sql + " ORDER BY predicate, src")
 
     def unsupported_edges(self, min_confidence: Confidence = Confidence.SUPPORTED) -> list[dict[str, Any]]:
         """Edges claiming confidence they have no citations for. Run this before shipping."""

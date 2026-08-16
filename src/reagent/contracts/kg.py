@@ -1,9 +1,17 @@
 """Knowledge-graph contract.
 
-Stage 1 writes the graph; Stages 2-4 read it. The source of truth is two
-append-only JSONL files (``nodes.jsonl``, ``edges.jsonl``) because that is
-git-diffable and keeps provenance attached to every assertion. A SQLite view is
-built on demand for querying — see ``reagent.kg.store``.
+**One graph, written by every stage.** Stage 1 populates the target's neighbourhood from the
+literature; Stage 2 extends the *same* store downward into anatomy — which pockets, which
+sub-regions, which fragments, which contacts — rather than starting a second graph. Stages 3
+and 4 read both layers. The source of truth is two append-only JSONL files
+(``nodes.jsonl``, ``edges.jsonl``) because that is git-diffable and keeps provenance attached
+to every assertion. A SQLite view is built on demand for querying — see ``reagent.kg.store``.
+
+Keeping the two layers in one store is what makes the useful med-chem question a single
+join. *"Which fragment in my test batch engages a sub-pocket residue that is conserved across
+the promiscuous non-family proteins Stage 1 found?"* spans a literature axis, a family
+corpus, a sub-pocket decomposition and an interaction profile — four hops in one graph, and
+four incompatible files if Stage 2 had started fresh.
 
 Design note: one predicate per similarity axis
 ----------------------------------------------
@@ -44,6 +52,7 @@ build a graph rather than write prose.
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Iterable, Iterator
 from datetime import UTC, datetime
 from enum import Enum
@@ -79,6 +88,13 @@ class NodeType(str, Enum):
     TISSUE = "Tissue"              # anatomical site / cell type (UBERON, CL)
     # -- the meta-concept, made explicit ---------------------------------------
     PROPERTY = "Property"          # "promiscuous binder", "liver-enriched", "ligand-activated TF"
+    # -- Stage 2 anatomy: the pieces both sides are made of --------------------
+    # Deliberately few new types. POCKET, RESIDUE, MOTIF and FRAGMENT already exist and are
+    # reused; SUBPOCKET is a POCKET with a PART_OF edge, and a functional group is a
+    # FRAGMENT. Only the pharmacophore feature earns its own type, because a med chemist
+    # treats "an acceptor 4.2 A from an aromatic centroid" as an object in its own right and
+    # its semantics — a typed point with a direction — match nothing already here.
+    PHARMACOPHORE = "Pharmacophore"  # a typed feature: donor, acceptor, hydrophobe, aromatic
 
 
 class Predicate(str, Enum):
@@ -138,6 +154,35 @@ class Predicate(str, Enum):
     and becomes a node with a degree — so every other promiscuous binder is two hops
     away, and a property with degree 1 is visibly an unexplored lead rather than an
     invisible one. attrs: kind, basis, threshold.
+    """
+
+    # --- anatomy: which piece is part of what, and which piece touches which ---
+    # Stage 2 extends the Stage 1 graph rather than starting a new one, so a template
+    # protein discovered by a literature axis and the sub-pocket a fragment occupies live in
+    # the same store and are one join apart.
+    PART_OF = "PART_OF"
+    """Generic containment, for hierarchies the typed predicates do not cover.
+
+    Subpocket -> Pocket, residue-group -> Subpocket, substituent -> Compound. Typed
+    predicates win where one exists: HAS_POCKET, HAS_FRAGMENT, POCKET_LINED_BY, HAS_MOTIF.
+    attrs: covers (atom indices or residue keys), partition (bool).
+    """
+    HAS_PHARMACOPHORE = "HAS_PHARMACOPHORE"  # Compound/Fragment -> Pharmacophore
+    CONTACTS = "CONTACTS"
+    """One piece touching another, per profiler, per complex.
+
+    The med-chem core of Stage 2 and the edge the interaction matrix is built from. Recorded
+    once per (source, structure) rather than merged, because two profilers agreed on only
+    47% of contact residues on a real complex and their disagreement is a free confidence
+    signal. attrs: interaction, source, structure, distance_a, angle_deg, ligand_atoms,
+    residue_atoms, recurrence, n_sources.
+    """
+    OCCUPIES = "OCCUPIES"                    # Fragment/Compound -> Pocket; attrs: buried_frac
+    COMPLEMENTARY_TO = "COMPLEMENTARY_TO"
+    """Chemistry that suits a site, aggregated across the corpus.
+
+    Distinct from CONTACTS: a contact is an observation in one structure, this is a claim
+    about what *would* work there. attrs: n_supporting_complexes, interaction, subpopulation.
     """
 
     # --- epistemics ------------------------------------------------------
@@ -270,6 +315,23 @@ PREDICATE_DOMAINS.update({
     # meta-properties. Deliberately unrestricted on the source side: a compound class,
     # an assay, or a method can each be "a kind of thing" whose peers matter.
     Predicate.HAS_PROPERTY: (None, {NodeType.PROPERTY}),
+    # anatomy. PART_OF is unrestricted on both sides because the hierarchy spans both
+    # substrates — a substituent is part of a compound, a subpocket part of a pocket — and
+    # enumerating every legal pair would be a table nobody keeps current.
+    Predicate.PART_OF: (None, None),
+    Predicate.HAS_PHARMACOPHORE: (
+        {NodeType.COMPOUND, NodeType.FRAGMENT, NodeType.POCKET},
+        {NodeType.PHARMACOPHORE},
+    ),
+    Predicate.CONTACTS: (
+        {NodeType.COMPOUND, NodeType.FRAGMENT, NodeType.PHARMACOPHORE},
+        {NodeType.RESIDUE, NodeType.POCKET, NodeType.MOTIF, NodeType.PHARMACOPHORE},
+    ),
+    Predicate.OCCUPIES: ({NodeType.COMPOUND, NodeType.FRAGMENT}, {NodeType.POCKET}),
+    Predicate.COMPLEMENTARY_TO: (
+        {NodeType.RESIDUE, NodeType.POCKET, NodeType.MOTIF},
+        {NodeType.FRAGMENT, NodeType.PHARMACOPHORE, NodeType.COMPOUND},
+    ),
 })
 
 
@@ -355,6 +417,16 @@ PREDICATE_FAMILY: dict[Predicate, PredicateFamily] = {
     Predicate.EXPRESSED_IN: PredicateFamily.CONTEXT,
     Predicate.CO_EXPRESSED_WITH: PredicateFamily.CONTEXT,
     Predicate.HAS_PROPERTY: PredicateFamily.CONTEXT,
+    # Anatomy deliberately reuses two existing families rather than adding one, because the
+    # palette is already at its discriminability ceiling. Containment is composition;
+    # touching is interaction. That split also matches how the ego view gets filtered: a med
+    # chemist isolates INTERACTION to see what engages what, and COMPOSITION to see what a
+    # thing is made of.
+    Predicate.PART_OF: PredicateFamily.COMPOSITION,
+    Predicate.HAS_PHARMACOPHORE: PredicateFamily.COMPOSITION,
+    Predicate.CONTACTS: PredicateFamily.INTERACTION,
+    Predicate.OCCUPIES: PredicateFamily.INTERACTION,
+    Predicate.COMPLEMENTARY_TO: PredicateFamily.INTERACTION,
 }
 
 #: Okabe-Ito, the standard colour-blind-safe categorical palette, plus a deep purple,
@@ -395,14 +467,18 @@ FAMILY_COLOR: dict[PredicateFamily, str] = {
 
 #: Dash patterns cycled within a family, so two structural predicates are
 #: distinguishable at the same colour. Solid is reserved for the first/primary
-#: predicate in each family. Seven patterns covers the largest families (SYSTEMS, 7).
+#: predicate in each family. Eight patterns covers the largest families (COMPOSITION and
+#: INTERACTION, 8 each after Stage 2's anatomy predicates).
 #:
-#: Beyond about five, a dash pattern stops being a reliable cue at typical edge widths.
-#: SYSTEMS is at seven, so its last two patterns are decoration rather than signal, and
-#: hover plus the axis filter carry the distinction. Recording that here so nobody later
-#: reads the length of this list as a claim about perception.
+#: **Beyond about five, a dash pattern stops being a reliable cue** at typical edge widths.
+#: Two families are at eight, so their last three patterns are decoration rather than signal.
+#: What actually carries the distinction there is hover and the predicate filter — which is
+#: the right division of labour, because "which piece touches which" is a question a med
+#: chemist asks deliberately by isolating one predicate, not by reading eight dash patterns
+#: off a hairball. Recording this so nobody later reads the length of this list as a claim
+#: about perception.
 DASH_CYCLE: list[list[int] | None] = [
-    None, [6, 3], [2, 3], [10, 3, 2, 3], [1, 3], [8, 2, 2, 2], [4, 2, 1, 2],
+    None, [6, 3], [2, 3], [10, 3, 2, 3], [1, 3], [8, 2, 2, 2], [4, 2, 1, 2], [3, 1],
 ]
 
 #: Families whose edges are hidden until the reader asks for them.
@@ -476,6 +552,13 @@ class Node(BaseModel):
         PipelineStep -> ``step:pose-selection`` , ``step:sampling``
         Analogy   -> ``analogy:finance/regime-switching-ensemble``
         Domain    -> ``domain:quantitative-finance``
+
+    Stage 2 anatomy ids follow the same rule — derived from what the part *is*, never from
+    who found it, so two profilers decomposing the same molecule converge on one node:
+        Subpocket -> ``pocket:pdb:1M13/LBD/hydrophobic-lobe``   (PART_OF the parent pocket)
+        Fragment  -> ``fragment:murcko:<smiles>`` , ``fragment:smarts:[CX3](=O)[OX2H1]``
+        Pharmacophore -> ``pharm:chembl:CHEMBL1200973/acceptor-3``
+                         ``pharm:pocket:pdb:1M13/LBD/donor-1``
     """
 
     id: str
@@ -499,8 +582,26 @@ class Node(BaseModel):
         return v.strip()
 
 
+#: Phrases that restate a predicate instead of reading it. Module scope, not a class
+#: attribute, because pydantic turns leading-underscore class attributes into
+#: ``ModelPrivateAttr`` — a trap this project has already fallen into twice.
+_RESTATEMENT = re.compile(
+    r"^(?:(?:the\s+)?(?:two\s+)?(?:nodes?|entities|proteins?|compounds?|fragments?|residues?)\s+)?"
+    r"(?:are|is|has|have|shares?|shared)\b[^.]{0,40}$",
+    re.I,
+)
+
+
 class Edge(BaseModel):
-    """A provenanced assertion between two nodes."""
+    """A provenanced assertion between two nodes.
+
+    ``commentary`` is the field that makes an edge readable rather than merely true. A
+    ``CONTACTS`` edge with a distance and an angle is checkable; what a med chemist needs is
+    the sentence saying *what it means* — and that sentence belongs on the edge, because the
+    edge is where the pair is asserted. Any view that puts two nodes side by side is really
+    asking the edge to explain itself, so the explanation has to live here rather than being
+    reconstructed by whatever renders the pair.
+    """
 
     src: str
     predicate: Predicate
@@ -509,11 +610,43 @@ class Edge(BaseModel):
         default_factory=dict,
         description="Quantitative payload, e.g. {'tm_score': 0.82, 'aligned_len': 241}.",
     )
+    commentary: str | None = Field(
+        default=None,
+        description=(
+            "Why this connection matters, in domain terms — not a restatement of the "
+            "predicate. Not 'these two share a motif' but 'both present the same "
+            "hydrophobic wall to the ligand, so a pose that buries an apolar group here "
+            "scores well in both and the preference does not discriminate between them'. "
+            "This is what a side-by-side comparison of the two endpoints shows the reader."
+        ),
+    )
     confidence: Confidence = Confidence.TENTATIVE
     evidence: list[Evidence] = Field(default_factory=list)
     asserted_by: str
     run_id: str | None = None
     created_utc: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+    @field_validator("commentary")
+    @classmethod
+    def _commentary_says_something(cls, v: str | None) -> str | None:
+        """Reject a restatement of the predicate dressed as an explanation.
+
+        The failure this catches is the one every "add a description field" change invites:
+        the field gets filled with the predicate in lower case and nobody notices it explains
+        nothing, because it is present and grammatical.
+        """
+        if v is None:
+            return None
+        v = v.strip()
+        if not v:
+            return None
+        if len(v.split()) < 6 or _RESTATEMENT.match(v):
+            raise ValueError(
+                f"edge commentary {v!r} restates the connection rather than reading it. Say "
+                "what it implies for someone deciding what to do next — which pose, which "
+                "template, which substituent — or leave it unset."
+            )
+        return v
 
     @property
     def key(self) -> tuple[str, str, str]:

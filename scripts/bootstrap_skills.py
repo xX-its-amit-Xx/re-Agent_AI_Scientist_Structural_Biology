@@ -157,8 +157,10 @@ META: dict[str, dict] = {
     },
     "report-mcp": {
         "stage": "shared", "owner": "amit", "status": "implemented",
-        "summary": "Serve a report and its graph over MCP; compare two structures in 3D.",
-        "consumes": ["report.validated", "kg.neighbourhood", "kg.dataset_nodes"],
+        "summary": "Serve a report and its graph over MCP; compare two structures, or two "
+                   "parts and their interactions, in 3D.",
+        "consumes": ["report.validated", "kg.neighbourhood", "kg.dataset_nodes",
+                     "kg.contact_edges", "stage2.interaction_matrix"],
         "produces": ["mcp.server", "viz.structure_comparison"],
         "external_tools": ["3dmol.js", "rcsb", "alphafold-db"], "credits": [],
     },
@@ -170,13 +172,25 @@ META: dict[str, dict] = {
         "produces": ["report.rendered", "report.validated"],
         "external_tools": [], "credits": [],
     },
+    "parts-inventory": {
+        "stage": "stage2_biochem", "owner": "amit", "status": "implemented",
+        "summary": "Decompose target and every test compound into parts; build the "
+                   "interaction grid, with accounting gates on all three.",
+        "consumes": ["problem.spec", "stage1.report", "kg.neighbourhood",
+                     "stage1.template_candidates", "stage1.subpopulations"],
+        "produces": ["stage2.parts_inventory", "stage2.interaction_matrix",
+                     "kg.part_nodes", "kg.contact_edges", "viz.part_comparison"],
+        "external_tools": ["rdkit", "fpocket", "plip", "prolif", "3dmol.js"],
+        "credits": [],
+    },
     "pocket-anatomy": {
         "stage": "stage2_biochem", "owner": "denny", "status": "stub",
         "summary": "Critical residues and the ligand fragments complementary to them.",
         "consumes": ["stage1.report", "kg.neighbourhood", "stage1.template_candidates",
-                     "data.availability", "data.local_cache"],
+                     "data.availability", "data.local_cache",
+                     "stage2.parts_inventory", "stage2.interaction_matrix"],
         "produces": ["stage2.report", "stage2.critical_residues", "stage2.fragment_map",
-                     "kg.residue_nodes", "viz.interaction_2d"],
+                     "kg.residue_nodes", "viz.interaction_2d", "viz.part_comparison"],
         "external_tools": ["chimerax", "plip", "prolif", "fpocket"], "credits": [],
     },
     "pocket-dynamics": {

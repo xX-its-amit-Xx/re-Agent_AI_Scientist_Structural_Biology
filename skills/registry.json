@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generated_from": ".claude/skills",
-  "n_skills": 25,
+  "n_skills": 26,
   "by_stage": {
     "shared": [
       "adversarial-verify",
@@ -28,6 +28,7 @@
       "target-properties"
     ],
     "stage2_biochem": [
+      "parts-inventory",
       "pocket-anatomy",
       "pocket-dynamics"
     ],
@@ -53,6 +54,7 @@
       "literature-harvest",
       "model-report",
       "neglected-literature",
+      "parts-inventory",
       "pipeline-space-scouting",
       "progressive-disclosure",
       "report-mcp",
@@ -441,7 +443,9 @@
       "consumes": [
         "report.validated",
         "kg.neighbourhood",
-        "kg.dataset_nodes"
+        "kg.dataset_nodes",
+        "kg.contact_edges",
+        "stage2.interaction_matrix"
       ],
       "produces": [
         "mcp.server",
@@ -464,7 +468,7 @@
         "reference/protocol-notes.md"
       ],
       "body_lines": 188,
-      "summary": "Serve a report and its graph over MCP; compare two structures in 3D."
+      "summary": "Serve a report and its graph over MCP; compare two structures, or two parts and their interactions, in 3D."
     },
     "cross-domain-analogy": {
       "name": "cross-domain-analogy",
@@ -918,6 +922,61 @@
       "body_lines": 140,
       "summary": "Derive search axes from what the target IS, against a domain checklist with a coverage gate."
     },
+    "parts-inventory": {
+      "name": "parts-inventory",
+      "path": ".claude/skills/parts-inventory",
+      "description": "Stage 2's entry point. Decompose the target and every compound in the test batch into their pieces \u2014 domains, pockets, sub-pockets, residue groups, motifs; scaffolds, ring systems, linkers, substituents, functional groups, pharmacophore features \u2014 and build the interaction grid between them. Enforces atom accounting: every heavy atom of every test compound belongs to a part, every pocket-lining residue belongs to a sub-region, and every cell of the grid is either measured or explicitly out of scope. Writes into the Stage 1 graph rather than a new one. Use before pocket-anatomy, and whenever a med chemist would ask \"what about that nitrogen?\". Trigger on: \"all the pieces\", \"decompose\", \"fragments\", \"sub-pockets\", \"what is this made of\", \"every compound in the batch\", \"interaction matrix\", \"which fragment touches what\", or /parts-inventory.",
+      "stage": "stage2_biochem",
+      "owner": "amit",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash",
+        "Agent"
+      ],
+      "consumes": [
+        "problem.spec",
+        "stage1.report",
+        "kg.neighbourhood",
+        "stage1.template_candidates",
+        "stage1.subpopulations"
+      ],
+      "produces": [
+        "stage2.parts_inventory",
+        "stage2.interaction_matrix",
+        "kg.part_nodes",
+        "kg.contact_edges",
+        "viz.part_comparison"
+      ],
+      "external_tools": [
+        "rdkit",
+        "fpocket",
+        "plip",
+        "prolif",
+        "3dmol.js"
+      ],
+      "triggers": [
+        "all the pieces",
+        "decompose",
+        "fragments",
+        "sub-pockets",
+        "what is this made of",
+        "every compound in the batch",
+        "interaction matrix",
+        "which fragment touches what"
+      ],
+      "references": [
+        "reference/decomposition-recipes.md",
+        "reference/matrix-completeness.md",
+        "reference/visual-grammar.md"
+      ],
+      "body_lines": 181,
+      "summary": "Decompose target and every test compound into parts; build the interaction grid, with accounting gates on all three."
+    },
     "pocket-anatomy": {
       "name": "pocket-anatomy",
       "path": ".claude/skills/pocket-anatomy",
@@ -939,14 +998,17 @@
         "kg.neighbourhood",
         "stage1.template_candidates",
         "data.availability",
-        "data.local_cache"
+        "data.local_cache",
+        "stage2.parts_inventory",
+        "stage2.interaction_matrix"
       ],
       "produces": [
         "stage2.report",
         "stage2.critical_residues",
         "stage2.fragment_map",
         "kg.residue_nodes",
-        "viz.interaction_2d"
+        "viz.interaction_2d",
+        "viz.part_comparison"
       ],
       "external_tools": [
         "chimerax",
@@ -965,7 +1027,7 @@
       "references": [
         "reference/interaction-toolchain.md"
       ],
-      "body_lines": 103,
+      "body_lines": 141,
       "summary": "Critical residues and the ligand fragments complementary to them."
     },
     "pocket-dynamics": {

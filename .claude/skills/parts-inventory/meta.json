@@ -1,0 +1,28 @@
+{
+  "stage": "stage2_biochem",
+  "owner": "amit",
+  "status": "implemented",
+  "summary": "Decompose target and every test compound into parts; build the interaction grid, with accounting gates on all three.",
+  "consumes": [
+    "problem.spec",
+    "stage1.report",
+    "kg.neighbourhood",
+    "stage1.template_candidates",
+    "stage1.subpopulations"
+  ],
+  "produces": [
+    "stage2.parts_inventory",
+    "stage2.interaction_matrix",
+    "kg.part_nodes",
+    "kg.contact_edges",
+    "viz.part_comparison"
+  ],
+  "external_tools": [
+    "rdkit",
+    "fpocket",
+    "plip",
+    "prolif",
+    "3dmol.js"
+  ],
+  "credits": []
+}
