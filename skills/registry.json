@@ -1,8 +1,22 @@
 {
   "version": 1,
   "generated_from": ".claude/skills",
-  "n_skills": 28,
+  "n_skills": 40,
   "by_stage": {
+    "method": [
+      "bottleneck-triage",
+      "budget-calibration",
+      "generator-diversity",
+      "harness-verification",
+      "leak-containment",
+      "learned-rescoring",
+      "output-contract",
+      "physics-rescoring",
+      "score-normalization",
+      "signal-scoping",
+      "significance-discipline",
+      "tail-rescue"
+    ],
     "shared": [
       "adversarial-verify",
       "ai-scientist",
@@ -50,35 +64,452 @@
       "ai-scientist",
       "axis-sweep",
       "binder-census",
+      "bottleneck-triage",
+      "budget-calibration",
+      "confidence-selection",
       "cross-domain-analogy",
       "data-materialize",
       "explain-significance",
+      "generator-diversity",
+      "harness-verification",
       "kg-visualize",
+      "leak-containment",
+      "learned-rescoring",
       "literature-harvest",
       "model-report",
       "neglected-literature",
+      "output-contract",
       "parts-inventory",
+      "physics-rescoring",
       "pipeline-space-scouting",
       "progressive-disclosure",
       "relation-expand",
       "report-mcp",
+      "score-normalization",
+      "signal-scoping",
+      "significance-discipline",
       "source-scout",
+      "structure-ensemble",
+      "tail-rescue",
       "target-neighborhood",
-      "target-properties"
+      "target-properties",
+      "template-and-finetune"
     ],
     "stub": [
       "compound-neighborhood",
-      "confidence-selection",
       "dock-and-minimize",
       "esmc-sae-motifs",
       "medchem-pass",
       "pocket-anatomy",
-      "pocket-dynamics",
-      "structure-ensemble",
-      "template-and-finetune"
+      "pocket-dynamics"
     ]
   },
   "skills": {
+    "bottleneck-triage": {
+      "name": "bottleneck-triage",
+      "path": ".claude/skills/bottleneck-triage",
+      "description": "Decide whether a prediction pipeline is limited by what it can produce or by what it picks, before spending anything on improving either. Computes the pool ceiling against realised performance and returns a verdict that tells the whole team where to spend next. Use at the start of any optimisation effort, when a pipeline underperforms for unclear reasons, or when two people disagree about what to work on. Trigger on: \"where should we spend\", \"is it generation or selection\", \"ceiling analysis\", \"best-of-n curve\", \"what's limiting us\", \"why is this underperforming\", or /bottleneck-triage.",
+      "stage": "method",
+      "owner": "sumer",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash"
+      ],
+      "consumes": [
+        "method.candidate_pool",
+        "method.scored_pool"
+      ],
+      "produces": [
+        "method.oracle_curve",
+        "method.bottleneck_verdict"
+      ],
+      "triggers": [
+        "where should we spend",
+        "is it generation or selection",
+        "ceiling analysis",
+        "best-of-n curve",
+        "what's limiting us",
+        "why is this underperforming"
+      ],
+      "body_lines": 159,
+      "summary": "Decide whether generation or selection is the limiting stage."
+    },
+    "budget-calibration": {
+      "name": "budget-calibration",
+      "path": ".claude/skills/budget-calibration",
+      "description": "Size a compute run against a hard ceiling before spending any of it, using measured per-unit cost from a pilot rather than an estimate, and against the authoritative item count rather than a planning document. Produces an explicit allocation across generators, seeds, and reserve, plus the kill criteria that stop a run going bad. Use before any expensive dispatch or when deciding what fits. Trigger on: \"how much will this cost\", \"size the run\", \"compute budget\", \"pilot run\", \"can we afford\", \"what fits in the budget\", or /budget-calibration.",
+      "stage": "method",
+      "owner": "sumer",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash"
+      ],
+      "consumes": [
+        "problem.spec"
+      ],
+      "produces": [
+        "method.budget_plan",
+        "method.cost_model"
+      ],
+      "triggers": [
+        "how much will this cost",
+        "size the run",
+        "compute budget",
+        "pilot run",
+        "can we afford",
+        "what fits in the budget"
+      ],
+      "body_lines": 158,
+      "summary": "Size a run against a hard ceiling from measured pilot cost."
+    },
+    "generator-diversity": {
+      "name": "generator-diversity",
+      "path": ".claude/skills/generator-diversity",
+      "description": "Build a candidate pool whose members fail on different items, and measure that decorrelation rather than assuming it. Covers generator choice, seed budgeting, pilot sizing, and the rule that diversity is for widening a pool and never for voting within it. Use when assembling an ensemble, choosing which models to run, or deciding whether another generator is worth its cost. Trigger on: \"diversify the pool\", \"error correlation\", \"which generators\", \"widen the pool\", \"decorrelate\", \"add another model\", or /generator-diversity.",
+      "stage": "method",
+      "owner": "sumer",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash"
+      ],
+      "consumes": [
+        "problem.spec",
+        "method.budget_plan"
+      ],
+      "produces": [
+        "method.candidate_pool",
+        "method.correlation_matrix"
+      ],
+      "triggers": [
+        "diversify the pool",
+        "error correlation",
+        "which generators",
+        "widen the pool",
+        "decorrelate",
+        "add another model"
+      ],
+      "body_lines": 162,
+      "summary": "Build a pool whose generators fail on different items, and measure it."
+    },
+    "harness-verification": {
+      "name": "harness-verification",
+      "path": ".claude/skills/harness-verification",
+      "description": "Prove the scoring harness measures what it claims before any decision is made from a number it produced. Runs identity and perturbation tests, checks that the implemented metric is the one being graded on, and makes failures penalties rather than silent skips. Use before building on a new evaluation, when scores look surprising, or when adopting a convenient metric in place of the official one. Trigger on: \"verify the scorer\", \"is my metric right\", \"identity test\", \"does the harness work\", \"sanity check the evaluation\", \"the scores look wrong\", or /harness-verification.",
+      "stage": "method",
+      "owner": "sumer",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash"
+      ],
+      "consumes": [
+        "problem.spec"
+      ],
+      "produces": [
+        "method.scored_pool",
+        "method.harness_certificate"
+      ],
+      "triggers": [
+        "verify the scorer",
+        "is my metric right",
+        "identity test",
+        "does the harness work",
+        "sanity check the evaluation",
+        "the scores look wrong"
+      ],
+      "body_lines": 163,
+      "summary": "Prove the scorer measures what it claims before anything is built on it."
+    },
+    "leak-containment": {
+      "name": "leak-containment",
+      "path": ".claude/skills/leak-containment",
+      "description": "Keep the answers structurally out of reach of every path that produces or chooses a prediction, especially when you hold the labels locally. Defines the split, enforces it with capability boundaries rather than intention, and audits for the leaks that produce a good score and no real performance. Use when ground truth is on disk, when setting up an evaluation, or when a result looks too good. Trigger on: \"data leakage\", \"holdout\", \"did we cheat\", \"contamination\", \"split policy\", \"this result looks too good\", or /leak-containment.",
+      "stage": "method",
+      "owner": "sumer",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash"
+      ],
+      "consumes": [
+        "problem.spec",
+        "method.scored_pool"
+      ],
+      "produces": [
+        "method.split_policy",
+        "method.leak_audit"
+      ],
+      "triggers": [
+        "data leakage",
+        "holdout",
+        "did we cheat",
+        "contamination",
+        "split policy",
+        "this result looks too good"
+      ],
+      "body_lines": 173,
+      "summary": "Keep the answers structurally out of every prediction path."
+    },
+    "learned-rescoring": {
+      "name": "learned-rescoring",
+      "path": ".claude/skills/learned-rescoring",
+      "description": "Add trained scoring models to a candidate pool as challenger signals, and check first whether each one scores the candidate or merely the input it came from. Covers affinity heads, interface quality scorers, and the training-distribution questions that decide whether a learned score transfers. Use when adding an ML rescorer or asked whether a scoring model will help. Trigger on: \"affinity prediction\", \"ml rescorer\", \"learned scoring function\", \"does the affinity head help\", \"interface scorer\", \"rescore with a model\", or /learned-rescoring.",
+      "stage": "method",
+      "owner": "sumer",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash"
+      ],
+      "consumes": [
+        "method.candidate_pool"
+      ],
+      "produces": [
+        "method.learned_signals"
+      ],
+      "triggers": [
+        "affinity prediction",
+        "ml rescorer",
+        "learned scoring function",
+        "does the affinity head help",
+        "interface scorer",
+        "rescore with a model"
+      ],
+      "body_lines": 130,
+      "summary": "Trained scoring models as challengers; verify they score the pose, not the pair."
+    },
+    "output-contract": {
+      "name": "output-contract",
+      "path": ".claude/skills/output-contract",
+      "description": "Package a finished result into exactly the artifact a grader accepts, and prove it survives the round trip before submitting. Treats format requirements as correctness requirements, validates with the grader's own checker rather than a reimplementation, and refuses to emit a partial artifact silently. Use when assembling a submission, when a validator rejects an output, or when a result is about to leave the machine. Trigger on: \"submission format\", \"package the output\", \"will this be accepted\", \"round trip\", \"the validator rejected it\", \"assemble the submission\", or /output-contract.",
+      "stage": "method",
+      "owner": "sumer",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash"
+      ],
+      "consumes": [
+        "problem.spec",
+        "method.rescued_selection"
+      ],
+      "produces": [
+        "method.submission",
+        "method.format_report"
+      ],
+      "triggers": [
+        "submission format",
+        "package the output",
+        "will this be accepted",
+        "round trip",
+        "the validator rejected it",
+        "assemble the submission"
+      ],
+      "body_lines": 153,
+      "summary": "Package a result into exactly the artifact a grader accepts."
+    },
+    "physics-rescoring": {
+      "name": "physics-rescoring",
+      "path": ".claude/skills/physics-rescoring",
+      "description": "Add force-field and geometric descriptors to a candidate pool as challenger signals, and test them fairly against the confidence baseline rather than adopting them because they are principled. Covers strain, clashes, buriedness and docking scores, and the artifacts that make each one lie. Use when asked to score poses on physical plausibility, or when a physics-based filter is proposed. Trigger on: \"strain energy\", \"force field score\", \"physics rescoring\", \"is this pose physically plausible\", \"clash check\", \"energy minimize the pose\", or /physics-rescoring.",
+      "stage": "method",
+      "owner": "sumer",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash"
+      ],
+      "consumes": [
+        "method.candidate_pool"
+      ],
+      "produces": [
+        "method.physics_signals"
+      ],
+      "triggers": [
+        "strain energy",
+        "force field score",
+        "physics rescoring",
+        "is this pose physically plausible",
+        "clash check",
+        "energy minimize the pose"
+      ],
+      "body_lines": 129,
+      "summary": "Force-field and geometric descriptors as challenger signals, tested not assumed."
+    },
+    "score-normalization": {
+      "name": "score-normalization",
+      "path": ".claude/skills/score-normalization",
+      "description": "Pick one candidate per item from a pool whose generators report confidence in incomparable units. Normalises within each generator before comparing across them, then takes the per-item argmax, and treats any more sophisticated selector as guilty until it beats that baseline on held-out data. Use when collapsing a pool to a final answer or diagnosing why a strong pool scores badly. Trigger on: \"normalize scores\", \"compare across models\", \"incommensurable\", \"argmax per item\", \"pick the winner\", \"collapse the pool\", or /score-normalization.",
+      "stage": "method",
+      "owner": "sumer",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash"
+      ],
+      "consumes": [
+        "method.candidate_pool",
+        "method.signal_spec",
+        "method.bottleneck_verdict"
+      ],
+      "produces": [
+        "method.selection",
+        "method.confidence_ranking"
+      ],
+      "triggers": [
+        "normalize scores",
+        "compare across models",
+        "incommensurable",
+        "argmax per item",
+        "pick the winner",
+        "collapse the pool"
+      ],
+      "body_lines": 164,
+      "summary": "Collapse the pool to one candidate per item via within-generator z-scores."
+    },
+    "signal-scoping": {
+      "name": "signal-scoping",
+      "path": ".claude/skills/signal-scoping",
+      "description": "Find a confidence signal actually predictive of candidate quality, and prove it is before anything ranks on it. Restricts the signal to the sub-object being scored, measures discrimination directly, and carries a known-useless signal as a negative control that validates the harness. Use when choosing what to rank on, when a plausible confidence score is not working, or when building any selector. Trigger on: \"which confidence signal\", \"scope the signal\", \"is this score predictive\", \"negative control\", \"discrimination auc\", \"what should we rank on\", or /signal-scoping.",
+      "stage": "method",
+      "owner": "sumer",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash"
+      ],
+      "consumes": [
+        "method.candidate_pool",
+        "method.learned_signals",
+        "method.physics_signals",
+        "method.scored_pool"
+      ],
+      "produces": [
+        "method.signal_spec",
+        "method.discrimination_report"
+      ],
+      "triggers": [
+        "which confidence signal",
+        "scope the signal",
+        "is this score predictive",
+        "negative control",
+        "discrimination auc",
+        "what should we rank on"
+      ],
+      "body_lines": 179,
+      "summary": "Find a confidence signal that discriminates, and prove it does."
+    },
+    "significance-discipline": {
+      "name": "significance-discipline",
+      "path": ".claude/skills/significance-discipline",
+      "description": "Decide whether a measured improvement is real before it changes anything. Bootstraps every comparison, requires non-overlapping intervals for adoption, and uses validation-set expansion as an overfit detector that catches methods which tuned themselves to a small evaluation set. Use when comparing configs, reporting a result, or deciding whether to adopt a change. Trigger on: \"is this improvement real\", \"error bars\", \"noise floor\", \"did we actually improve\", \"bootstrap the result\", \"should we adopt this\", or /significance-discipline.",
+      "stage": "method",
+      "owner": "sumer",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash"
+      ],
+      "consumes": [
+        "method.scored_pool",
+        "method.selection"
+      ],
+      "produces": [
+        "method.significance_report"
+      ],
+      "triggers": [
+        "is this improvement real",
+        "error bars",
+        "noise floor",
+        "did we actually improve",
+        "bootstrap the result",
+        "should we adopt this"
+      ],
+      "body_lines": 172,
+      "summary": "Decide whether a measured improvement clears the noise floor."
+    },
+    "tail-rescue": {
+      "name": "tail-rescue",
+      "path": ".claude/skills/tail-rescue",
+      "description": "Recover the last few points of a pipeline's score by overwriting only the lowest-confidence items with a decorrelated generator's candidates. Sweeps how many to replace rather than guessing, because over-replacement destroys good picks, and reports the whole curve as evidence the peak is real. Use when a selector is tuned and the remaining loss is concentrated in a small number of bad items. Trigger on: \"worst cases\", \"rescue the tail\", \"lowest confidence items\", \"swap sweep\", \"salvage failures\", \"fix the bad items\", or /tail-rescue.",
+      "stage": "method",
+      "owner": "sumer",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash"
+      ],
+      "consumes": [
+        "method.selection",
+        "method.confidence_ranking",
+        "method.correlation_matrix"
+      ],
+      "produces": [
+        "method.rescued_selection",
+        "method.rescue_sweep"
+      ],
+      "triggers": [
+        "worst cases",
+        "rescue the tail",
+        "lowest confidence items",
+        "swap sweep",
+        "salvage failures",
+        "fix the bad items"
+      ],
+      "body_lines": 161,
+      "summary": "Overwrite the lowest-confidence items with a decorrelated generator."
+    },
     "adversarial-verify": {
       "name": "adversarial-verify",
       "path": ".claude/skills/adversarial-verify",
@@ -1206,7 +1637,7 @@
       "description": "Stage 3. Choose one candidate per item from a generated pool. In a pipeline with a fixed pool and no ground truth, this step usually decides the score outright, so it is treated as a first-class modelling problem: normalise non-commensurable confidence signals, select per item, then rescue the failure tail with a decorrelated generator. Use when ranking candidates, picking a final answer, or diagnosing why a good pool scores badly. Trigger on: \"select poses\", \"rank candidates\", \"which pose do we submit\", \"confidence score\", \"z-score selection\", \"failure tail\", or /confidence-selection.",
       "stage": "stage3_prior",
       "owner": "sumer",
-      "status": "stub",
+      "status": "implemented",
       "allowed_tools": [
         "Read",
         "Write",
@@ -1233,7 +1664,10 @@
         "z-score selection",
         "failure tail"
       ],
-      "body_lines": 103,
+      "references": [
+        "reference/scoring.md"
+      ],
+      "body_lines": 157,
       "summary": "Pick one candidate per item from the pool; the step that decides the score."
     },
     "structure-ensemble": {
@@ -1242,7 +1676,7 @@
       "description": "Stage 3. Generate a diverse pool of candidate structures or poses across multiple models, seeds, and templates, and measure the pool's achievable ceiling. Widening the pool is one of only two levers that reliably improve a prediction pipeline, so this stage is about diversity and oracle gap rather than any single model's quality. Use when producing candidates, choosing which models to run, or deciding whether the bottleneck is generation or selection. Trigger on: \"generate poses\", \"run co-folding\", \"sampling\", \"pose pool\", \"which models should we run\", \"oracle gap\", or /structure-ensemble.",
       "stage": "stage3_prior",
       "owner": "sumer",
-      "status": "stub",
+      "status": "implemented",
       "allowed_tools": [
         "Read",
         "Write",
@@ -1281,7 +1715,10 @@
         "which models should we run",
         "oracle gap"
       ],
-      "body_lines": 76,
+      "references": [
+        "reference/backends.md"
+      ],
+      "body_lines": 141,
       "summary": "Generate a diverse candidate pool across multiple models and seeds."
     },
     "template-and-finetune": {
@@ -1290,7 +1727,7 @@
       "description": "Stage 3. Inject the biological prior into the model itself, via structural templating and curriculum fine-tuning on the corpus Stage 1 assembled. Escalates specificity in stages with decreasing learning rate, and gates every checkpoint against held-out complexes before it is allowed near a prediction. Use when a general model underperforms on a specific target family, or when a curated corpus with sample weights is available. Trigger on: \"fine-tune\", \"curriculum\", \"structural template\", \"LoRA\", \"transfer learning\", \"train on the family\", or /template-and-finetune.",
       "stage": "stage3_prior",
       "owner": "sumer",
-      "status": "stub",
+      "status": "implemented",
       "allowed_tools": [
         "Read",
         "Write",
@@ -1324,7 +1761,7 @@
         "transfer learning",
         "train on the family"
       ],
-      "body_lines": 52,
+      "body_lines": 149,
       "summary": "Structural templating and curriculum fine-tuning on the Stage 1 corpus."
     },
     "dock-and-minimize": {

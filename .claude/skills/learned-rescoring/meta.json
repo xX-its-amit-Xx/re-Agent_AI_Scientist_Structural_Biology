@@ -1,0 +1,14 @@
+{
+  "stage": "method",
+  "owner": "sumer",
+  "status": "implemented",
+  "summary": "Trained scoring models as challengers; verify they score the pose, not the pair.",
+  "consumes": [
+    "method.candidate_pool"
+  ],
+  "produces": [
+    "method.learned_signals"
+  ],
+  "external_tools": [],
+  "credits": []
+}

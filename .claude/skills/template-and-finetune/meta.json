@@ -1,7 +1,7 @@
 {
   "stage": "stage3_prior",
   "owner": "sumer",
-  "status": "stub",
+  "status": "implemented",
   "summary": "Structural templating and curriculum fine-tuning on the Stage 1 corpus.",
   "consumes": [
     "stage1.corpus_for_finetune",

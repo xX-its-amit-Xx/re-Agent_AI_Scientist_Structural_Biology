@@ -1,0 +1,66 @@
+# BenchFlow — parallel config sweep against the internal holdout.
+#
+# Rule this file exists to enforce: every sweep runs on `dev` (phase 1, 92
+# targets). `holdout` (phase 2, 92 targets) is scored once, after configs are
+# frozen. The split is the organizers' own leaderboard/blind split, so dev
+# numbers stay comparable to the published leaderboard.
+#
+# Scoring is eval/score.py — OpenStructure LDDT-PLI / BiSyRMSD / LDDT-LP.
+# Nothing here may select on TM-score or protein-only RMSD.
+
+version: 1
+name: pxr-track2-structure
+
+dataset:
+  manifest: manifest/ligands.csv
+  split_column: split
+  dev_split: dev          # 92 targets, phase 1
+  holdout_split: holdout  # 92 targets, phase 2 — frozen until Phase 7
+
+scoring:
+  command: .venv/bin/python eval/score.py --pose-dir {pose_dir} --split {split} --tag {tag}
+  primary_metric: LDDT-PLI      # maximize — the organizers' headline metric
+  secondary_metrics:
+    - name: BiSyRMSD            # minimize
+      direction: min
+    - name: LDDT-LP             # maximize
+      direction: max
+    - name: coverage            # maximize — fraction OST could match at all
+      direction: max
+  # A config only wins if its bootstrap CI clears the incumbent's.
+  significance:
+    method: bootstrap
+    samples: 1000
+    require_non_overlapping_ci: true
+
+# Axes to sweep in Phase 6. Sizes get set in Phase 2 from measured
+# per-cofold wall time against the GPU budget — not guessed here.
+axes:
+  model:
+    - boltz2-prediction
+    - chai1-prediction
+    - protenix-prediction
+    - rf3-prediction
+    # - alphafold3-prediction   # enable once weights are staged
+  seeds: [1, 2, 3]
+  selection_strategy:
+    - confidence
+    - medoid
+    - hybrid
+
+budget:
+  max_parallel_sandboxes: 4
+  # Fill in from Phase 2 calibration before launching a full sweep.
+  max_gpu_hours: null
+  per_job_timeout_s: 1800
+
+provenance:
+  # Every result row carries enough to reproduce it; mirrored into Benchling.
+  record:
+    - model
+    - model_version
+    - seed
+    - selection_strategy
+    - proto_tools_commit
+    - run_id
+    - timestamp

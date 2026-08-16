@@ -2,6 +2,22 @@
 
 Read this before starting a stage. It is short on purpose.
 
+## Two halves, one repo
+
+The Stage 3 execution layer was developed as a separate history and merged in. It brings
+`stages/`, `modal/`, `eval/`, `stage3_mcp/`, `paperclip/`, `benchling/`, `manifest/`, and
+**twelve domain-general method skills** — `harness-verification`, `significance-discipline`,
+`bottleneck-triage`, `signal-scoping`, `tail-rescue`, and the rest.
+
+**Working on execution, scoring, or a compute run? Read [`AGENTS.stage3.md`](AGENTS.stage3.md)
+as well.** It is that half's operating doc and it is more specific than this one about where
+compute gets spent and what must not be improvised.
+
+Those twelve skills carry `stage: "method"` rather than a pipeline stage, and that is
+deliberate: proving a scorer measures what it claims applies wherever a number gets compared,
+so binding it to one stage would be a category error. `skills check` accepts it; the data-flow
+linter does not expect a `method` skill's outputs to be consumed by a later stage.
+
 ## The one rule
 
 **Stages communicate through validated `ModelReport` JSON and the knowledge graph.

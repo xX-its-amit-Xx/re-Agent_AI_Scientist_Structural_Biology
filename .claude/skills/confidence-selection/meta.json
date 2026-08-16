@@ -1,7 +1,7 @@
 {
   "stage": "stage3_prior",
   "owner": "sumer",
-  "status": "stub",
+  "status": "implemented",
   "summary": "Pick one candidate per item from the pool; the step that decides the score.",
   "consumes": [
     "stage3.pose_pool",

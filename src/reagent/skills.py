@@ -35,6 +35,17 @@ REGISTRY = Path("skills/registry.json")
 VALID_STAGES = {
     "stage0_scouting", "stage1_literature", "stage2_biochem",
     "stage3_prior", "stage4_optimization", "synthesis", "shared",
+    # "method" is not a pipeline stage and deliberately is not in `contracts.Stage`.
+    #
+    # It arrived with the Stage 3 execution layer and is a better idea than the taxonomy it
+    # broke: a skill like `significance-discipline` or `harness-verification` encodes a
+    # domain-general method — bootstrap every comparison, prove the scorer measures what it
+    # claims — and binding it to a stage would be a category error. It applies wherever a
+    # number gets compared, which is everywhere.
+    #
+    # Practical consequence: a `method` skill has no place in the stage handoff chain, so the
+    # data-flow linter does not expect its `produces` keys to be consumed by a later stage.
+    "method",
 }
 VALID_STATUS = {"implemented", "partial", "stub", "planned"}
 

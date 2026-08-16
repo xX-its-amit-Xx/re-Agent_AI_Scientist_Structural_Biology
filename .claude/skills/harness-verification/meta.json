@@ -1,0 +1,15 @@
+{
+  "stage": "method",
+  "owner": "sumer",
+  "status": "implemented",
+  "summary": "Prove the scorer measures what it claims before anything is built on it.",
+  "consumes": [
+    "problem.spec"
+  ],
+  "produces": [
+    "method.scored_pool",
+    "method.harness_certificate"
+  ],
+  "external_tools": [],
+  "credits": []
+}

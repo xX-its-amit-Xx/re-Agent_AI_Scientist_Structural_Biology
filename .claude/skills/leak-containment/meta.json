@@ -1,0 +1,16 @@
+{
+  "stage": "method",
+  "owner": "sumer",
+  "status": "implemented",
+  "summary": "Keep the answers structurally out of every prediction path.",
+  "consumes": [
+    "problem.spec",
+    "method.scored_pool"
+  ],
+  "produces": [
+    "method.split_policy",
+    "method.leak_audit"
+  ],
+  "external_tools": [],
+  "credits": []
+}

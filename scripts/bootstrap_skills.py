@@ -226,22 +226,21 @@ META: dict[str, dict] = {
         "external_tools": ["chimerax", "mdanalysis", "openmm"], "credits": ["tamarind"],
     },
     "structure-ensemble": {
-        "stage": "stage3_prior", "owner": "sumer", "status": "stub",
+        "stage": "stage3_prior", "owner": "sumer", "status": "implemented",
         "summary": "Generate a diverse candidate pool across multiple models and seeds.",
         "consumes": ["stage1.priors", "stage2.conformer_ensemble", "stage1.template_candidates"],
         "produces": ["stage3.pose_pool", "stage3.pool_oracle"],
-        "external_tools": ["boltz", "openprotein", "modal", "tamarind", "esm"],
-        "credits": ["boltz", "modal", "tamarind"],
+        "external_tools": ["boltz", "openprotein", "modal", "tamarind", "esm"], "credits": ["boltz", "modal", "tamarind"],
     },
     "confidence-selection": {
-        "stage": "stage3_prior", "owner": "sumer", "status": "stub",
+        "stage": "stage3_prior", "owner": "sumer", "status": "implemented",
         "summary": "Pick one candidate per item from the pool; the step that decides the score.",
         "consumes": ["stage3.pose_pool", "stage3.pool_oracle", "stage2.critical_residues"],
         "produces": ["stage3.report", "stage3.selection", "stage3.failure_tail"],
         "external_tools": [], "credits": [],
     },
     "template-and-finetune": {
-        "stage": "stage3_prior", "owner": "sumer", "status": "stub",
+        "stage": "stage3_prior", "owner": "sumer", "status": "implemented",
         "summary": "Structural templating and curriculum fine-tuning on the Stage 1 corpus.",
         "consumes": ["stage1.corpus_for_finetune", "stage1.subpopulations"],
         "produces": ["stage3.finetuned_model", "stage3.template_set"],
@@ -260,6 +259,102 @@ META: dict[str, dict] = {
         "consumes": ["stage3.selection", "stage3.failure_tail", "stage2.conformer_ensemble"],
         "produces": ["stage4.report", "stage4.refined_poses"],
         "external_tools": ["vina", "openmm", "tamarind"], "credits": ["tamarind"],
+    },
+    # ------------------------------------------------------------------
+    # Merged from the phase0-pxr-execution history: the Stage 3 execution layer's
+    # domain-general method skills.
+    #
+    # `stage: "method"` is theirs, and it is a better idea than the taxonomy it broke.
+    # Bootstrapping a comparison or proving a scorer measures what it claims is not a
+    # pipeline stage — it applies wherever a number gets compared, which is everywhere.
+    #
+    # Listed here so bootstrap regenerates their meta.json identically rather than
+    # clobbering it with a stub, which is exactly what happened once during the merge.
+    # Editing one of these edits someone else's contract; say so first.
+    # ------------------------------------------------------------------
+    "bottleneck-triage": {
+        "stage": "method", "owner": "sumer", "status": "implemented",
+        "summary": "Decide whether generation or selection is the limiting stage.",
+        "consumes": ["method.candidate_pool", "method.scored_pool"],
+        "produces": ["method.oracle_curve", "method.bottleneck_verdict"],
+        "external_tools": [], "credits": [],
+    },
+    "budget-calibration": {
+        "stage": "method", "owner": "sumer", "status": "implemented",
+        "summary": "Size a run against a hard ceiling from measured pilot cost.",
+        "consumes": ["problem.spec"],
+        "produces": ["method.budget_plan", "method.cost_model"],
+        "external_tools": [], "credits": [],
+    },
+    "generator-diversity": {
+        "stage": "method", "owner": "sumer", "status": "implemented",
+        "summary": "Build a pool whose generators fail on different items, and measure it.",
+        "consumes": ["problem.spec", "method.budget_plan"],
+        "produces": ["method.candidate_pool", "method.correlation_matrix"],
+        "external_tools": [], "credits": [],
+    },
+    "harness-verification": {
+        "stage": "method", "owner": "sumer", "status": "implemented",
+        "summary": "Prove the scorer measures what it claims before anything is built on it.",
+        "consumes": ["problem.spec"],
+        "produces": ["method.scored_pool", "method.harness_certificate"],
+        "external_tools": [], "credits": [],
+    },
+    "leak-containment": {
+        "stage": "method", "owner": "sumer", "status": "implemented",
+        "summary": "Keep the answers structurally out of every prediction path.",
+        "consumes": ["problem.spec", "method.scored_pool"],
+        "produces": ["method.split_policy", "method.leak_audit"],
+        "external_tools": [], "credits": [],
+    },
+    "learned-rescoring": {
+        "stage": "method", "owner": "sumer", "status": "implemented",
+        "summary": "Trained scoring models as challengers; verify they score the pose, not the pair.",
+        "consumes": ["method.candidate_pool"],
+        "produces": ["method.learned_signals"],
+        "external_tools": [], "credits": [],
+    },
+    "output-contract": {
+        "stage": "method", "owner": "sumer", "status": "implemented",
+        "summary": "Package a result into exactly the artifact a grader accepts.",
+        "consumes": ["problem.spec", "method.rescued_selection"],
+        "produces": ["method.submission", "method.format_report"],
+        "external_tools": [], "credits": [],
+    },
+    "physics-rescoring": {
+        "stage": "method", "owner": "sumer", "status": "implemented",
+        "summary": "Force-field and geometric descriptors as challenger signals, tested not assumed.",
+        "consumes": ["method.candidate_pool"],
+        "produces": ["method.physics_signals"],
+        "external_tools": [], "credits": [],
+    },
+    "score-normalization": {
+        "stage": "method", "owner": "sumer", "status": "implemented",
+        "summary": "Collapse the pool to one candidate per item via within-generator z-scores.",
+        "consumes": ["method.candidate_pool", "method.signal_spec", "method.bottleneck_verdict"],
+        "produces": ["method.selection", "method.confidence_ranking"],
+        "external_tools": [], "credits": [],
+    },
+    "signal-scoping": {
+        "stage": "method", "owner": "sumer", "status": "implemented",
+        "summary": "Find a confidence signal that discriminates, and prove it does.",
+        "consumes": ["method.candidate_pool", "method.learned_signals", "method.physics_signals", "method.scored_pool"],
+        "produces": ["method.signal_spec", "method.discrimination_report"],
+        "external_tools": [], "credits": [],
+    },
+    "significance-discipline": {
+        "stage": "method", "owner": "sumer", "status": "implemented",
+        "summary": "Decide whether a measured improvement clears the noise floor.",
+        "consumes": ["method.scored_pool", "method.selection"],
+        "produces": ["method.significance_report"],
+        "external_tools": [], "credits": [],
+    },
+    "tail-rescue": {
+        "stage": "method", "owner": "sumer", "status": "implemented",
+        "summary": "Overwrite the lowest-confidence items with a decorrelated generator.",
+        "consumes": ["method.selection", "method.confidence_ranking", "method.correlation_matrix"],
+        "produces": ["method.rescued_selection", "method.rescue_sweep"],
+        "external_tools": [], "credits": [],
     },
 }
 

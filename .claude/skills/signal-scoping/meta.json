@@ -1,0 +1,18 @@
+{
+  "stage": "method",
+  "owner": "sumer",
+  "status": "implemented",
+  "summary": "Find a confidence signal that discriminates, and prove it does.",
+  "consumes": [
+    "method.candidate_pool",
+    "method.learned_signals",
+    "method.physics_signals",
+    "method.scored_pool"
+  ],
+  "produces": [
+    "method.signal_spec",
+    "method.discrimination_report"
+  ],
+  "external_tools": [],
+  "credits": []
+}

@@ -6,22 +6,34 @@
     "The command is the PROJECT VENV interpreter, by relative path, and that is",
     "deliberate. `python` on PATH is frequently a different interpreter with reagent",
     "not installed, and the resulting failure is silent: the client shows no tools and",
-    "says nothing about why. `uv run` is not a safe substitute either — it can resolve",
+    "says nothing about why. `uv run` is not a safe substitute either \u00e2\u20ac\u201d it can resolve",
     "to a parent-directory venv.",
     "",
     "On macOS or Linux change the command to '.venv/bin/python'.",
     "",
-    "Verify independently of any client with:  python -m reagent.mcp --list-tools"
+    "Verify independently of any client with:  python -m reagent.mcp --list-tools",
+    "",
+    "pxr-stage3 came from the phase0-pxr-execution history, which was developed on POSIX. Its command is '.venv/bin/python' and will NOT start on Windows \u2014 change it to '.venv/Scripts/python.exe' there. Left as-authored rather than silently rewritten, because which platform the Stage 3 runs happen on is that stage's decision."
   ],
   "mcpServers": {
     "reagent-report": {
       "type": "stdio",
       "command": ".venv/Scripts/python.exe",
-      "args": ["-m", "reagent.mcp"],
+      "args": [
+        "-m",
+        "reagent.mcp"
+      ],
       "env": {
         "PYTHONUTF8": "1",
         "PYTHONUNBUFFERED": "1"
       }
+    },
+    "pxr-stage3": {
+      "command": ".venv/bin/python",
+      "args": [
+        "stage3_mcp/server.py"
+      ],
+      "env": {}
     }
   }
 }

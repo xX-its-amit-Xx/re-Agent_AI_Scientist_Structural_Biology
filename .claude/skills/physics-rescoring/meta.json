@@ -1,0 +1,14 @@
+{
+  "stage": "method",
+  "owner": "sumer",
+  "status": "implemented",
+  "summary": "Force-field and geometric descriptors as challenger signals, tested not assumed.",
+  "consumes": [
+    "method.candidate_pool"
+  ],
+  "produces": [
+    "method.physics_signals"
+  ],
+  "external_tools": [],
+  "credits": []
+}

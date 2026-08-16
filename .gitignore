@@ -1,3 +1,6 @@
+# ============================================================
+# Meta-pipeline scaffold (src/reagent, contracts, graph, docs)
+# ============================================================
 # Python
 __pycache__/
 *.py[cod]
@@ -9,7 +12,7 @@ __pycache__/
 # Secrets
 .env
 
-# Knowledge-graph query cache. The JSONL files ARE tracked — they are the source
+# Knowledge-graph query cache. The JSONL files ARE tracked â€” they are the source
 # of truth and are meant to be diffable. The SQLite file is rebuilt from them on
 # demand, so deleting it is always safe and committing it would just create
 # conflicts.
@@ -22,3 +25,44 @@ data/cache/
 # Large intermediate outputs
 *.zip
 *.tar.gz
+
+# ============================================================
+# Stage 3 execution layer, merged from phase0-pxr-execution.
+#
+# Note the one real overlap: this half ignores all of `data/` (310 MB of challenge
+# data) while the scaffold ignores only `data/cache/`. Nothing under `data/` is
+# tracked, so the broader rule is safe — but if the scaffold ever needs to track a
+# file there, narrow this rather than adding a negation.
+# ============================================================
+# Run outputs â€” large, regenerable, and traced in Benchling instead.
+runs/
+
+# Challenge data â€” 310 MB, fetched by Phase 0. See notes/phase0-report.md.
+data/
+
+# AlphaFold3 weights â€” 973 MB, and DeepMind's terms forbid redistribution.
+# Never commit this. Staged into a Modal volume by modal/stage_af3_weights.py.
+af3.bin.zst
+af3.bin
+*.bin.zst
+
+# Submission archives
+submission/*.zip
+
+# Local env
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Scored results are small and worth versioning; keep them.
+!eval/results/
+# ...but not the OST container's scratch (driver + pair spec), which is
+# regenerated on every scoring call and carries machine-local paths.
+eval/results/*_ost/
+eval/results/*/_ost_driver.py
+eval/results/*/_ost_pairs.json
+
+# proto-tools scratch outputs
+proto_tools_outputs/
+logs/

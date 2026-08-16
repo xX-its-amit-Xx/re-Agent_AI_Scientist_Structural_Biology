@@ -1,0 +1,341 @@
+{
+  "run_id": "dev1",
+  "negative_control": {
+    "signal": "random_control",
+    "auc": 0.5133022429491451
+  },
+  "discrimination": [
+    {
+      "signal": "iptm",
+      "auc": 0.8078614257161892,
+      "n": 364,
+      "models": 4,
+      "full_pool": true,
+      "control": false
+    },
+    {
+      "signal": "contacts_4a",
+      "auc": 0.6129691316899845,
+      "n": 364,
+      "models": 4,
+      "full_pool": true,
+      "control": false
+    },
+    {
+      "signal": "mmff_strain",
+      "auc": 0.5947590495225406,
+      "n": 364,
+      "models": 4,
+      "full_pool": true,
+      "control": false
+    },
+    {
+      "signal": "random_control",
+      "auc": 0.5133022429491451,
+      "n": 364,
+      "models": 4,
+      "full_pool": true,
+      "control": true
+    },
+    {
+      "signal": "clashes",
+      "auc": 0.5,
+      "n": 364,
+      "models": 4,
+      "full_pool": true,
+      "control": false
+    },
+    {
+      "signal": "min_contact_dist",
+      "auc": 0.4946924272707084,
+      "n": 364,
+      "models": 4,
+      "full_pool": true,
+      "control": false
+    },
+    {
+      "signal": "avg_pae",
+      "auc": 0.4664890073284477,
+      "n": 364,
+      "models": 4,
+      "full_pool": true,
+      "control": false
+    },
+    {
+      "signal": "ptm",
+      "auc": 0.4536531201421275,
+      "n": 364,
+      "models": 4,
+      "full_pool": true,
+      "control": false
+    },
+    {
+      "signal": "radius_of_gyration",
+      "auc": 0.35864978902953587,
+      "n": 364,
+      "models": 4,
+      "full_pool": true,
+      "control": false
+    },
+    {
+      "signal": "complex_pde",
+      "auc": 0.8621428571428571,
+      "n": 90,
+      "models": 1,
+      "full_pool": false,
+      "control": false
+    },
+    {
+      "signal": "confidence_score",
+      "auc": 0.8497396055664647,
+      "n": 274,
+      "models": 3,
+      "full_pool": false,
+      "control": false
+    },
+    {
+      "signal": "ligand_iptm",
+      "auc": 0.8071428571428572,
+      "n": 90,
+      "models": 1,
+      "full_pool": false,
+      "control": false
+    },
+    {
+      "signal": "min_interface_pae",
+      "auc": 0.807009305899428,
+      "n": 274,
+      "models": 3,
+      "full_pool": false,
+      "control": false
+    },
+    {
+      "signal": "complex_ipde",
+      "auc": 0.8035714285714286,
+      "n": 90,
+      "models": 1,
+      "full_pool": false,
+      "control": false
+    },
+    {
+      "signal": "complex_plddt",
+      "auc": 0.7728571428571429,
+      "n": 90,
+      "models": 1,
+      "full_pool": false,
+      "control": false
+    },
+    {
+      "signal": "complex_iplddt",
+      "auc": 0.7642857142857142,
+      "n": 90,
+      "models": 1,
+      "full_pool": false,
+      "control": false
+    },
+    {
+      "signal": "protein_iptm",
+      "auc": 0.5,
+      "n": 90,
+      "models": 1,
+      "full_pool": false,
+      "control": false
+    }
+  ],
+  "selection": [
+    {
+      "signal": "avg_pae",
+      "mean_LDDT-PLI": 0.5130118794901215,
+      "n_items": 92,
+      "delta": 0.016001323043895156,
+      "ci_lo": -0.01780725935190592,
+      "ci_hi": 0.05166180471930167,
+      "wins": 30,
+      "losses": 22
+    },
+    {
+      "signal": "ptm",
+      "mean_LDDT-PLI": 0.5067771348454382,
+      "n_items": 92,
+      "delta": 0.008816483594801111,
+      "ci_lo": -0.02760948159165033,
+      "ci_hi": 0.04901436854599285,
+      "wins": 33,
+      "losses": 26
+    },
+    {
+      "signal": "iptm",
+      "mean_LDDT-PLI": 0.49297124422762706,
+      "n_items": 92,
+      "delta": -0.004698597914498789,
+      "ci_lo": -0.03874522865871373,
+      "ci_hi": 0.02785718285924067,
+      "wins": 12,
+      "losses": 16
+    },
+    {
+      "signal": "random_control",
+      "mean_LDDT-PLI": 0.4276832682283028,
+      "n_items": 92,
+      "delta": -0.07116532814162581,
+      "ci_lo": -0.12124913089260783,
+      "ci_hi": -0.022974618394737672,
+      "wins": 35,
+      "losses": 37
+    }
+  ],
+  "rescue_sweeps": {
+    "boltz2-prediction": [
+      {
+        "n": 0,
+        "score": 0.5130118794901215,
+        "n_items": 92
+      },
+      {
+        "n": 1,
+        "score": 0.5173406813825879,
+        "n_items": 91
+      },
+      {
+        "n": 2,
+        "score": 0.5214393624001079,
+        "n_items": 90
+      },
+      {
+        "n": 3,
+        "score": 0.52117597537764,
+        "n_items": 89
+      },
+      {
+        "n": 9,
+        "score": 0.5429198130606169,
+        "n_items": 83
+      },
+      {
+        "n": 18,
+        "score": 0.5683769954244295,
+        "n_items": 75
+      },
+      {
+        "n": 30,
+        "score": 0.6068712194997167,
+        "n_items": 63
+      }
+    ],
+    "chai1-prediction": [
+      {
+        "n": 0,
+        "score": 0.5130118794901215,
+        "n_items": 92
+      },
+      {
+        "n": 1,
+        "score": 0.5173406813825879,
+        "n_items": 91
+      },
+      {
+        "n": 2,
+        "score": 0.5214393624001079,
+        "n_items": 90
+      },
+      {
+        "n": 3,
+        "score": 0.52117597537764,
+        "n_items": 89
+      },
+      {
+        "n": 9,
+        "score": 0.5429198130606169,
+        "n_items": 83
+      },
+      {
+        "n": 18,
+        "score": 0.5676495091536561,
+        "n_items": 74
+      },
+      {
+        "n": 30,
+        "score": 0.6066238040164593,
+        "n_items": 62
+      }
+    ],
+    "protenix-prediction": [
+      {
+        "n": 0,
+        "score": 0.5130118794901215,
+        "n_items": 92
+      },
+      {
+        "n": 1,
+        "score": 0.5173406813825879,
+        "n_items": 91
+      },
+      {
+        "n": 2,
+        "score": 0.5214393624001079,
+        "n_items": 90
+      },
+      {
+        "n": 3,
+        "score": 0.52117597537764,
+        "n_items": 89
+      },
+      {
+        "n": 9,
+        "score": 0.5429198130606169,
+        "n_items": 83
+      },
+      {
+        "n": 18,
+        "score": 0.5676495091536561,
+        "n_items": 74
+      },
+      {
+        "n": 30,
+        "score": 0.6066238040164593,
+        "n_items": 62
+      }
+    ],
+    "rf3-prediction": [
+      {
+        "n": 0,
+        "score": 0.5130118794901215,
+        "n_items": 92
+      },
+      {
+        "n": 1,
+        "score": 0.5173406813825879,
+        "n_items": 91
+      },
+      {
+        "n": 2,
+        "score": 0.5214393624001079,
+        "n_items": 90
+      },
+      {
+        "n": 3,
+        "score": 0.52117597537764,
+        "n_items": 89
+      },
+      {
+        "n": 9,
+        "score": 0.5429198130606169,
+        "n_items": 83
+      },
+      {
+        "n": 18,
+        "score": 0.5683769954244295,
+        "n_items": 75
+      },
+      {
+        "n": 30,
+        "score": 0.6068712194997167,
+        "n_items": 63
+      }
+    ]
+  },
+  "recommended": {
+    "signal": "avg_pae",
+    "baseline": "confidence_score"
+  }
+}

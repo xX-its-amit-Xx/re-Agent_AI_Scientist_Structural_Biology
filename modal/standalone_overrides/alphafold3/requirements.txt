@@ -1,0 +1,69 @@
+# Overrides the upstream AF3 standalone requirements.txt. The image builder
+# overlays this onto proto-tools' copy, and the changed hash forces a clean env
+# rebuild -- which is the point, since the bug below is baked into the env layer.
+#
+# STATUS: TRIED, DID NOT WORK. KEPT FOR THE DIAGNOSIS, NOT AS A FIX.
+# -----------------------------------------------------------------
+# Rebuilt cleanly (420 s, app deployed) and the prediction failed with the
+# byte-identical cuSPARSE error. So putting the wheels in site-packages is not
+# sufficient, and the reason is probably this line in the tool's env_vars.txt:
+#
+#     LD_LIBRARY_PATH=${VENV_PATH}/cuda_env/lib
+#
+# JAX resolves its CUDA libraries through that path, not through site-packages,
+# so wheels installed here are never looked at. Two further suspects, both
+# needing a shell in the container rather than another blind rebuild:
+#
+#   1. `proto_install_cuda_toolkit` (setup.sh:168) populated cuda_env/lib without
+#      cuSPARSE, or with a version the 0.9.1 plugin rejects.
+#   2. `uv pip install "$AF3_REPO_DIR"` (setup.sh:211) pulled a conflicting
+#      jax/jaxlib and the re-pin at :215 restored jax but not the plugin's libs.
+#
+# NEXT STEP: `modal shell` into the app and inspect `${VENV_PATH}/cuda_env/lib`
+# for libcusparse.so* before changing anything else. Each blind attempt costs a
+# ~7 min rebuild, and two have now been spent on hypotheses that could have been
+# checked in thirty seconds with a shell.
+#
+# ORIGINAL DIAGNOSIS (still accurate)
+# -----------------------------------
+# The deployed AF3 env built successfully and then failed every prediction at
+# runtime with:
+#
+#   RuntimeError: jaxlib/cuda/versions_helpers.cc:85: operation
+#     cusparseGetProperty(MAJOR_VERSION, &major) failed:
+#     The cuSPARSE library was not found.
+#   ...
+#   W xla_bridge.py:883] An NVIDIA GPU may be present on this machine, but a
+#     CUDA-enabled jaxlib is not installed. Falling back to cpu.
+#   RuntimeError: Unknown backend: 'gpu' requested, but no platforms that are
+#     instances of gpu are present. Platforms present are: cpu
+#
+# The chain is: JAX's CUDA plugin cannot load cuSPARSE -> the plugin is skipped
+# -> JAX silently falls back to CPU -> AF3's run_alphafold.py asks for
+# `backend='gpu'` and there is no GPU backend registered, so it dies. The GPU is
+# present; the CUDA *libraries* JAX links against are not on the path it looks at.
+#
+# setup.sh installs `jax[cuda12]==0.9.1` and points LD_LIBRARY_PATH at
+# ${VENV_PATH}/cuda_env/lib, so the toolkit install is where the gap is. Naming
+# the NVIDIA runtime wheels explicitly puts them in site-packages, which is where
+# jax_plugins.xla_cuda12 looks first -- independent of whether the toolkit step
+# placed them under cuda_env/lib.
+#
+# Pinned to the cu12 line because AF3 v3.0.2 pins jax 0.9.1 / cuda12. If the jax
+# pin ever moves, these must move with it: a cuSPARSE from a different CUDA major
+# is the same failure with a different version number.
+
+# Upstream deps for standalone/inference.py -- keep, they are still required.
+numpy
+biopython
+
+# The missing CUDA runtime libraries JAX's cuda12 plugin dlopen()s.
+nvidia-cusparse-cu12
+nvidia-cublas-cu12
+nvidia-cuda-cupti-cu12
+nvidia-cuda-nvrtc-cu12
+nvidia-cuda-runtime-cu12
+nvidia-cudnn-cu12
+nvidia-cufft-cu12
+nvidia-cusolver-cu12
+nvidia-nvjitlink-cu12
