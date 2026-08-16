@@ -164,3 +164,21 @@ in seconds rather than after the ~30 minute env build:
 - Validator + tutorial — [OpenADMET/PXR-Challenge-Tutorial](https://github.com/OpenADMET/PXR-Challenge-Tutorial)
 - Re-refined receptors — [OpenADMET/pxr_xtal_re-refinement](https://github.com/OpenADMET/pxr_xtal_re-refinement) ([10.5281/zenodo.21504333](https://doi.org/10.5281/zenodo.21504333))
 - Challenge announcement — [openadmet.ghost.io](https://openadmet.ghost.io/announcing-the-next-openadmet-blind-challenge-predicting-pxr-induction/)
+
+## Layer-1 skill evaluation
+
+`eval/skill_lint.py` checks that a skill is structurally sound before anyone
+spends GPU finding out otherwise. Run it against the full tree, since Stage 3
+consumes Stage 1/2 keys and a subset alone looks like a broken graph:
+
+```bash
+.venv/bin/python eval/skill_lint.py .claude/skills --graph-from <other-tree>/.claude/skills --strict
+```
+
+ERROR means the contract or structure is broken. WARN is drift. It is calibrated
+to report **zero errors on a healthy tree** — a linter that fires on working code
+gets muted, and then it catches nothing.
+
+This is Layer 1 only: it proves the skills fit together, not that following them
+produces good science. Layers 2-4 (does it trigger, does an agent produce the
+declared artifact, does the artifact score better) still need a real run.

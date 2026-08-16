@@ -111,6 +111,10 @@ metric in a 2026 study and is cheap to compute from files you already have.
 
 1. Load `stage3.pose_pool` and `stage3.pool_oracle`. If the oracle gap is small,
    stop — the bottleneck is generation, and this stage cannot fix it.
+   Load `stage2.critical_residues` too: it defines which residues count as the
+   interface, and every guard rail above turns on restricting the signal to the
+   ligand and interface rather than the whole protein. Without it you are
+   guessing at the pocket boundary, which is how a global score sneaks back in.
 2. Per model, pick the best sample per item by that model's native signal.
 3. Z-score each model's best-sample scores across all items; `argmax` per item.
    This is the baseline every later idea must beat.
@@ -143,4 +147,11 @@ metric in a 2026 study and is cheap to compute from files you already have.
 ## Handoff
 
 `stage3.selection` (the chosen candidate per item, with the signal and the
-reason) and `stage3.failure_tail` (the low-confidence items, for Stage 4).
+reason), `stage3.failure_tail` (the low-confidence items, for Stage 4), and
+`stage3.report` — the Model Report section for this stage, carrying the four
+required figures, the baseline-vs-candidate comparison with bootstrap intervals,
+and the per-subpopulation breakdown.
+
+`stage3.report` is the one a reader will actually judge the stage by, so state
+plainly in it which selectors were tried and which lost. A stage that reports
+only its winner hides the evidence that the winner is simple for a reason.

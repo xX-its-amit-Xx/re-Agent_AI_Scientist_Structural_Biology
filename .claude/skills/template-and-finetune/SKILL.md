@@ -56,6 +56,12 @@ one comparable to theirs", say that instead of spending the compute.
 
 ## Choosing a template set
 
+0. **Read the corpus and the splits first.** `stage1.corpus_for_finetune` is the
+   assembled training material and `stage1.subpopulations` is how the items
+   divide — for this target, fragments versus drug-like analogs. Both decide
+   whether a fine-tune is even arguable: a corpus that is thin in the
+   subpopulation carrying the points will not move the score, and you should say
+   so rather than train and find out.
 1. **Inventory what is actually measured.** For this target,
    `manifest/receptors.csv` holds 64 re-refined receptor structures — 44
    re-refined plus 20 original depositions kept because re-refinement did not
