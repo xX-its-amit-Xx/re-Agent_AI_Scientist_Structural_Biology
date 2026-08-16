@@ -1,13 +1,14 @@
 {
   "version": 1,
   "generated_from": ".claude/skills",
-  "n_skills": 40,
+  "n_skills": 43,
   "by_stage": {
     "method": [
       "bottleneck-triage",
       "budget-calibration",
       "generator-diversity",
       "harness-verification",
+      "hypothesis-experiment",
       "leak-containment",
       "learned-rescoring",
       "output-contract",
@@ -25,6 +26,7 @@
       "kg-visualize",
       "literature-harvest",
       "model-report",
+      "onboarding",
       "progressive-disclosure",
       "report-mcp"
     ],
@@ -54,6 +56,7 @@
       "template-and-finetune"
     ],
     "stage4_optimization": [
+      "coordinate-surgery",
       "dock-and-minimize",
       "medchem-pass"
     ]
@@ -67,17 +70,22 @@
       "bottleneck-triage",
       "budget-calibration",
       "confidence-selection",
+      "coordinate-surgery",
       "cross-domain-analogy",
       "data-materialize",
+      "dock-and-minimize",
       "explain-significance",
       "generator-diversity",
       "harness-verification",
+      "hypothesis-experiment",
       "kg-visualize",
       "leak-containment",
       "learned-rescoring",
       "literature-harvest",
+      "medchem-pass",
       "model-report",
       "neglected-literature",
+      "onboarding",
       "output-contract",
       "parts-inventory",
       "physics-rescoring",
@@ -97,9 +105,7 @@
     ],
     "stub": [
       "compound-neighborhood",
-      "dock-and-minimize",
       "esmc-sae-motifs",
-      "medchem-pass",
       "pocket-anatomy",
       "pocket-dynamics"
     ]
@@ -238,6 +244,58 @@
       ],
       "body_lines": 163,
       "summary": "Prove the scorer measures what it claims before anything is built on it."
+    },
+    "hypothesis-experiment": {
+      "name": "hypothesis-experiment",
+      "path": ".claude/skills/hypothesis-experiment",
+      "description": "Run small cheap experiments instead of one expensive guess. Enumerate rival hypotheses, predict the outcome BEFORE running, name the ways it could fail and what to do about each, then run it and follow the branch you already chose. When a co-fold comes back with bad pLDDT or LDDT-PLI this is what lets the agent pivot rather than shrug: a registry of 17 known failure signals, each with a cost-ordered remedy ladder that routes to existing skills, ending in escalation to research when the known remedies are exhausted. Records what worked and what did not, because that is the only memory the system has. Trigger on: \"the pLDDT is terrible\", \"this failed\", \"what should we try next\", \"run an experiment\", \"test a hypothesis\", \"why did this fail\", \"pivot\", \"it's not working\", or /hypothesis-experiment.",
+      "stage": "method",
+      "owner": "amit",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash",
+        "WebSearch",
+        "WebFetch",
+        "Agent"
+      ],
+      "consumes": [
+        "problem.spec",
+        "stage0.report",
+        "stage1.report",
+        "stage2.report",
+        "stage3.report"
+      ],
+      "produces": [
+        "experiments.ledger",
+        "experiments.what_worked",
+        "experiments.what_did_not"
+      ],
+      "external_tools": [
+        "Agent",
+        "WebSearch",
+        "WebFetch"
+      ],
+      "triggers": [
+        "the pLDDT is terrible",
+        "this failed",
+        "what should we try next",
+        "run an experiment",
+        "test a hypothesis",
+        "why did this fail",
+        "pivot",
+        "it's not working"
+      ],
+      "references": [
+        "reference/escalation.md",
+        "reference/failure-atlas.md"
+      ],
+      "body_lines": 163,
+      "summary": "Predict before running, name the failure modes and their remedies in advance, then follow the branch already chosen. Records what did not work."
     },
     "leak-containment": {
       "name": "leak-containment",
@@ -819,6 +877,47 @@
       ],
       "body_lines": 167,
       "summary": "How to write, visualize, and validate a stage's Model Report."
+    },
+    "onboarding": {
+      "name": "onboarding",
+      "path": ".claude/skills/onboarding",
+      "description": "The front door. Ask the user for the credentials this run needs without ever seeing their values, walk them through any interactive sign-in, discover what compute they have \u2014 local, SSH cluster, serverless, hosted notebook \u2014 decide where hot and cold data live, work out how many subprocesses this machine can sustain, and refuse to declare the system ready until the problem and its data are present. Produces the capability registry every later stage binds against. Use at the start of a project, when a run fails for want of a credential, or when deciding where something should execute. Trigger on: \"set up\", \"get started\", \"API keys\", \"credentials\", \"which compute\", \"where should this run\", \"out of disk\", \"how many workers\", \"onboard\", or /onboarding.",
+      "stage": "shared",
+      "owner": "amit",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash"
+      ],
+      "produces": [
+        "tools.registry",
+        "env.secrets",
+        "env.compute_targets",
+        "env.storage_plan",
+        "env.resource_budget"
+      ],
+      "external_tools": [
+        "ssh",
+        "modal",
+        "rclone"
+      ],
+      "triggers": [
+        "set up",
+        "get started",
+        "API keys",
+        "credentials",
+        "which compute",
+        "where should this run",
+        "out of disk",
+        "how many workers",
+        "onboard"
+      ],
+      "body_lines": 155,
+      "summary": "Credentials by name only, interactive sign-ins, compute discovery, storage tiering, subprocess sizing, and the gate before any work starts."
     },
     "progressive-disclosure": {
       "name": "progressive-disclosure",
@@ -1764,13 +1863,59 @@
       "body_lines": 149,
       "summary": "Structural templating and curriculum fine-tuning on the Stage 1 corpus."
     },
+    "coordinate-surgery": {
+      "name": "coordinate-surgery",
+      "path": ".claude/skills/coordinate-surgery",
+      "description": "Edit structure coordinates directly, as typed operations with mandatory geometry verification. Lets the agent fix a clashing rotamer, rotate a torsion, flip an amide, or reposition a ligand \u2014 and stops it from freely redrawing a molecule, which took a pose from 3.88 A to 24.63 A on this project's reference case. A model may propose an edit; it may never be the last thing that touches the file. Every edit is blind to the reference, verified, minimised after, hashed, and reversible. Use when a pose has a specific fixable geometry defect. Trigger on: \"fix the coordinates\", \"edit the PDB\", \"move the ligand\", \"flip that amide\", \"bad rotamer\", \"clashing side chain\", \"adjust the pose by hand\", or /coordinate-surgery.",
+      "stage": "stage4_optimization",
+      "owner": "amit",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash"
+      ],
+      "consumes": [
+        "stage3.report",
+        "stage2.interaction_matrix",
+        "stage3.failure_tail"
+      ],
+      "produces": [
+        "stage4.edit_ledger",
+        "stage4.edited_poses",
+        "viz.part_comparison"
+      ],
+      "external_tools": [
+        "rdkit",
+        "openmm",
+        "pymol"
+      ],
+      "triggers": [
+        "fix the coordinates",
+        "edit the PDB",
+        "move the ligand",
+        "flip that amide",
+        "bad rotamer",
+        "clashing side chain",
+        "adjust the pose by hand"
+      ],
+      "references": [
+        "reference/edit-catalogue.md",
+        "reference/verification.md"
+      ],
+      "body_lines": 139,
+      "summary": "Typed coordinate edits with mandatory geometry verification, blindness to the reference, and a restrained minimisation after anything non-rigid."
+    },
     "dock-and-minimize": {
       "name": "dock-and-minimize",
       "path": ".claude/skills/dock-and-minimize",
       "description": "Stage 4. Refine selected poses with docking and restrained minimization, gated on ground truth so refinement is only adopted where it demonstrably helps. Targets the failure tail rather than the whole set, because physics-based refinement reliably improves some cases and destroys others. Use when polishing final predictions, relieving clashes, or attempting to rescue low-confidence items. Trigger on: \"dock\", \"minimize\", \"refine the poses\", \"Vina\", \"MD refinement\", \"relieve clashes\", or /dock-and-minimize.",
       "stage": "stage4_optimization",
       "owner": "amit",
-      "status": "stub",
+      "status": "implemented",
       "allowed_tools": [
         "Read",
         "Write",
@@ -1782,11 +1927,13 @@
       "consumes": [
         "stage3.selection",
         "stage3.failure_tail",
-        "stage2.conformer_ensemble"
+        "stage2.conformer_ensemble",
+        "tools.registry"
       ],
       "produces": [
         "stage4.report",
-        "stage4.refined_poses"
+        "stage4.refined_poses",
+        "stage4.refinement_gate"
       ],
       "credits": [
         "tamarind"
@@ -1804,7 +1951,7 @@
         "MD refinement",
         "relieve clashes"
       ],
-      "body_lines": 30,
+      "body_lines": 81,
       "summary": "Docking and restrained minimization as a refinement, gated on ground truth."
     },
     "medchem-pass": {
@@ -1813,7 +1960,7 @@
       "description": "Stage 4. Review selected poses for chemistry that a medicinal chemist would reject \u2014 clashes, strained conformers, implausible placements \u2014 and apply conservative coordinate-only corrections tiered by severity. Every edit is logged and reversible, and the pass is validated as a whole before it is allowed to replace the incumbent. Use when polishing final poses or triaging geometry problems. Trigger on: \"medchem review\", \"fix the poses\", \"clashes\", \"strained conformer\", \"geometry cleanup\", or /medchem-pass.",
       "stage": "stage4_optimization",
       "owner": "amit",
-      "status": "stub",
+      "status": "implemented",
       "allowed_tools": [
         "Read",
         "Write",
@@ -1825,11 +1972,15 @@
       ],
       "consumes": [
         "stage3.selection",
-        "stage2.fragment_map"
+        "stage2.fragment_map",
+        "stage3.failure_tail",
+        "stage2.interaction_matrix",
+        "stage4.edit_ledger"
       ],
       "produces": [
         "stage4.edited_poses",
-        "stage4.edit_ledger"
+        "stage4.edit_ledger",
+        "stage4.medchem_report"
       ],
       "external_tools": [
         "rdkit",
@@ -1842,7 +1993,7 @@
         "strained conformer",
         "geometry cleanup"
       ],
-      "body_lines": 30,
+      "body_lines": 75,
       "summary": "Chemistry-aware geometry review of selected poses, tiered by severity."
     }
   }

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
@@ -380,6 +381,120 @@ def cmd_axes_sweep_status(args: argparse.Namespace) -> int:
     return 0
 
 
+#: The credentials this project can use. Names and purposes only — never values.
+#:
+#: Everything here is optional by default, because the pipeline should degrade rather than
+#: refuse: with no compute credentials Stages 0-2 still run end to end, and that is a useful
+#: system. Mark a secret required only when a stage genuinely cannot proceed without it.
+_DEFAULT_SECRETS = [
+    ("MODAL_TOKEN_ID", "Serverless GPU compute — co-folding and any long unattended run.",
+     "run `modal token new`, which writes both halves", ["docking", "md", "cofold"],
+     "workspace-scoped, not account-wide"),
+    ("MODAL_TOKEN_SECRET", "The secret half of the Modal token pair.",
+     "run `modal token new`", ["docking", "md", "cofold"], "workspace-scoped"),
+    ("TAMARIND_API_KEY", "Hosted docking and molecular dynamics.",
+     "your Tamarind account settings", ["docking", "md"], "read+submit only if offered"),
+    ("ANTHROPIC_API_KEY", "Running the pipeline's own agents outside a Claude Code session.",
+     "https://console.anthropic.com/settings/keys", [], "a project-scoped key"),
+    ("HF_TOKEN", "Pulling gated model weights and datasets.",
+     "https://huggingface.co/settings/tokens", [], "read-only"),
+    ("GITHUB_TOKEN", "Searching code and issues past the anonymous rate limit.",
+     "https://github.com/settings/tokens", [], "public_repo read only — no write scopes"),
+]
+
+
+def cmd_init(args: argparse.Namespace) -> int:
+    """Probe the machine, write the secrets template, and report what is blocking.
+
+    Deliberately does three things and no more. It never asks for a secret value, never writes
+    one, and never reads `.env` — the agent writes the *names* and the user fills the values
+    through a channel the agent does not observe. That is the only measure here that is
+    structural rather than a mitigation, so it is the one the design leans on.
+    """
+    from reagent.contracts.environment import (
+        ComputeKind,
+        ComputeTarget,
+        DownloadPolicy,
+        Onboarding,
+        SecretSpec,
+        SecretVault,
+        StorageMount,
+        StoragePlan,
+        StorageTier,
+        probe_free_gb,
+        probe_resources,
+    )
+
+    repo = Path.cwd()
+    gitignore = (repo / ".gitignore").read_text(encoding="utf-8") if (
+        repo / ".gitignore").is_file() else ""
+
+    vault = SecretVault(
+        specs=[
+            SecretSpec(name=n, purpose=p, obtain_from=o, required_for=r, scope_note=s,
+                       optional=True)
+            for n, p, o, r, s in _DEFAULT_SECRETS
+        ],
+        gitignored=".env" in gitignore,
+        agent_read_denied=args.deny_read,
+    )
+
+    hot = args.hot or ("C:/Temp" if Path("C:/Temp").is_dir() else str(repo / ".scratch"))
+    mounts = [
+        StorageMount(path=hot, tier=StorageTier.HOT, free_gb=probe_free_gb(hot),
+                     network_backed=False, note="scratch and anything in a compute loop"),
+        StorageMount(path=str(repo), tier=StorageTier.WORKING, free_gb=probe_free_gb(str(repo)),
+                     network_backed=False, note="the repo and current artifacts"),
+    ]
+    if args.cold:
+        mounts.append(StorageMount(
+            path=args.cold, tier=StorageTier.COLD, free_gb=probe_free_gb(args.cold),
+            network_backed=args.cold_is_network,
+            note="archive and large inputs read occasionally"))
+
+    onboarding = Onboarding(
+        vault=vault,
+        storage=StoragePlan(mounts=mounts, lazy_fetch=True),
+        resources=probe_resources(hot),
+        downloads=DownloadPolicy(destination_tier=StorageTier.COLD if args.cold
+                                 else StorageTier.WORKING),
+        compute=[ComputeTarget(name="local", kind=ComputeKind.LOCAL,
+                               cpus=os.cpu_count(), verified=True)],
+        problem_spec_path=args.problem,
+        data_refs=list(args.data or []),
+    )
+
+    tpl = repo / vault.template_path
+    if tpl.exists() and not args.force:
+        print(f"  note  {vault.template_path} exists; not overwriting (use --force)")
+    else:
+        tpl.write_text(vault.template(), encoding="utf-8", newline="")
+        _ok(f"wrote {vault.template_path} — {len(vault.specs)} names, no values")
+
+    print()
+    print(onboarding.summary())
+    print()
+    print("Next, in this order:")
+    print(f"  1. cp {vault.template_path} .env   and fill in only what you need")
+    print("     The agent wrote the names. Do not paste a value into the chat — it would enter")
+    print("     the agent's context, and a credential in a transcript has to be rotated.")
+    for flow in onboarding.auth_flows:
+        print(f"  2. {flow.instruction}")
+    if not onboarding.problem_spec_path:
+        print("  3. reagent problem new --out reports/<run>/problem.json")
+    if not onboarding.data_refs:
+        print("  4. declare training and test data with --data, or harvest it in Stage 1")
+
+    blocking = onboarding.blocking()
+    if blocking:
+        print()
+        _err(f"not ready: {len(blocking)} blocking item(s)")
+        return 1 if args.strict else 0
+    print()
+    _ok("ready to start")
+    return 0
+
+
 def cmd_verify_pool(args: argparse.Namespace) -> int:
     """How large a candidate pool a verifier of measured soundness can support.
 
@@ -672,6 +787,27 @@ def build_parser() -> argparse.ArgumentParser:
     asw.add_argument("--report", required=True)
     asw.add_argument("--strict", action="store_true")
     asw.set_defaults(func=cmd_axes_sweep_status)
+
+    # init — the front door. Probes the machine, writes the secrets TEMPLATE, and says what
+    # is blocking. Never asks for, writes, or reads a secret value.
+    ini = sub.add_parser(
+        "init",
+        help="set up this environment: probe resources, write .env.template, report what blocks",
+    )
+    ini.add_argument("--hot", default=None,
+                     help="fast local scratch path (default C:/Temp or ./.scratch)")
+    ini.add_argument("--cold", default=None,
+                     help="archive path for large or finished data, e.g. O:/rclone-offload")
+    ini.add_argument("--cold-is-network", action="store_true",
+                     help="mark cold storage as network-backed, so nothing hot is placed there")
+    ini.add_argument("--problem", default=None, help="path to a ProblemSpec JSON")
+    ini.add_argument("--data", action="append", default=None,
+                     help="a training/test dataset id or path; repeatable")
+    ini.add_argument("--deny-read", action="store_true",
+                     help="assert the agent's tool permissions deny reading .env")
+    ini.add_argument("--force", action="store_true", help="overwrite .env.template")
+    ini.add_argument("--strict", action="store_true", help="exit non-zero if not ready")
+    ini.set_defaults(func=cmd_init)
 
     # verify — the highest-return component, so it gets its own accounting
     vf = sub.add_parser(

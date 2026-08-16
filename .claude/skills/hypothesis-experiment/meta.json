@@ -1,0 +1,24 @@
+{
+  "stage": "method",
+  "owner": "amit",
+  "status": "implemented",
+  "summary": "Predict before running, name the failure modes and their remedies in advance, then follow the branch already chosen. Records what did not work.",
+  "consumes": [
+    "problem.spec",
+    "stage0.report",
+    "stage1.report",
+    "stage2.report",
+    "stage3.report"
+  ],
+  "produces": [
+    "experiments.ledger",
+    "experiments.what_worked",
+    "experiments.what_did_not"
+  ],
+  "external_tools": [
+    "Agent",
+    "WebSearch",
+    "WebFetch"
+  ],
+  "credits": []
+}

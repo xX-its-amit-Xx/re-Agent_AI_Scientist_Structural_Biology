@@ -1,0 +1,22 @@
+{
+  "stage": "stage4_optimization",
+  "owner": "amit",
+  "status": "implemented",
+  "summary": "Typed coordinate edits with mandatory geometry verification, blindness to the reference, and a restrained minimisation after anything non-rigid.",
+  "consumes": [
+    "stage3.report",
+    "stage2.interaction_matrix",
+    "stage3.failure_tail"
+  ],
+  "produces": [
+    "stage4.edit_ledger",
+    "stage4.edited_poses",
+    "viz.part_comparison"
+  ],
+  "external_tools": [
+    "rdkit",
+    "openmm",
+    "pymol"
+  ],
+  "credits": []
+}

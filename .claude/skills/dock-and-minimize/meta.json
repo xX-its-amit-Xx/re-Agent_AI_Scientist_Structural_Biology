@@ -1,16 +1,18 @@
 {
   "stage": "stage4_optimization",
   "owner": "amit",
-  "status": "stub",
+  "status": "implemented",
   "summary": "Docking and restrained minimization as a refinement, gated on ground truth.",
   "consumes": [
     "stage3.selection",
     "stage3.failure_tail",
-    "stage2.conformer_ensemble"
+    "stage2.conformer_ensemble",
+    "tools.registry"
   ],
   "produces": [
     "stage4.report",
-    "stage4.refined_poses"
+    "stage4.refined_poses",
+    "stage4.refinement_gate"
   ],
   "external_tools": [
     "vina",

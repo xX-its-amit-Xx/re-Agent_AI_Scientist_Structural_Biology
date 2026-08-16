@@ -67,6 +67,33 @@ META: dict[str, dict] = {
         "produces": ["data.local_cache", "data.fetch_report"],
         "external_tools": ["WebFetch", "curl"], "credits": [],
     },
+    "onboarding": {
+        "stage": "shared", "owner": "amit", "status": "implemented",
+        "summary": "Credentials by name only, interactive sign-ins, compute discovery, storage "
+                   "tiering, subprocess sizing, and the gate before any work starts.",
+        "consumes": [],
+        "produces": ["tools.registry", "env.secrets", "env.compute_targets",
+                     "env.storage_plan", "env.resource_budget"],
+        "external_tools": ["ssh", "modal", "rclone"], "credits": [],
+    },
+    "coordinate-surgery": {
+        "stage": "stage4_optimization", "owner": "amit", "status": "implemented",
+        "summary": "Typed coordinate edits with mandatory geometry verification, blindness to "
+                   "the reference, and a restrained minimisation after anything non-rigid.",
+        "consumes": ["stage3.report", "stage2.interaction_matrix", "stage3.failure_tail"],
+        "produces": ["stage4.edit_ledger", "stage4.edited_poses", "viz.part_comparison"],
+        "external_tools": ["rdkit", "openmm", "pymol"], "credits": [],
+    },
+    "hypothesis-experiment": {
+        "stage": "method", "owner": "amit", "status": "implemented",
+        "summary": "Predict before running, name the failure modes and their remedies in "
+                   "advance, then follow the branch already chosen. Records what did not work.",
+        "consumes": ["problem.spec", "stage0.report", "stage1.report", "stage2.report",
+                     "stage3.report"],
+        "produces": ["experiments.ledger", "experiments.what_worked",
+                     "experiments.what_did_not"],
+        "external_tools": ["Agent", "WebSearch", "WebFetch"], "credits": [],
+    },
     "adversarial-verify": {
         "stage": "shared", "owner": "amit", "status": "implemented",
         "summary": "Break a claim in a worker that is not its author; calibrate the verifier "
@@ -247,17 +274,17 @@ META: dict[str, dict] = {
         "external_tools": ["openprotein", "modal", "slurm"], "credits": ["modal", "openprotein"],
     },
     "medchem-pass": {
-        "stage": "stage4_optimization", "owner": "amit", "status": "stub",
+        "stage": "stage4_optimization", "owner": "amit", "status": "implemented",
         "summary": "Chemistry-aware geometry review of selected poses, tiered by severity.",
-        "consumes": ["stage3.selection", "stage2.fragment_map"],
-        "produces": ["stage4.edited_poses", "stage4.edit_ledger"],
+        "consumes": ["stage3.selection", "stage2.fragment_map", "stage3.failure_tail", "stage2.interaction_matrix", "stage4.edit_ledger"],
+        "produces": ["stage4.edited_poses", "stage4.edit_ledger", "stage4.medchem_report"],
         "external_tools": ["rdkit", "chimerax"], "credits": [],
     },
     "dock-and-minimize": {
-        "stage": "stage4_optimization", "owner": "amit", "status": "stub",
+        "stage": "stage4_optimization", "owner": "amit", "status": "implemented",
         "summary": "Docking and restrained minimization as a refinement, gated on ground truth.",
-        "consumes": ["stage3.selection", "stage3.failure_tail", "stage2.conformer_ensemble"],
-        "produces": ["stage4.report", "stage4.refined_poses"],
+        "consumes": ["stage3.selection", "stage3.failure_tail", "stage2.conformer_ensemble", "tools.registry"],
+        "produces": ["stage4.report", "stage4.refined_poses", "stage4.refinement_gate"],
         "external_tools": ["vina", "openmm", "tamarind"], "credits": ["tamarind"],
     },
     # ------------------------------------------------------------------

@@ -1,0 +1,20 @@
+{
+  "stage": "shared",
+  "owner": "amit",
+  "status": "implemented",
+  "summary": "Credentials by name only, interactive sign-ins, compute discovery, storage tiering, subprocess sizing, and the gate before any work starts.",
+  "consumes": [],
+  "produces": [
+    "tools.registry",
+    "env.secrets",
+    "env.compute_targets",
+    "env.storage_plan",
+    "env.resource_budget"
+  ],
+  "external_tools": [
+    "ssh",
+    "modal",
+    "rclone"
+  ],
+  "credits": []
+}

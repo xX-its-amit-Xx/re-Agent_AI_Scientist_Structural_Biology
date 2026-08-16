@@ -30,6 +30,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from .axes import NeighborhoodSweep
 from .discovery import SearchLedger
 from .evidence import Confidence, Evidence
+from .experiment import ExperimentLedger
 from .followup import FollowUpTree
 from .interpret import (
     Glossary,
@@ -316,6 +317,16 @@ class ModelReport(BaseModel):
             "disagree with a boundary they cannot otherwise see."
         ),
     )
+    experiments: ExperimentLedger | None = Field(
+        default=None,
+        description=(
+            "Small experiments run during this stage: what was predicted before each one, what "
+            "came back, and which remedy was tried when a prediction missed. This is the "
+            "stage's memory — agents have none across sessions, so a remedy that plausibly "
+            "should have worked and did not has to be written here or be rediscovered at full "
+            "cost."
+        ),
+    )
     anatomy: Anatomy | None = Field(
         default=None,
         description=(
@@ -513,7 +524,22 @@ class ModelReport(BaseModel):
             out += [f"sweep: {p}" for p in self.sweep.problems()]
         if self.anatomy:
             out += [f"anatomy: {p}" for p in self.anatomy.problems()]
+        if self.experiments:
+            out += [f"experiments: {p}" for p in self.experiments.problems()]
         return out
+
+    def learned_this_run(self) -> dict[str, dict[str, list[str]]]:
+        """What the experiments established, split into what worked and what did not.
+
+        The second half is the more valuable one and the half nobody records: a remedy that
+        sounds right and does not work is the expensive thing to rediscover.
+        """
+        if self.experiments is None:
+            return {}
+        return {
+            "worked": self.experiments.what_worked(),
+            "did_not_work": self.experiments.what_did_not(),
+        }
 
     def anatomy_coverage(self) -> dict[str, float]:
         """Stage 2's three completeness numbers, or empty when there is no anatomy.
