@@ -67,6 +67,17 @@ META: dict[str, dict] = {
         "produces": ["data.local_cache", "data.fetch_report"],
         "external_tools": ["WebFetch", "curl"], "credits": [],
     },
+    "adversarial-verify": {
+        "stage": "shared", "owner": "amit", "status": "implemented",
+        "summary": "Break a claim in a worker that is not its author; calibrate the verifier "
+                   "against injected falsehoods and report what bounds the pipeline.",
+        "consumes": ["kg.claim_edges", "literature.assertions", "stage1.report",
+                     "stage0.report"],
+        "produces": ["verify.verdicts", "verify.calibration", "verify.agreement",
+                     "kg.claim_edges"],
+        "external_tools": ["Agent", "WebFetch", "rcsb-search-api", "uniprot", "chembl"],
+        "credits": [],
+    },
     "neglected-literature": {
         "stage": "stage1_literature", "owner": "amit", "status": "implemented",
         "summary": "Recover under-attended but relevant work; the exploration quota and "

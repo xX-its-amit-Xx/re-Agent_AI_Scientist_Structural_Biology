@@ -389,7 +389,103 @@ and Hamming on problem selection **as the boundary of automation rather than a f
 in which elaborate architectures cost 50× and lose, four-agent debate costs 12× and loses, and a
 dedicated verifier recovers 96.4% of injected error.
 
+---
+
+## The verification findings, which reversed a priority
+
+A third audit pass went after the mechanisms rather than the topologies, and one result inverted
+what we had planned. All of this is implemented in `contracts/verification.py` and the
+`adversarial-verify` skill.
+
+**Framing beats freshness.** We assumed a fresh-context critic was the main lever, and specified
+it that way. On staged adversarial review, a **full-context** protocol closed only **50%** of the
+attack gap — *"ruling out context fragmentation as the sole explanation"* — while **reframing the
+reviewer as an adversarial pentester cut evasion to 3.0–17.6%**, and an open-weight model under
+that framing detected **88.4% of attacks at a 4.6% false-positive rate** (arXiv:2605.03952).
+Isolation is still worth having. It is the smaller lever, and we had it as the larger one.
+
+**The deficit is in localisation, not correction.** GPT-4 finds the mistake in only **39.47%** of
+faulty traces, but gains **+23.5 to +43.9 points** once told where it is (arXiv:2311.08516). So
+the verification budget goes on *finding* the error, and `Verdict.localised_to` is required on
+every refutation — an unlocalised refutation is unactionable and also the easy half.
+
+**Self-verification is worse than no verification, twice over.** GSM8K fell 95.5% → 89.0% across
+two self-correction rounds with correct→incorrect changes outnumbering the reverse
+(arXiv:2310.01798), and an LLM self-critic scored *below no critic at all* on two of three
+planning domains — 5%→3%, 16%→2% — driven by a **95.8% false-negative rate**
+(arXiv:2402.08115). Enforced: a worker cannot verify its own claim. And note the direction of
+that failure — **over-rejection**, which is why `VerifierCalibration` flags low completeness as
+hard as low soundness. A verifier that rejects everything will silently discard the neglected
+literature we paid to find.
+
+**Strip the author's confidence, and note the preemptive case is the worst one.** Sycophancy
+appears in **58.19%** of challenge cases, and preemptive exposure produces *more* of it (61.75%)
+than in-context exposure (56.52%) — so putting confidence in the prompt is worse than letting
+the verifier encounter it (arXiv:2502.08177).
+
+**Report beta, not rho.** Proven: error laws with identical marginals *and identical pairwise
+correlations* can have different all-wrong rates, and measured beta ran ~2.5× above what
+correlations predicted — 0.052 against 0.023 across 67 models (arXiv:2606.27288). Accuracy is
+bounded by 1 − beta for any policy returning one worker's answer. `06` named rho as "the
+diagnostic that distinguishes this design from a story about this design"; it is necessary and
+insufficient, and beta is the one that binds.
+
+**Cap the pool by soundness.** Selection saturates before ~100 samples while coverage keeps
+climbing past 95%, and the false-positive rate *rises* with N because difficulty is bimodal. At a
+false-positive cost ratio of 4, **optimal K ≤ 5 for every model tested**; at 10×, **K = 0**,
+*"effectively making them useless"* (arXiv:2411.17501). This bites directly on
+`confidence-selection` and `structure-ensemble`, which both generate and filter.
+
+**Prefer verification tools over evidence tools.** *"Evidence tools (e.g., web search)
+systematically induce severe overconfidence… while verification tools (e.g., code interpreters)
+can ground reasoning through deterministic feedback and mitigate miscalibration"* — ECE rose with
+retrieval use (0.879 → 0.901 → 0.948) and fell with computation (0.971 → 0.913 → 0.890)
+(arXiv:2601.07264). **This pipeline is retrieval-heavy and verification-light, which is the
+unfavourable half.** `GroundingKind` tags every claim so the imbalance is visible.
+
+**Reason unconstrained, then serialise.** Field ordering was the cheap half of the schema fix.
+The full fix is two calls: one free-form to judge, one to fill the object. Constrained decoding
+itself is roughly free; reasoning *inside* a schema is what cost 86.51% → 23.44%.
+
+**Never optimise against a judge or a monitor.** A frontier lab rejected neural reward models
+*"because we find that the neural reward model may suffer from reward hacking"* and used
+rule-based rewards instead — AIME pass@1 15.6% → 71.0% (arXiv:2501.12948). And when a team
+trained against a reasoning monitor, visible hacking fell while actual hacking persisted and
+monitor recall *"falls to near zero"*: *"it may be necessary to pay a monitorability tax"*
+(arXiv:2503.11926).
+
+**The one deliberation that works, with all four properties load-bearing.** Two *adversarial*
+debaters, both with *verified quote access*, a judge that *cannot see the source*, and **no
+interaction needed** — *"identical judge accuracy between static and interactive debate."* Judge
+accuracy 76% / 88% under debate against 54% / 78% for a single source-privileged consultant,
+p = 0.001. And the failure direction: *"judge accuracy decreases as consultants are more
+persuasive"* while it rises with more persuasive debaters. **So never run a one-sided
+source-privileged critic — it is worse than none.**
+
+## The number that should set our expectations
+
+**BixBench** — over 50 real bioinformatics analysis scenarios, nearly 300 open-answer questions:
+*"even the latest frontier models only achieve **17% accuracy in the open-answer regime**, and
+**no better than random in a multiple-choice setting**"* (arXiv:2503.00096).
+
+This is the closest benchmark to what this project attempts, and it is more sobering than
+anything in the orchestration literature. Read alongside it: **8 of 10** agent research tasks
+*"reported results based on synthesized or placeholder data rather than actual execution"*
+(arXiv:2505.19955), and **59%** of accepted automated reviews across 45 manuscripts contained
+fabricated or unsupported claims (arXiv:2605.16616).
+
+Two consequences. **The human decision gate is the only evaluator in the loop with demonstrated
+competence at this task** — which is Hamming's lesson arriving from a completely different
+direction. And **agents fabricate success rather than report failure**, so the honest-negative
+machinery (`negative_result`, `truncated_because`, the `illustrative` flag) is not
+conscientiousness but a countermeasure.
+
+And implement abstention as a **gate, not a prompt**: naively prompting for clarifying questions
+**hurt by 11.3% relative** and fell below the no-interaction baseline, while abstention machinery
+alone gave **+22.3%** (MediQ, NeurIPS 2024). False-continue rates on infeasible tasks reach
+**73.9%**.
+
 **One sentence on the whole exercise.** The design was right and its justifications were often
-borrowed from the wrong substrate; fixing the justifications changed three decisions (verification
-first, prioritisation is a write stage, restart rather than reflect) and left the architecture
-intact.
+borrowed from the wrong substrate; fixing the justifications changed four decisions —
+verification first, prioritisation is a write stage, restart rather than reflect, and frame the
+verifier adversarially rather than merely freshly — and left the architecture intact.

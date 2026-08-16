@@ -175,6 +175,49 @@ same way: do not lead with topology. Smit et al. is the extreme case — tuning 
 parameter (how strongly agents are told to agree) moved a debate protocol **from worst to best
 performing**, which means published debate results are not really measuring debate.
 
+### C7b — The two-ledger "31%" figure is unverified
+
+`04` and `06` attribute a **31%** cost to removing the two-ledger progress design. The source
+is Magentic-One (Fourney et al., Microsoft Research, arXiv:2411.04468), whose **abstract page
+carries no numeric results and whose HTML rendering 404s**, so the figure could not be
+confirmed. It is currently load-bearing for a design recommendation.
+
+**Re-source it or drop the number.** The recommendation itself — keep a task ledger and a
+progress ledger — stands on independent grounds: step repetition (**15.7%**) and
+termination-unawareness (**12.4%**) together are **28.1%** of measured multi-agent failures,
+and a progress ledger is the mechanism that addresses both. That argument needs no 31%.
+
+### C7c — The number that should govern our expectations, in our own domain
+
+**BixBench** (Mitchener et al., arXiv:2503.00096) is over 50 real bioinformatics analysis
+scenarios with nearly 300 open-answer questions. Result: *"even the latest frontier models only
+achieve **17% accuracy in the open-answer regime**, and **no better than random in a
+multiple-choice setting**."*
+
+This is the most directly relevant benchmark to what this project attempts, and it is sobering
+in a way none of the orchestration literature is. Two consequences:
+
+1. **The human decision gate is not a courtesy.** It is the only evaluator in the loop with
+   demonstrated competence at this task.
+2. **Do not read general agent benchmarks as evidence about our domain.** A system at 80% on
+   SWE-bench Verified tells us nothing about 17% on bioinformatics analysis.
+
+Related, and it changes what the abstention machinery is for: **8 of 10** research tasks run by
+a coding agent *"reported results based on synthesized or placeholder data rather than actual
+execution"* (MLR-Bench, arXiv:2505.19955), and across 45 manuscripts from 6 autonomous research
+systems, **59% of accepted automated reviews contained fabricated or unsupported claims**
+(arXiv:2605.16616). Agents fabricate success rather than report failure. `AxisSweep`'s
+`negative_result` and `truncated_because`, and the `illustrative` flag on every placeholder
+edge, exist for exactly this — and the demo fixture's honesty about its own placeholders is a
+feature rather than a limitation.
+
+**And do not implement abstention as a prompt.** Naively prompting models to ask clarifying
+questions **hurt by 11.3% relative** and fell *below* the no-interaction baseline, while
+**abstention machinery alone gave +22.3% relative** (MediQ, NeurIPS 2024). False-continue rates
+on infeasible tasks reach **73.9%** (arXiv:2605.28532), and the best model refuses infeasible
+work only **53.9%** of the time (arXiv:2603.13594). The lever is a hard gate and a first-class
+"insufficient evidence" return, not an instruction.
+
 ### C8 — Corrections already applied inline
 
 Made in place, each with a marked correction block rather than a silent edit:
@@ -222,6 +265,36 @@ idempotency rule keyed on the work item, and a hard per-worker step budget. Note
 schema-forced extraction already handles a third mode by construction — MASLab found **79.66%
 of one framework's failures on GPQA-Diamond were format errors** — and we should claim that
 benefit explicitly.
+
+**Frame the verifier adversarially, and report beta rather than rho.** Two changes that a
+third audit pass established, both implemented in `contracts/verification.py`:
+
+*Framing beats freshness*, which reverses a priority. We assumed a fresh-context critic was the
+main lever. On staged adversarial review a **full-context** protocol closed only **50%** of the
+attack gap — *"ruling out context fragmentation as the sole explanation"* — while **reframing
+the reviewer as an adversarial pentester cut evasion to 3.0-17.6%**, with an open-weight model
+detecting **88.4% of attacks at a 4.6% false-positive rate** (arXiv:2605.03952). Isolation still
+helps; it is the smaller lever.
+
+*Pairwise error correlation cannot bound the design, and this is proven.* Error laws with
+identical marginals **and identical pairwise correlations** can have different all-wrong rates,
+and measured beta ran ~2.5x above what correlations predicted — 0.052 observed against 0.023
+(arXiv:2606.27288). Since accuracy is bounded by 1 − beta for any policy returning one worker's
+answer, **beta is the number that limits us and rho is the number that is easy to compute.**
+`06` named rho as "the diagnostic that distinguishes this design from a story about this
+design"; it is necessary and insufficient.
+
+**Reason unconstrained, then serialise.** Field ordering (C-ordering, now enforced) is the cheap
+half of the schema fix. The full fix is to not force a schema over the reasoning at all: one
+free-form call to judge, a second call to fill the object. Constrained decoding itself is
+roughly free; reasoning *inside* a schema is what cost GSM8K accuracy 86.51% → 23.44%.
+
+**Cap candidate pools by measured verifier soundness, not by budget.** Selection saturates
+before ~100 samples while coverage keeps climbing past 95%, and the false-positive rate *rises*
+with N because difficulty is bimodal. At a false-positive cost ratio of 4, **optimal K ≤ 5 for
+every model tested**; at 10x, **K = 0**. `reagent verify pool` computes the guide from measured
+soundness — and a verifier built from real unit tests calibrated at soundness **0.75**, admitting
+a quarter of incorrect solutions.
 
 **Adopt DCR as an instrumentation metric.** "Fraction of items where some worker had it right
 and the system did not output it" is directly portable to our certified graph as an oracle-gap

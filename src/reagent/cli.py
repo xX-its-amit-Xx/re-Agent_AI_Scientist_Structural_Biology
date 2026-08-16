@@ -380,6 +380,37 @@ def cmd_axes_sweep_status(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_verify_pool(args: argparse.Namespace) -> int:
+    """How large a candidate pool a verifier of measured soundness can support.
+
+    Exists because the instinct — generate many, the filter sorts it out — is measurably
+    wrong: selection saturates long before coverage does, and the false-positive rate rises
+    with N because difficulty is bimodal.
+    """
+    from reagent.contracts.verification import VerifierCalibration
+
+    cal = VerifierCalibration(
+        verifier=args.verifier,
+        n_true_claims=args.true_claims, n_true_admitted=args.true_admitted,
+        n_false_claims=args.false_claims, n_false_admitted=args.false_admitted,
+    )
+    print(cal.summary())
+    for cost in (1.0, 2.0, 4.0, 10.0):
+        k = cal.optimal_pool_size(cost)
+        shown = "unbounded (scale on budget)" if k is None else str(k)
+        print(f"  false-positive cost {cost:>5.1f}x -> pool guide {shown}")
+    problems = cal.problems()
+    for p in problems:
+        _err(p) if args.strict else print(f"  warn  {p}")
+    if cal.soundness is not None and cal.soundness >= 1.0:
+        print(
+            "  note  soundness measured at exactly 1.0. Treat with suspicion — it usually "
+            "means too few or too-easy falsehoods were injected, not that none get through."
+        )
+    print("PASS" if not (problems and args.strict) else f"FAIL ({len(problems)} problems)")
+    return 1 if (problems and args.strict) else 0
+
+
 def cmd_kg_stats(args: argparse.Namespace) -> int:
     store = KGStore(args.kg)
     stats = store.stats()
@@ -641,6 +672,22 @@ def build_parser() -> argparse.ArgumentParser:
     asw.add_argument("--report", required=True)
     asw.add_argument("--strict", action="store_true")
     asw.set_defaults(func=cmd_axes_sweep_status)
+
+    # verify — the highest-return component, so it gets its own accounting
+    vf = sub.add_parser(
+        "verify", help="verifier calibration and what it implies about pool size"
+    ).add_subparsers(dest="sub", required=True)
+    vp = vf.add_parser(
+        "pool", help="how many candidates a verifier of this soundness can support"
+    )
+    vp.add_argument("--verifier", default="verifier")
+    vp.add_argument("--true-claims", type=int, required=True)
+    vp.add_argument("--true-admitted", type=int, required=True)
+    vp.add_argument("--false-claims", type=int, required=True,
+                    help="injected falsehoods; zero means soundness is unmeasured")
+    vp.add_argument("--false-admitted", type=int, required=True)
+    vp.add_argument("--strict", action="store_true")
+    vp.set_defaults(func=cmd_verify_pool)
 
     # kg
     kg = sub.add_parser("kg", help="knowledge graph").add_subparsers(dest="sub", required=True)

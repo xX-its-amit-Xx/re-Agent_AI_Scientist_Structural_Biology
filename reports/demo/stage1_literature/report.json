@@ -4,7 +4,7 @@
   "run_id": "demo",
   "stage": "stage1_literature",
   "title": "Stage 1 demo — target neighbourhood on a fixture graph",
-  "created_utc": "2026-08-16T02:16:32.722230Z",
+  "created_utc": "2026-08-16T02:33:35.841167Z",
   "produced_by": {
     "model": "claude-fable-5",
     "skill": "target-neighborhood",
@@ -187,7 +187,7 @@
           "F-NEG-01"
         ],
         "produced_artifacts": [],
-        "at_utc": "2026-08-16T02:16:32.711235Z"
+        "at_utc": "2026-08-16T02:33:35.832168Z"
       },
       {
         "id": "R-02",
@@ -233,7 +233,7 @@
           "F-PROMISC-01"
         ],
         "produced_artifacts": [],
-        "at_utc": "2026-08-16T02:16:32.711235Z"
+        "at_utc": "2026-08-16T02:33:35.832168Z"
       },
       {
         "id": "R-03",
@@ -273,7 +273,7 @@
           "F-PROMISC-01"
         ],
         "produced_artifacts": [],
-        "at_utc": "2026-08-16T02:16:32.711235Z"
+        "at_utc": "2026-08-16T02:33:35.832168Z"
       },
       {
         "id": "R-04",
@@ -296,7 +296,7 @@
         "produced_artifacts": [
           "docs/figures/demo_kg.html"
         ],
-        "at_utc": "2026-08-16T02:16:32.711235Z"
+        "at_utc": "2026-08-16T02:33:35.832168Z"
       },
       {
         "id": "R-05",
@@ -328,7 +328,7 @@
           "F-DESIGN-01"
         ],
         "produced_artifacts": [],
-        "at_utc": "2026-08-16T02:16:32.711235Z"
+        "at_utc": "2026-08-16T02:33:35.832168Z"
       }
     ],
     "open_decisions": [
@@ -788,7 +788,7 @@
       "path": "docs/figures/demo_kg.html",
       "kind": "figure",
       "description": "Self-contained interactive ego view",
-      "sha256": "d0b49221b96a1c603d98a7486a6bc0c84265f9635a05a2da19a627a4549db311",
+      "sha256": "15374fd810e58ebbb5934a9fe47c3e2698ecba842ac14e0fe166457ba4e543f6",
       "bytes": 487897
     },
     {

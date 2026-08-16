@@ -1,9 +1,10 @@
 {
   "version": 1,
   "generated_from": ".claude/skills",
-  "n_skills": 24,
+  "n_skills": 25,
   "by_stage": {
     "shared": [
+      "adversarial-verify",
       "ai-scientist",
       "data-materialize",
       "explain-significance",
@@ -42,6 +43,7 @@
   },
   "by_status": {
     "implemented": [
+      "adversarial-verify",
       "ai-scientist",
       "axis-sweep",
       "cross-domain-analogy",
@@ -71,6 +73,61 @@
     ]
   },
   "skills": {
+    "adversarial-verify": {
+      "name": "adversarial-verify",
+      "path": ".claude/skills/adversarial-verify",
+      "description": "Check a claim by trying to break it, in a worker that is not its author, without seeing the author's confidence. Records where exactly it fails, not just that it does. Calibrates the verifier itself against deliberately injected falsehoods, so its soundness is measured rather than assumed \u2014 and caps how far a candidate pool can be scaled based on that number. Reports the all-wrong rate and the oracle gap, which bound the pipeline in ways pairwise error correlation cannot. Use before any claim enters the certified graph, before trusting a candidate pool, and whenever a stage is about to hand off. Trigger on: \"verify\", \"check this claim\", \"is this real\", \"refute\", \"falsify\", \"red team\", \"how good is our verifier\", \"did we get this right\", or /adversarial-verify.",
+      "stage": "shared",
+      "owner": "amit",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash",
+        "WebSearch",
+        "WebFetch"
+      ],
+      "consumes": [
+        "kg.claim_edges",
+        "literature.assertions",
+        "stage1.report",
+        "stage0.report"
+      ],
+      "produces": [
+        "verify.verdicts",
+        "verify.calibration",
+        "verify.agreement",
+        "kg.claim_edges"
+      ],
+      "external_tools": [
+        "Agent",
+        "WebFetch",
+        "rcsb-search-api",
+        "uniprot",
+        "chembl"
+      ],
+      "triggers": [
+        "verify",
+        "check this claim",
+        "is this real",
+        "refute",
+        "falsify",
+        "red team",
+        "how good is our verifier",
+        "did we get this right"
+      ],
+      "references": [
+        "reference/calibration.md",
+        "reference/instrumentation.md",
+        "reference/pool-sizing.md",
+        "reference/stance-and-prompts.md"
+      ],
+      "body_lines": 190,
+      "summary": "Break a claim in a worker that is not its author; calibrate the verifier against injected falsehoods and report what bounds the pipeline."
+    },
     "ai-scientist": {
       "name": "ai-scientist",
       "path": ".claude/skills/ai-scientist",

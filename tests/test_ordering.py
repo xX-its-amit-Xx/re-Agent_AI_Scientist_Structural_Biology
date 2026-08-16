@@ -24,6 +24,7 @@ from reagent.contracts.ordering import ENFORCED_ORDER, audit, candidate_violatio
 from reagent.contracts.proposal import AnalogyCard, Proposal
 from reagent.contracts.reasoning import ReasoningStep
 from reagent.contracts.report import Finding
+from reagent.contracts.verification import Verdict, VerifierCalibration, WorkerAgreement
 
 #: Every model an agent fills directly from a schema. Adding one here is how a new handoff
 #: gets its field order reviewed rather than assumed.
@@ -32,6 +33,7 @@ AGENT_FILLED: list[type[BaseModel]] = [
     MetaProperty, AxisSweep, SweepRound,
     ChannelYield, CoverageEstimate, FollowUp,
     Proposal, AnalogyCard,
+    Verdict, VerifierCalibration, WorkerAgreement,
 ]
 
 

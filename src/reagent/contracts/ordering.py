@@ -76,7 +76,45 @@ ENFORCED_ORDER: dict[str, list[tuple[str, str, str]]] = {
             "generated first anchors the direction to whatever justifies that magnitude.",
         ),
     ],
+    "Verdict": [
+        (
+            "because", "refuted",
+            "The specific failure must be worked out before the verdict is named. A verdict "
+            "generated first is a coin flip with a justification attached, and a verifier "
+            "that has already said 'refuted' will find a reason. This is the same pattern "
+            "Tam et al. traced to the GSM8K collapse, applied to the component with the "
+            "largest measured return in the pipeline.",
+        ),
+    ],
 }
+
+
+#: Field ordering is the cheap half of the fix. The expensive half is not to force a schema
+#: over the reasoning at all.
+#:
+#: Constrained decoding itself is roughly free — a matched-prompt reproduction found
+#: structured output at or above unstructured across every task. What costs accuracy is
+#: making a model reason *inside* a schema, and the measured drop is large: GSM8K accuracy
+#: fell from 86.51% to 23.44% for one model under JSON-with-schema, and *"stricter format
+#: constraints generally lead to greater performance degradation in reasoning tasks"*
+#: (Tam, Wu, Tsai, Lin, Lee & Chen, EMNLP 2024 Industry Track).
+#:
+#: So for any stage where the *judgement* is hard rather than the formatting:
+#:
+#:   1. **Reason unconstrained.** Free-form, no schema, no field names.
+#:   2. **Serialise separately.** A second call whose only job is to fill the schema from
+#:      the reasoning it was handed.
+#:
+#: That buys the grounding gain of schema forcing without paying for it in reasoning
+#: quality, and it is strictly better than field ordering alone because ordering only helps
+#: when the reasoning happens to fit the schema's shape.
+#:
+#: Where the judgement is easy and the formatting is the whole task — extracting an
+#: accession, normalising a score — single-pass schema forcing is correct and cheaper.
+TWO_STAGE_GUIDANCE = (
+    "Reason unconstrained, then serialise in a separate call. Field ordering helps only "
+    "when the reasoning fits the schema's shape; splitting the calls always helps."
+)
 
 #: Field-name fragments that suggest a field carries reasoning.
 _DERIVATION_HINTS = re.compile(
