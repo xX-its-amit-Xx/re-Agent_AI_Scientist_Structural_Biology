@@ -110,16 +110,85 @@ through proto-tools.
 ## Layout
 
 ```
-.claude/skills/  structure-ensemble · confidence-selection · template-and-finetune
-manifest/     ligands.csv (184) · receptors.csv (64) · holdout.csv (92)   [instance]
-stages/       01_retrieve · 02_cofold · 04_submit   (mechanical helpers only)
-eval/         score.py (OST metrics) · skill_lint.py · benchflow.yaml · structure_validation.py
-modal/        alphafold3_service.py (our AF3 app) · client.py (unified cofold dispatch)
+.claude/skills/  15 skills — 3 Stage-3-contract + 12 domain-general method skills
+manifest/     ligands.csv (184) · receptors.csv (64) · holdout.csv (92)
+              template_set.csv (6 conformational clusters)               [instance]
+stages/       NO ground-truth access, ever. 01_retrieve · 02_cofold · 04_submit
+              candidates.py (pool loader) · selection.py (z-score selector)
+              pose_to_pdb.py (submission format) · descriptors.py (physics)
+              templates.py (pocket-conformation clustering)
+eval/         HOLDS the only ground-truth read. score.py · score_pool.py (whole
+              pool) · pool.py (oracle gap) · sweep.py (signal + rescue sweep)
+              skill_lint.py · benchflow.yaml · structure_validation.py
+modal/        alphafold3_service.py (our AF3 app) · client.py (cofold dispatch)
+stage3_mcp/   server.py — 7 tools, stdio; registered in .mcp.json
 paperclip/    org.yaml · permissions.yaml       — Phase 5, do not wire early
 benchling/    schema.json                        — run provenance
 data/         challenge/ (HuggingFace) · rerefined/ (64 PXR structures)   [gitignored]
 runs/         per-run outputs                                            [gitignored]
 ```
+
+The `stages/` vs `eval/` split **is** the leak boundary: `eval/` may open ground
+truth and `stages/` may not, so the shared pool loader lives in `stages/` and
+`eval/` imports from it, never the reverse. Inverting that import direction
+silently reopens the leak.
+
+Full chain, in order:
+
+```bash
+.venv/bin/python stages/01_retrieve.py
+.venv/bin/python stages/02_cofold.py --run-id <id> --split dev --models <m...> --seeds 1
+.venv/bin/python eval/score_pool.py  --run-id <id>     # every candidate, dev only
+.venv/bin/python eval/pool.py        --run-id <id>     # oracle gap, correlation
+.venv/bin/python stages/descriptors.py --run-id <id>   # physics challengers
+.venv/bin/python eval/sweep.py       --run-id <id>     # signal choice + rescue N
+.venv/bin/python stages/selection.py --run-id <id> --signal <chosen>
+.venv/bin/python stages/04_submit.py --pose-dir runs/<id>/selected
+```
+
+## Four backend facts, each found by a job failing
+
+**MSA reuse is the largest lever on wall time.** Every target folds the *same*
+293-residue receptor against a different ligand, so per-job MSA generation
+re-derives one identical alignment hundreds of times. Building it once takes
+~2 s (2105 homologs) and supplying it via the `msas` input — which all five
+models accept — took a job from **4.8 min to 11.6 s**, a ~25x speedup. Build it
+with `stages/build_msa.py`; the cache self-validates against stage 02's sequence
+constant so a stale one fails instead of misinforming every prediction.
+
+**Ligands are tokenised per heavy atom, and that decides the PAE layout.** A
+293-residue receptor with a 9-atom ligand gives a 302x302 PAE matrix. The
+protein-ligand interface is the whole off-diagonal block, not the last row and
+column — reading only the last index scores one ligand atom and looks like noise
+rather than like a bug. Fixing it moved `min_interface_pae` from **AUC 0.258 to
+0.839**, from worthless to the third-best signal in the pool.
+
+**RF3 rejects `include_pae_matrix` rather than ignoring it.** It emits chain-pair
+aggregates and an `avg_pae` scalar, never a per-token matrix, so requesting one
+fails the job at config validation. `modal/client.py` gates the flag with
+`NO_PAE_MATRIX`. The consequence for Stage 3: per-token PAE signals simply do not
+exist for RF3, so any signal table must treat its coverage as partial.
+
+**The negative control must be emitted by every generator.** `complex_plddt` is
+boltz2-only here, so using it as the control validated one model's slice while
+the table ranked it against 29-candidate signals — different populations, one
+ordering. The control is now a seeded random value per candidate, which cannot
+carry information and exists for every row. It reads **AUC 0.433**, near chance,
+which is the first time the harness has actually been validated.
+
+## Two name collisions that cost real debugging time
+
+Both are the same bug: a local name shadowing an installed one, failing far from
+its cause.
+
+- **`modal/` shadows the Modal SDK.** `from modal.client import cofold` resolves
+  to the *SDK's* `client.py`, so our dispatcher was never importable under the
+  name every doc gives for it. `stages/02_cofold.py` loads it by file path with
+  `importlib`. Renaming the directory would fix this properly.
+- **`stages/select.py` shadowed stdlib `select`.** With `stages/` on `sys.path`,
+  `selectors` imported our module and pandas failed at import with
+  `module 'select' has no attribute 'select'`. It is now `selection.py`. Do not
+  add `stages/{json,types,select,io,copy}.py`.
 
 To patch AF3's build without touching proto-tools, drop files in
 `modal/standalone_overrides/alphafold3/` — the image builder overlays them onto

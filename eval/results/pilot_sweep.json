@@ -1,0 +1,279 @@
+{
+  "run_id": "pilot",
+  "negative_control": {
+    "signal": "random_control",
+    "auc": 0.43333333333333335
+  },
+  "discrimination": [
+    {
+      "signal": "confidence_score",
+      "auc": 0.9444444444444444,
+      "n": 29,
+      "models": 3,
+      "full_pool": true,
+      "control": false
+    },
+    {
+      "signal": "iptm",
+      "auc": 0.9222222222222223,
+      "n": 29,
+      "models": 3,
+      "full_pool": true,
+      "control": false
+    },
+    {
+      "signal": "min_interface_pae",
+      "auc": 0.8388888888888889,
+      "n": 29,
+      "models": 3,
+      "full_pool": true,
+      "control": false
+    },
+    {
+      "signal": "mmff_strain",
+      "auc": 0.6277777777777778,
+      "n": 29,
+      "models": 3,
+      "full_pool": true,
+      "control": false
+    },
+    {
+      "signal": "clashes",
+      "auc": 0.5,
+      "n": 29,
+      "models": 3,
+      "full_pool": true,
+      "control": false
+    },
+    {
+      "signal": "avg_pae",
+      "auc": 0.48333333333333334,
+      "n": 29,
+      "models": 3,
+      "full_pool": true,
+      "control": false
+    },
+    {
+      "signal": "ptm",
+      "auc": 0.4722222222222222,
+      "n": 29,
+      "models": 3,
+      "full_pool": true,
+      "control": false
+    },
+    {
+      "signal": "contacts_4a",
+      "auc": 0.4527777777777778,
+      "n": 29,
+      "models": 3,
+      "full_pool": true,
+      "control": false
+    },
+    {
+      "signal": "min_contact_dist",
+      "auc": 0.45,
+      "n": 29,
+      "models": 3,
+      "full_pool": true,
+      "control": false
+    },
+    {
+      "signal": "random_control",
+      "auc": 0.43333333333333335,
+      "n": 29,
+      "models": 3,
+      "full_pool": true,
+      "control": true
+    },
+    {
+      "signal": "radius_of_gyration",
+      "auc": 0.2111111111111111,
+      "n": 29,
+      "models": 3,
+      "full_pool": true,
+      "control": false
+    },
+    {
+      "signal": "complex_pde",
+      "auc": 0.85,
+      "n": 9,
+      "models": 1,
+      "full_pool": false,
+      "control": false
+    },
+    {
+      "signal": "complex_ipde",
+      "auc": 0.8,
+      "n": 9,
+      "models": 1,
+      "full_pool": false,
+      "control": false
+    },
+    {
+      "signal": "ligand_iptm",
+      "auc": 0.75,
+      "n": 9,
+      "models": 1,
+      "full_pool": false,
+      "control": false
+    },
+    {
+      "signal": "complex_plddt",
+      "auc": 0.7,
+      "n": 9,
+      "models": 1,
+      "full_pool": false,
+      "control": false
+    },
+    {
+      "signal": "complex_iplddt",
+      "auc": 0.7,
+      "n": 9,
+      "models": 1,
+      "full_pool": false,
+      "control": false
+    },
+    {
+      "signal": "protein_iptm",
+      "auc": 0.5,
+      "n": 9,
+      "models": 1,
+      "full_pool": false,
+      "control": false
+    }
+  ],
+  "selection": [
+    {
+      "signal": "iptm",
+      "mean_LDDT-PLI": 0.6273863345384598,
+      "n_items": 10,
+      "delta": 0.018454406815767283,
+      "ci_lo": 0.0,
+      "ci_hi": 0.04877921715378755,
+      "wins": 2.0,
+      "losses": 0.0
+    },
+    {
+      "signal": "confidence_score",
+      "mean_LDDT-PLI": 0.6094962045550346,
+      "n_items": 10,
+      "delta": NaN,
+      "ci_lo": NaN,
+      "ci_hi": NaN,
+      "wins": NaN,
+      "losses": NaN
+    },
+    {
+      "signal": "min_interface_pae",
+      "mean_LDDT-PLI": 0.5912003055214882,
+      "n_items": 10,
+      "delta": -0.017573881974816335,
+      "ci_lo": -0.05702329874038699,
+      "ci_hi": 0.004953086376190163,
+      "wins": 1.0,
+      "losses": 2.0
+    },
+    {
+      "signal": "avg_pae",
+      "mean_LDDT-PLI": 0.5367677554488182,
+      "n_items": 10,
+      "delta": -0.07417153520584108,
+      "ci_lo": -0.22036671042442327,
+      "ci_hi": 0.004953086376190163,
+      "wins": 1.0,
+      "losses": 3.0
+    },
+    {
+      "signal": "ptm",
+      "mean_LDDT-PLI": 0.5367677554488182,
+      "n_items": 10,
+      "delta": -0.07128770065903665,
+      "ci_lo": -0.21946263574063782,
+      "ci_hi": 0.004809186086058586,
+      "wins": 1.0,
+      "losses": 3.0
+    },
+    {
+      "signal": "random_control",
+      "mean_LDDT-PLI": 0.4078256994485855,
+      "n_items": 10,
+      "delta": -0.19937873271554707,
+      "ci_lo": -0.39976071178913114,
+      "ci_hi": -0.04377766355872154,
+      "wins": 0.0,
+      "losses": 8.0
+    }
+  ],
+  "rescue_sweeps": {
+    "boltz2-prediction": [
+      {
+        "n": 0,
+        "score": 0.6273863345384598,
+        "n_items": 10
+      },
+      {
+        "n": 1,
+        "score": 0.6612645222081078,
+        "n_items": 9
+      },
+      {
+        "n": 2,
+        "score": 0.7209978774189949,
+        "n_items": 8
+      },
+      {
+        "n": 3,
+        "score": 0.7209978774189949,
+        "n_items": 8
+      }
+    ],
+    "chai1-prediction": [
+      {
+        "n": 0,
+        "score": 0.6273863345384598,
+        "n_items": 10
+      },
+      {
+        "n": 1,
+        "score": 0.6612645222081078,
+        "n_items": 9
+      },
+      {
+        "n": 2,
+        "score": 0.7209978774189949,
+        "n_items": 8
+      },
+      {
+        "n": 3,
+        "score": 0.7345672675541469,
+        "n_items": 7
+      }
+    ],
+    "protenix-prediction": [
+      {
+        "n": 0,
+        "score": 0.6273863345384598,
+        "n_items": 10
+      },
+      {
+        "n": 1,
+        "score": 0.6612645222081078,
+        "n_items": 9
+      },
+      {
+        "n": 2,
+        "score": 0.7209978774189949,
+        "n_items": 8
+      },
+      {
+        "n": 3,
+        "score": 0.7345672675541469,
+        "n_items": 7
+      }
+    ]
+  },
+  "recommended": {
+    "signal": "iptm",
+    "baseline": "confidence_score"
+  }
+}

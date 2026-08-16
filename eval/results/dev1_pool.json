@@ -1,0 +1,93 @@
+{
+  "run_id": "dev1",
+  "metric": "LDDT-PLI",
+  "higher_better": true,
+  "oracle": 0.6245009815725295,
+  "realised": 0.4953452295259289,
+  "gap": 0.12915575204660062,
+  "n_items": 92,
+  "best_at_k": [
+    {
+      "k": 1,
+      "mean": 0.4508022424868861,
+      "std": 0.0190455555908975
+    },
+    {
+      "k": 2,
+      "mean": 0.5524928491106393,
+      "std": 0.011450324837937394
+    },
+    {
+      "k": 3,
+      "mean": 0.5961274928059698,
+      "std": 0.007571310164714077
+    },
+    {
+      "k": 5,
+      "mean": 0.6245009815725294,
+      "std": 1.1102230246251565e-16
+    },
+    {
+      "k": 10,
+      "mean": 0.6245009815725294,
+      "std": 1.1102230246251565e-16
+    }
+  ],
+  "correlation": {
+    "boltz2-prediction": {
+      "boltz2-prediction": 1.0,
+      "chai1-prediction": 0.0955,
+      "protenix-prediction": 0.7171,
+      "rf3-prediction": 0.74
+    },
+    "chai1-prediction": {
+      "boltz2-prediction": 0.0955,
+      "chai1-prediction": 1.0,
+      "protenix-prediction": 0.1048,
+      "rf3-prediction": 0.0975
+    },
+    "protenix-prediction": {
+      "boltz2-prediction": 0.7171,
+      "chai1-prediction": 0.1048,
+      "protenix-prediction": 1.0,
+      "rf3-prediction": 0.7076
+    },
+    "rf3-prediction": {
+      "boltz2-prediction": 0.74,
+      "chai1-prediction": 0.0975,
+      "protenix-prediction": 0.7076,
+      "rf3-prediction": 1.0
+    }
+  },
+  "coverage": [
+    {
+      "model": "boltz2-prediction",
+      "n_items": 90,
+      "solved": 20,
+      "unique_wins": 3,
+      "best_on": 23
+    },
+    {
+      "model": "chai1-prediction",
+      "n_items": 92,
+      "solved": 5,
+      "unique_wins": 3,
+      "best_on": 17
+    },
+    {
+      "model": "protenix-prediction",
+      "n_items": 92,
+      "solved": 28,
+      "unique_wins": 9,
+      "best_on": 29
+    },
+    {
+      "model": "rf3-prediction",
+      "n_items": 90,
+      "solved": 26,
+      "unique_wins": 6,
+      "best_on": 23
+    }
+  ],
+  "negative_control": "random_control"
+}

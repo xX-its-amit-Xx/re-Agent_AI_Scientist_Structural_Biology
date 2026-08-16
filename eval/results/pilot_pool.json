@@ -1,0 +1,77 @@
+{
+  "run_id": "pilot",
+  "metric": "LDDT-PLI",
+  "higher_better": true,
+  "oracle": 0.6359391808509827,
+  "realised": 0.6038419887423515,
+  "gap": 0.032097192108631156,
+  "n_items": 10,
+  "best_at_k": [
+    {
+      "k": 1,
+      "mean": 0.47740203696986044,
+      "std": 0.0652033867784902
+    },
+    {
+      "k": 2,
+      "mean": 0.5975160203228395,
+      "std": 0.028157985903320557
+    },
+    {
+      "k": 3,
+      "mean": 0.6359391808509827,
+      "std": 0.0
+    },
+    {
+      "k": 5,
+      "mean": 0.6359391808509827,
+      "std": 0.0
+    },
+    {
+      "k": 10,
+      "mean": 0.6359391808509827,
+      "std": 0.0
+    }
+  ],
+  "correlation": {
+    "boltz2-prediction": {
+      "boltz2-prediction": 1.0,
+      "chai1-prediction": 0.2778,
+      "protenix-prediction": 0.8293
+    },
+    "chai1-prediction": {
+      "boltz2-prediction": 0.2778,
+      "chai1-prediction": 1.0,
+      "protenix-prediction": -0.0081
+    },
+    "protenix-prediction": {
+      "boltz2-prediction": 0.8293,
+      "chai1-prediction": -0.0081,
+      "protenix-prediction": 1.0
+    }
+  },
+  "coverage": [
+    {
+      "model": "boltz2-prediction",
+      "n_items": 9,
+      "solved": 4,
+      "unique_wins": 0,
+      "best_on": 2
+    },
+    {
+      "model": "chai1-prediction",
+      "n_items": 10,
+      "solved": 0,
+      "unique_wins": 0,
+      "best_on": 3
+    },
+    {
+      "model": "protenix-prediction",
+      "n_items": 10,
+      "solved": 5,
+      "unique_wins": 1,
+      "best_on": 5
+    }
+  ],
+  "negative_control": "complex_plddt"
+}
