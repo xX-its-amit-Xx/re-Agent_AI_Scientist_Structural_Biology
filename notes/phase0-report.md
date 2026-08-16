@@ -2,12 +2,17 @@
 
 Status against the exit gate, then the four findings that change the plan.
 
-## The payment gate is tier-specific — routed around, not waiting on billing
+## The payment gate is tier-specific — routed around, then resolved
+
+**Resolved.** Billing was later sorted and all tiers now schedule; the workaround
+below is reverted and the pipeline runs on 80 GB cards. Kept because the
+diagnosis is the reusable part, and because this failure mode recurs whenever a
+card lapses.
 
 Every GPU deploy first failed with `Please add a payment method to use H100 GPU
-functions`, and adding one was impossible (Stripe declined every method). That
-looked terminal. It was not: the message names a *tier*, so probing one trivial
-function per tier found a clean boundary.
+functions`, and adding one was impossible at the time (Stripe declined every
+method). That looked terminal. It was not: the message names a *tier*, so probing
+one trivial function per tier found a clean boundary.
 
 | Tier | Result |
 |---|---|
@@ -54,11 +59,13 @@ Two things that made this harder to diagnose than it should have been:
 
 Modal is serverless, so "how many GPUs" is the wrong shape of question. What's fixed:
 
-- **Per job:** 1 GPU, `["A10:1", "L4:1"]` — both 23 GB. Not proto-tools' default
-  (H100/H200/A100-80GB); see the tier section above for why, and
-  `modal/patch_gpu_profile.py` for how. 23 GB is comfortable for ~320 tokens but
-  leaves no headroom, so treat OOM as a live risk when Phase 2 tunes batch/sample
-  counts rather than assuming it away.
+- **Per job:** 1 GPU, `["H100:1", "H200:1", "A100-80GB:1"]` — 80 GB. Measured
+  H100 81,559 MiB, A100-80GB 81,920 MiB. Ample for this target's ~320 tokens,
+  with headroom for larger complexes and higher sample counts.
+
+  *This was 23 GB for most of Phase 0* — see the tier section above. Billing was
+  resolved afterwards and the workaround reverted. Kept in this report because
+  the diagnosis, not the number, is the reusable part.
 - **Dedicated**, not shared: each container holds its GPU for the call.
 - **Concurrency** is bounded by the Modal account's limit and by spend, not by a
   node count. Effective ceiling for the hackathon is the **$100 partner credit**.

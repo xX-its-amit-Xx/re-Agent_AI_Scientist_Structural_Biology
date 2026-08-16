@@ -140,12 +140,16 @@ is hardest and where model confidence is least informative.
   `uv tool` install, or `modal deploy` cannot import it.
 - Modal — workspace `sumershinde22`, environment `proto-env`, volume
   `proto-cache` (holds `alphafold3/af3.bin.zst`, mounted at `/weights`).
-- **GPU tier is capped at 23 GB.** This workspace has no payment method, and
-  Modal gates GPUs *by tier*: T4/L4/A10 schedule fine; L40S, A100-40GB,
-  A100-80GB and H100 are all refused. Everything runs on `["A10:1", "L4:1"]`.
-  proto-tools' hardcoded `GPU_DEFAULT` is the refused tier, so after any
-  `proto-tools` upgrade re-run `.venv/bin/python modal/patch_gpu_profile.py` or
-  every cofold deploy breaks again.
+- **GPUs: 80 GB tiers**, `["H100:1", "H200:1", "A100-80GB:1"]`. Measured H100
+  81,559 MiB / A100-80GB 81,920 MiB. OOM is not a live constraint at this
+  target's ~320 tokens.
+- If a GPU deploy ever fails with *"Please add a payment method to use \<TIER\>
+  GPU functions"*, that is **billing, not quota**, and it is tier-specific — the
+  lower tiers keep working, which makes it look like something else. Probe one
+  trivial function per tier to find the boundary, and use
+  `modal/patch_gpu_profile.py` to fall back to A10/L4 rather than losing the
+  pipeline. It is currently reverted. Note `proto-tools deploy` **exits 0 while
+  printing `❌`**, so never trust its exit status.
 - OpenStructure — not pip-installable; `eval/score.py` shells to the official
   container `registry.scicore.unibas.ch/schwede/openstructure:latest`
 

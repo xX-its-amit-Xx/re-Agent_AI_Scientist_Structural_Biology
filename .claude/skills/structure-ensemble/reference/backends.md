@@ -40,38 +40,51 @@ AF3 weights are DeepMind-licensed, **non-commercial research only**, and must no
 be redistributed. They live on the `proto-cache` volume at
 `alphafold3/af3.bin.zst`, never in git.
 
-## The capacity ceiling: 23 GB
+## Capacity: 80 GB, one GPU per job
 
-This account has no payment method, and Modal gates GPUs **by tier**, not
-wholesale. Measured directly, one trivial function per tier:
+Everything runs on `["H100:1", "H200:1", "A100-80GB:1"]` — proto-tools'
+`GPU_DEFAULT`, which `modal/alphafold3_service.py` also names explicitly rather
+than importing, so our app does not depend on the state of an installed package.
 
-| Tier | Result |
+Measured on this account, one trivial function per tier:
+
+| Tier | Memory |
 |---|---|
-| T4 | allowed — Tesla T4, 15,360 MiB |
-| L4 | allowed — NVIDIA L4, 23,034 MiB |
-| A10 | allowed — NVIDIA A10, 23,028 MiB |
-| L40S | refused — payment method required |
-| A100-40GB | refused |
-| A100-80GB | refused |
-| H100 | refused |
+| H100 | 81,559 MiB |
+| A100-80GB | 81,920 MiB |
+| L40S | 46,068 MiB |
+| A10 / L4 | 23,034 MiB |
+| T4 | 15,360 MiB |
 
-So the ceiling is **23 GB, one GPU per job**. Everything runs on
-`["A10:1", "L4:1"]`. T4 is excluded deliberately: at 15 GB it is the tier most
-likely to OOM partway through a co-fold, and a job that dies at minute 20 costs
-more than one that waited for a bigger card.
+At 80 GB, OOM is not a live constraint for this target — a 291-residue receptor
+plus a ≤32-heavy-atom fragment is roughly 320 tokens. It can become one for much
+larger complexes or aggressive sample counts, so measure rather than assume when
+either changes.
 
-**This ceiling is a property of the current target, not a general result.** A
-291-residue receptor plus a ≤32-heavy-atom ligand is roughly 320 tokens, which is
-comfortable at 23 GB. A large complex would not be. When sizing diffusion samples
-or batch size, treat OOM as a live constraint rather than assuming headroom.
+### If GPU deploys suddenly fail, read this before debugging anything else
 
-proto-tools hardcodes `GPU_DEFAULT = ["H100:1", "H200:1", "A100-80GB:1"]` — every
-one of them refused — and offers no environment-variable override.
-`modal/patch_gpu_profile.py` repoints that constant, idempotently and reversibly.
-**Re-run it after any `proto-tools` upgrade**; it edits an installed package and
-will not survive one. `modal/alphafold3_service.py` names its tiers explicitly
-rather than importing the patched constant, since it is ours and should not
-depend on a patch to someone else's package.
+Modal gates GPUs **by tier**, not wholesale, and the error names the tier:
+
+```
+Please add a payment method to use H100 GPU functions.
+```
+
+That is a **billing** message, not a capacity or quota one, and it blocked every
+co-folder here until the account's payment method was sorted. Two things made it
+expensive to diagnose:
+
+- The lower tiers kept working, so "GPUs are broken" was false — T4/L4/A10
+  scheduled fine throughout. Probing one trivial function per tier is what
+  located the boundary, and is the fastest way to re-locate it if this recurs.
+- `proto-tools deploy` **exits 0 while printing `❌`** for every app, so nothing
+  in the shell's exit status said anything was wrong.
+
+`modal/patch_gpu_profile.py` exists for this case: proto-tools hardcodes
+`GPU_DEFAULT` with no environment-variable override, so the script repoints it
+idempotently and reversibly (`--check`, `--revert`). It is currently **reverted**,
+because the default tiers work again. If billing lapses, re-apply it to fall back
+to A10/L4 rather than losing the pipeline entirely — and re-run it after any
+`proto-tools` upgrade, since it edits an installed package.
 
 ## Traps that cost real time here
 

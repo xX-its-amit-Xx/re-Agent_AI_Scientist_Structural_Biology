@@ -45,18 +45,20 @@ from proto_tools.modal.utils import RUNTIME_ENV, ensure_gpu_ready, env_for, run_
 
 APP_NAME = "pxr-af3"
 
-# Stated explicitly rather than imported from proto_tools.modal.gpu_profiles,
-# because that module's GPU_DEFAULT is H100/H200/A100-80GB -- every one of which
-# this workspace is refused ("Please add a payment method to use <TIER> GPU
-# functions"). modal/patch_gpu_profile.py repoints that constant for the four
-# proto-tools cofold apps, but this file is ours, so it should not silently
-# depend on a patch to an installed package that any upgrade will undo.
+# Stated explicitly rather than imported from proto_tools.modal.gpu_profiles, so
+# this file does not silently depend on the state of an installed package that
+# any upgrade can change. It happens to match GPU_DEFAULT today.
 #
-# A10 and L4 are both 23 GB. T4 (15 GB) is excluded deliberately: AF3 runs
-# 5 diffusion samples per seed and is the likeliest of the five to OOM there.
-# 23 GB is comfortable for a PXR LBD (291 residues) plus a <=32-heavy-atom
-# fragment -- roughly 320 tokens -- though it would not be for a large complex.
-GPU_TIERS = ["A10:1", "L4:1"]
+# 80 GB tiers. An earlier revision ran on A10/L4 (23 GB) because this workspace
+# had no payment method and Modal gates GPUs by tier -- see
+# structure-ensemble/reference/backends.md for that episode. Billing is now
+# active and H100/A100-80GB schedule normally.
+#
+# AF3 is the most memory-hungry of the five: 5 diffusion samples per seed, and
+# memory scales with token count. 23 GB was workable for a PXR LBD plus a small
+# fragment (~320 tokens) but had no headroom; 80 GB removes OOM as a live
+# constraint on sample count and admits much larger complexes.
+GPU_TIERS = ["H100:1", "H200:1", "A100-80GB:1"]
 
 # Where the weights live on the shared proto-cache volume. The tool resolves
 # PROTO_ALPHAFOLD3_WEIGHTS_DIR first, ahead of PROTO_MODEL_CACHE and PROTO_HOME.
