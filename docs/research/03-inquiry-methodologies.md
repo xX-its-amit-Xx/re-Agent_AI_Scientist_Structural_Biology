@@ -60,11 +60,21 @@ registered reports below); the philosophy does not need it.
 ## Structured criticism and adversarial process
 
 **Authentic minority dissent versus assigned devil's advocate — Tested, and decisive.**
-Nemeth, Brown & Rogers (2001): authentic minority dissent was *"superior to all three
-forms of 'devil's advocate'"*, and assigned advocacy produced **cognitive bolstering of the
-initial viewpoint**. *This is the single most important finding in this document for
-architecture purposes*, and it is confirmed independently in the organisational literature
+Nemeth, Brown & Rogers (2001), *EJSP* 31(6), 707–720: authentic minority dissent was
+*"superior to all three forms of 'devil's advocate'"*, measured on quantity and quality of
+solutions. *This is the single most important finding in this document for architecture
+purposes*, and it is confirmed independently in the organisational literature
 ([`01`](01-research-organisations.md)) and in the LLM literature below.
+
+> **Attribution correction.** An earlier version of this section credited the
+> **cognitive-bolstering** result to this paper. It belongs to a *prior* study that Nemeth
+> et al. summarise in their own introduction — *"In a prior study comparing these two
+> processes, devil's advocate appeared to foster thinking that was primarily aimed at
+> cognitive bolstering of the initial viewpoint"*. We were citing a literature review as a
+> result. The 2001 paper's own contribution is the superiority finding quoted above, which
+> is what the design should rest on. Nemeth et al.'s more defensible framing for our
+> purposes is *"the difficulty in replicating such authenticity through role-playing
+> techniques"* — a claim about role-play, which is exactly the agent-relevant one.
 
 **Adversarial collaboration (Kahneman) — Mixed.** *Procedure:* disagreeing parties agree in
 advance on an experiment and on what each outcome would mean, then run it jointly.
@@ -100,8 +110,15 @@ model consensus.
 **Nominal group technique and the brainstorming literature — Tested.** Independent idea
 generation before discussion **reliably beats group brainstorming** on both quantity and
 quality; the loss in interacting groups is well established (production blocking,
-evaluation apprehension, social loafing). Directly applicable: generate in isolation,
-combine afterwards.
+evaluation apprehension, social loafing).
+
+> **Mechanism correction.** This was previously marked "directly applicable", and the rule
+> does transfer — but **none of those three mechanisms applies to an agent.** Production
+> blocking is an artefact of only one person being able to speak at a time, and agents run
+> in parallel. Evaluation apprehension and social loafing are motivational, and an agent has
+> no motivation to lose. The rule survives on a *fourth* mechanism, measured on agents and
+> documented in [`04`](04-agent-architectures.md): shared context correlates errors. Generate
+> in isolation and combine afterwards — for that reason, not these three.
 
 **Estimate-Talk-Estimate and the wisdom-of-crowds conditions — Tested.** Aggregation helps
 when errors are independent and unbiased; it fails under correlated error and information
@@ -181,14 +198,21 @@ Every human failure mode reappears, amplified, and the measurements are consiste
 
 - **Prompted self-critique degrades accuracy** — GPT-4 on GSM8K falls from 95.5 % to
   89.0 % when asked to review its own answer without external signal.
-- **Multi-agent debate loses to plain self-consistency at matched budget** — 83.0 % versus
-  88.2 %.
-- **Assigned dissent produces cognitive bolstering**, exactly as in the human literature.
+- **Multi-agent debate loses to plain self-consistency at matched budget**, and actively
+  destroys correct answers rather than merely failing to add them. See
+  [`00-provenance-audit.md`](00-provenance-audit.md) C3 — the figures previously given here
+  (83.0% versus 88.2%) were withdrawn as unsourced and replaced with MASLab and Wynn et al.
+- **Assigned dissent does not decorrelate**: see the persona result two bullets down. An
+  earlier version of this line read *"produces cognitive bolstering, exactly as in the human
+  literature"*, which asserted a mechanism identity that does not exist — bolstering is a
+  mind becoming more committed to a prior view, and an agent has no attitude to bolster. The
+  measured agent finding is about error distributions, not about commitment. **The design
+  rule is unchanged and correct; only its justification was wrong.**
 - **An LLM judge picked the *worse* chemistry system on fluency grounds** while four expert
   chemists picked the better one.
 - **Personas do not decorrelate**: 162 roles across four model families and 2,410
   questions produced no improvement. **Different model families cut pairwise error
-  correlation from 0.68 to 0.40.**
+  correlation — magnitude withdrawn, see [`00-provenance-audit.md`](00-provenance-audit.md) C2.**
 
 The conclusion is uncomfortable and clear: the interventions that read as "adding rigour"
 to an agent system — a critic prompt, a debate round, a persona panel — are the ones with

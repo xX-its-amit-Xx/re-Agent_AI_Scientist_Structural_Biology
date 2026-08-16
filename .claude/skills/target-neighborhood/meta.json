@@ -7,7 +7,10 @@
     "problem.spec",
     "kg.paper_nodes",
     "kg.claim_edges",
-    "motif.features"
+    "motif.features",
+    "stage1.axes",
+    "stage1.axis_sweeps",
+    "search.ledger"
   ],
   "produces": [
     "stage1.report",

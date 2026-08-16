@@ -76,17 +76,27 @@ class ReasoningStep(BaseModel):
         default_factory=list,
         description="Alternatives genuinely considered. Two or more, or say why not.",
     )
-    chose: str = Field(
-        ...,
-        min_length=3,
-        description="The option taken. Must match one of `options` by name when options exist.",
-    )
+    # `because` precedes `chose` deliberately, and this is the one ordering in the whole
+    # schema layer that is load-bearing for accuracy rather than for readability. Under
+    # constrained decoding the field order *is* the generation order, so emitting the
+    # choice first makes the justification a rationalisation of a commitment already made.
+    # Tam et al. (EMNLP 2024) traced exactly this pattern — answer-before-reason in 100% of
+    # JSON-mode responses — to a GSM8K drop from 86.51% to 23.44% for one model. See
+    # `reagent.contracts.ordering`, which pins this pair so a reorder fails CI.
     because: str = Field(
         ...,
         min_length=25,
         description=(
-            "The reasoning, not a restatement of the choice. What made this the right "
-            "call given what was known at the time."
+            "The reasoning, worked through BEFORE naming the choice. What made this the "
+            "right call given what was known at the time — not a restatement of the option."
+        ),
+    )
+    chose: str = Field(
+        ...,
+        min_length=3,
+        description=(
+            "The option taken, following from the reasoning above. Must match one of "
+            "`options` by name when options exist."
         ),
     )
     informed_by: list[Evidence] = Field(

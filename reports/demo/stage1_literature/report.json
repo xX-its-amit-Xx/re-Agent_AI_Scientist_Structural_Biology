@@ -4,7 +4,7 @@
   "run_id": "demo",
   "stage": "stage1_literature",
   "title": "Stage 1 demo — target neighbourhood on a fixture graph",
-  "created_utc": "2026-08-16T00:40:10.718550Z",
+  "created_utc": "2026-08-16T02:16:32.722230Z",
   "produced_by": {
     "model": "claude-fable-5",
     "skill": "target-neighborhood",
@@ -163,19 +163,21 @@
             "summary": "Build the graph, axes, and report with labelled placeholders."
           }
         ],
-        "chose": "machinery first",
         "because": "Three teammates are building stages against this stage's output concurrently, so the interface is on the critical path and the numbers are not. Placeholders that are labelled in the data itself let the interface be exercised end to end without anyone mistaking the contents for results.",
+        "chose": "machinery first",
         "informed_by": [
           {
             "source_type": "computation",
             "locator": "AGENTS.md",
-            "title": "the handoff contract three stages build against"
+            "title": "the handoff contract three stages build against",
+            "neglect": []
           },
           {
             "source_type": "paper",
             "locator": "pmc:PMC9563780",
             "title": "PXR ligand-binding pocket architecture",
-            "year": 2022
+            "year": 2022,
+            "neglect": []
           }
         ],
         "confidence_then": "supported",
@@ -185,7 +187,7 @@
           "F-NEG-01"
         ],
         "produced_artifacts": [],
-        "at_utc": "2026-08-16T00:40:10.706929Z"
+        "at_utc": "2026-08-16T02:16:32.711235Z"
       },
       {
         "id": "R-02",
@@ -208,19 +210,21 @@
             "summary": "Count distinct chemotypes a protein is recorded as binding."
           }
         ],
-        "chose": "measured breadth of binding",
         "because": "Breadth of distinct chemotypes is the behaviour the axis is actually about, is computable from public activity data, and degrades honestly: a protein with little data ranks low and can be seen to be data-poor rather than appearing selective.",
+        "chose": "measured breadth of binding",
         "informed_by": [
           {
             "source_type": "paper",
             "locator": "pmc:PMC8864553",
             "title": "Promiscuity of the PXR ligand-binding domain",
-            "year": 2022
+            "year": 2022,
+            "neglect": []
           },
           {
             "source_type": "computation",
             "locator": ".claude/skills/target-neighborhood/SKILL.md",
-            "title": "axis guidance: operationalise promiscuity as measured breadth, not an adjective"
+            "title": "axis guidance: operationalise promiscuity as measured breadth, not an adjective",
+            "neglect": []
           }
         ],
         "confidence_then": "supported",
@@ -229,7 +233,7 @@
           "F-PROMISC-01"
         ],
         "produced_artifacts": [],
-        "at_utc": "2026-08-16T00:40:10.706929Z"
+        "at_utc": "2026-08-16T02:16:32.711235Z"
       },
       {
         "id": "R-03",
@@ -246,19 +250,21 @@
             "summary": "Admit any protein with comparable measured binding breadth."
           }
         ],
-        "chose": "allow non-family",
         "because": "The axes are meant to be independent lenses. If every axis were restricted to the family, they would return near-identical answers and the point of having several would be lost. Convergent solutions to a shared constraint are exactly the non-obvious transfer sources.",
+        "chose": "allow non-family",
         "informed_by": [
           {
             "source_type": "paper",
             "locator": "pmc:PMC8864553",
             "title": "Promiscuity of the PXR ligand-binding domain",
-            "year": 2022
+            "year": 2022,
+            "neglect": []
           },
           {
             "source_type": "computation",
             "locator": ".claude/skills/ai-scientist/reference/pxr-case-study.md",
-            "title": "the reference pipeline deliberately harvested six non-receptor promiscuous classes"
+            "title": "the reference pipeline deliberately harvested six non-receptor promiscuous classes",
+            "neglect": []
           }
         ],
         "confidence_then": "tentative",
@@ -267,20 +273,21 @@
           "F-PROMISC-01"
         ],
         "produced_artifacts": [],
-        "at_utc": "2026-08-16T00:40:10.707476Z"
+        "at_utc": "2026-08-16T02:16:32.711235Z"
       },
       {
         "id": "R-04",
         "kind": "parameter_choice",
         "question": "How far from the target should the rendered graph view reach?",
         "options": [],
-        "chose": "two hops, with a per-node fan-out cap",
         "because": "One hop shows only direct assertions and hides the shared-neighbour structure that makes the graph worth drawing. Three hops on a hub node produces an unreadable mat. Two hops with a cap keeps the strongest edges and records what was dropped.",
+        "chose": "two hops, with a per-node fan-out cap",
         "informed_by": [
           {
             "source_type": "computation",
             "locator": ".claude/skills/kg-visualize/reference/encoding-rules.md",
-            "title": "truncation must be visible or the figure implies completeness"
+            "title": "truncation must be visible or the figure implies completeness",
+            "neglect": []
           }
         ],
         "confidence_then": "tentative",
@@ -289,7 +296,7 @@
         "produced_artifacts": [
           "docs/figures/demo_kg.html"
         ],
-        "at_utc": "2026-08-16T00:40:10.707476Z"
+        "at_utc": "2026-08-16T02:16:32.711235Z"
       },
       {
         "id": "R-05",
@@ -306,13 +313,14 @@
             "summary": "A distinct predicate per axis, each with its own score scale."
           }
         ],
-        "chose": "one relation per axis",
         "because": "Downstream stages ask axis-specific questions, and each axis has its own score scale that must not be compared with another's. Separate predicates make both the query and the scale explicit, and let the renderer normalise edge width within an axis instead of across all of them.",
+        "chose": "one relation per axis",
         "informed_by": [
           {
             "source_type": "computation",
             "locator": "src/reagent/contracts/kg.py",
-            "title": "the controlled predicate vocabulary and its endpoint type table"
+            "title": "the controlled predicate vocabulary and its endpoint type table",
+            "neglect": []
           }
         ],
         "confidence_then": "supported",
@@ -320,7 +328,7 @@
           "F-DESIGN-01"
         ],
         "produced_artifacts": [],
-        "at_utc": "2026-08-16T00:40:10.707476Z"
+        "at_utc": "2026-08-16T02:16:32.711235Z"
       }
     ],
     "open_decisions": [
@@ -338,12 +346,14 @@
         {
           "source_type": "computation",
           "locator": "examples/seed_demo_graph.py",
-          "title": "the fixture that generated this graph"
+          "title": "the fixture that generated this graph",
+          "neglect": []
         },
         {
           "source_type": "computation",
           "locator": "kg/demo/edges.jsonl",
-          "title": "every scored edge carries illustrative=True"
+          "title": "every scored edge carries illustrative=True",
+          "neglect": []
         }
       ],
       "data": {
@@ -369,6 +379,45 @@
         ],
         "glossary": [],
         "caveat_for_reader": "The relationships shown are real and drawn from the literature; only the numerical strengths attached to them are placeholders."
+      },
+      "follow_ups": {
+        "lede": "Every number in this run is a stand-in. The shapes of the relationships are real and the values are invented, so nothing here should be used to make a decision about a real molecule.",
+        "branches": [
+          {
+            "question": "Then what is this run for?",
+            "answer": "To prove the machinery works end to end: that the search runs, the results land in the right structure, the checks catch mistakes, and the report comes out readable. Those are exactly the things that are expensive to fix after real results exist.",
+            "kind": "why",
+            "children": [
+              {
+                "question": "Why not just run the real tools first?",
+                "answer": "Because some of them cost money or need a cluster, and a plumbing mistake found afterwards means paying twice. A run with invented values costs nothing and finds the same structural mistakes.",
+                "kind": "why",
+                "children": [],
+                "defines": [],
+                "evidence": []
+              }
+            ],
+            "defines": [],
+            "evidence": []
+          },
+          {
+            "question": "What happens if someone uses one of these numbers anyway?",
+            "answer": "The checks refuse it. A value flagged as a stand-in cannot be quoted with any real confidence, and a later stage that tries to build on one fails its own validation rather than quietly producing a confident wrong answer.",
+            "kind": "so_what",
+            "children": [
+              {
+                "question": "Could a stand-in slip through unflagged?",
+                "answer": "Yes, if whoever wrote it forgot the flag. That is why the flag is counted rather than trusted: the run reports how many scored links carry it, and a number that disagrees with the total is the signal to go looking.",
+                "kind": "what_if_wrong",
+                "children": [],
+                "defines": [],
+                "evidence": []
+              }
+            ],
+            "defines": [],
+            "evidence": []
+          }
+        ]
       }
     },
     {
@@ -381,13 +430,15 @@
           "source_type": "paper",
           "locator": "pmc:PMC9563780",
           "title": "PXR ligand-binding pocket architecture",
-          "year": 2022
+          "year": 2022,
+          "neglect": []
         },
         {
           "source_type": "paper",
           "locator": "pmc:PMC8864553",
           "title": "Promiscuity of the PXR ligand-binding domain",
-          "year": 2022
+          "year": 2022,
+          "neglect": []
         }
       ],
       "data": {
@@ -409,7 +460,8 @@
           "source_type": "paper",
           "locator": "pmc:PMC8864553",
           "title": "Promiscuity of the PXR ligand-binding domain",
-          "year": 2022
+          "year": 2022,
+          "neglect": []
         }
       ],
       "data": {
@@ -457,6 +509,82 @@
         "glossary": [],
         "analogy": "Cargo ships and moving vans are unrelated machines, but both must carry objects of unknown shape, so both end up as large adjustable boxes. If you want to learn how to hold awkward cargo, study either one.",
         "caveat_for_reader": "Sharing the problem is not sharing the solution. These proteins are useful comparisons for pocket adaptability, not sources of transferable binding predictions."
+      },
+      "follow_ups": {
+        "lede": "The proteins that bind the widest range of molecules are mostly not close relatives of the target. They are worth borrowing from anyway, because what they share with the target is a difficulty rather than a shape.",
+        "branches": [
+          {
+            "question": "What does it mean for a protein to bind a wide range of molecules?",
+            "answer": "Most proteins are fussy: one specific molecule fits and almost nothing else does. A few are the opposite, and will hold hundreds of unrelated molecules. That breadth is usually their job, not a defect.",
+            "kind": "what_is",
+            "children": [
+              {
+                "question": "Why would a protein be built to be unfussy?",
+                "answer": "Because its job is to notice chemicals the body has never encountered. Anything shaped for one specific molecule would miss all the others, so being unfussy is the whole point.",
+                "kind": "why",
+                "children": [],
+                "defines": [],
+                "evidence": []
+              },
+              {
+                "question": "How would we know it is genuinely unfussy rather than just well studied?",
+                "answer": "By comparing how many different molecules it holds against how many have been tried on it. A protein tested against ten thousand compounds will look broader than one tested against fifty, and that difference is about the testing.",
+                "kind": "how_measured",
+                "children": [],
+                "defines": [],
+                "evidence": []
+              }
+            ],
+            "defines": [
+              "promiscuity",
+              "promiscuous"
+            ],
+            "evidence": []
+          },
+          {
+            "question": "Why does sharing a difficulty help more than sharing a shape?",
+            "answer": "Because the difficulty is what makes the prediction hard. Two unfussy proteins both defeat the same shortcut — using one fixed snapshot of the protein — so whatever was needed to handle one is likely to be needed for the other.",
+            "kind": "why",
+            "children": [
+              {
+                "question": "What is the shortcut, and why does it fail here?",
+                "answer": "The shortcut is to treat the protein as a fixed shape and ask what fits. It fails when the shape changes depending on what is being held, because then there is no single correct shape to test against.",
+                "kind": "why",
+                "children": [
+                  {
+                    "question": "So which shape do people usually pick?",
+                    "answer": "Whichever one was measured most clearly. That choice has nothing to do with which shape is most common, so it quietly decides the answer on the basis of who ran the cleanest experiment.",
+                    "kind": "how_measured",
+                    "children": [],
+                    "defines": [],
+                    "evidence": []
+                  }
+                ],
+                "defines": [],
+                "evidence": []
+              }
+            ],
+            "defines": [],
+            "evidence": []
+          },
+          {
+            "question": "What does this change downstream?",
+            "answer": "It argues for drawing reference structures from unfussy proteins outside the target's family, not only from its close relatives — and for expecting the worst errors on the largest molecules.",
+            "kind": "so_what",
+            "children": [
+              {
+                "question": "What if the reasoning is wrong?",
+                "answer": "Then references from unrelated proteins add noise instead of coverage, and predictions get worse for the small molecules a single close relative would have handled well. The check is whether the borrowed references actually span shapes the close relatives do not.",
+                "kind": "what_if_wrong",
+                "children": [],
+                "defines": [],
+                "evidence": []
+              }
+            ],
+            "defines": [],
+            "evidence": []
+          }
+        ]
       }
     },
     {
@@ -468,7 +596,8 @@
         {
           "source_type": "computation",
           "locator": "kg/demo/edges.jsonl",
-          "title": "edges_by_predicate from KGStore.stats()"
+          "title": "edges_by_predicate from KGStore.stats()",
+          "neglect": []
         }
       ],
       "data": {
@@ -504,6 +633,36 @@
         ],
         "glossary": [],
         "caveat_for_reader": "An empty axis means the comparison was never run, not that it was run and found nothing. Reading it the second way would turn missing work into a negative result."
+      },
+      "follow_ups": {
+        "lede": "Five of the seven planned comparisons were never made. That is not a result about the target; it is a gap in the work, and it is recorded here so nobody mistakes the quiet axes for empty ones.",
+        "branches": [
+          {
+            "question": "What is the difference between a comparison that found nothing and one that was never made?",
+            "answer": "A comparison that found nothing tells you something: the relationship is not there. One that was never made tells you nothing at all. From the outside they look identical, which is why the distinction has to be written down rather than inferred.",
+            "kind": "why",
+            "children": [
+              {
+                "question": "Why can't we tell them apart later?",
+                "answer": "Because absence leaves no trace. A report lists what was found, so a missing relationship is invisible — there is no empty row to notice. The only record is the one made at the time.",
+                "kind": "why",
+                "children": [],
+                "defines": [],
+                "evidence": []
+              }
+            ],
+            "defines": [],
+            "evidence": []
+          },
+          {
+            "question": "What should the next stage do about it?",
+            "answer": "Treat the unmade comparisons as open, not as negative. Anything built on the assumption that those relationships are absent is resting on work that was never done.",
+            "kind": "so_what",
+            "children": [],
+            "defines": [],
+            "evidence": []
+          }
+        ]
       }
     },
     {
@@ -549,6 +708,44 @@
         ],
         "glossary": [],
         "caveat_for_reader": "Separate predicates make the axes queryable; they do not make the axes comparable. A score on one axis still cannot be weighed against a score on another without normalising inside each one first."
+      },
+      "follow_ups": {
+        "lede": "Each kind of similarity gets its own labelled relationship in the graph instead of everything sharing one generic 'is similar to'. That makes later questions answerable that would otherwise be guesswork.",
+        "branches": [
+          {
+            "question": "What would go wrong with one generic similarity link?",
+            "answer": "You could no longer ask for one kind of similarity while excluding another. Every question would return everything, and the reason two things were linked would be lost the moment it was recorded.",
+            "kind": "why",
+            "children": [
+              {
+                "question": "What is an example of a question that needs the distinction?",
+                "answer": "Find proteins that share the target's binding-site difficulty but are not its close relatives. With labelled links that is a single lookup. With one generic link it is unanswerable, because the label carrying 'why' was discarded.",
+                "kind": "so_what",
+                "children": [],
+                "defines": [],
+                "evidence": []
+              }
+            ],
+            "defines": [],
+            "evidence": []
+          },
+          {
+            "question": "What does this let a later stage actually do?",
+            "answer": "Ask for one kind of relationship while ruling out another — for instance, proteins that share the target's binding-site difficulty but are not its close relatives. That is the shortlist the next stage needs, and it is one lookup rather than a judgement call.",
+            "kind": "so_what",
+            "children": [],
+            "defines": [],
+            "evidence": []
+          },
+          {
+            "question": "What does this cost?",
+            "answer": "A longer vocabulary to learn and to keep consistent, and a rule that every new kind of link has to declare which types of thing it is allowed to connect. That check is what stops the vocabulary drifting into a second generic link under a different name.",
+            "kind": "what_if_wrong",
+            "children": [],
+            "defines": [],
+            "evidence": []
+          }
+        ]
       }
     },
     {
@@ -560,7 +757,8 @@
         {
           "source_type": "computation",
           "locator": "kg/demo/kg.sqlite",
-          "title": "cited_edge_fraction from KGStore.stats()"
+          "title": "cited_edge_fraction from KGStore.stats()",
+          "neglect": []
         }
       ],
       "data": {
@@ -590,7 +788,7 @@
       "path": "docs/figures/demo_kg.html",
       "kind": "figure",
       "description": "Self-contained interactive ego view",
-      "sha256": "d1df91a90a548727e223744be3718b0d523e6b47c81e6f098de472c86c6900af",
+      "sha256": "d0b49221b96a1c603d98a7486a6bc0c84265f9635a05a2da19a627a4549db311",
       "bytes": 487897
     },
     {
@@ -626,7 +824,7 @@
         "encoding": {
           "node_fill": "node.type",
           "node_size": "degree (capped)",
-          "edge_stroke": "predicate family (9 defined, at most 7 visible at once)",
+          "edge_stroke": "predicate family (11 defined, 9 visible by default, 2 grey families opt-in)",
           "edge_dash": "predicate within family",
           "edge_width": "axis score, normalised per axis to its declared score_range",
           "edge_opacity": "confidence (4 levels)",
@@ -827,6 +1025,128 @@
       "No dataset pointers have been harvested, so there is nothing for data-materialize to fetch."
     ]
   },
+  "follow_ups": {
+    "lede": "This run maps out which other proteins resemble the target, in several different senses of resemble, and records what each kind of resemblance would let a later stage borrow. The numbers in it are placeholders: the structure of the answer is real, the values are not yet.",
+    "branches": [
+      {
+        "question": "Why are the numbers placeholders?",
+        "answer": "Because this run exists to check that the pipeline's plumbing is right before any expensive tool is pointed at it. Every scored link is flagged as illustrative, and the contract refuses to let one be used as an assumption downstream.",
+        "kind": "how_known",
+        "children": [
+          {
+            "question": "How does the contract actually stop someone using them?",
+            "answer": "A link marked illustrative cannot be cited above the lowest confidence level, and anything reading the graph has to check that flag before treating a value as measured. It is a rule the code enforces, not a note in a document.",
+            "kind": "why",
+            "children": [],
+            "defines": [],
+            "evidence": []
+          }
+        ],
+        "defines": [],
+        "evidence": []
+      },
+      {
+        "question": "Why look for several kinds of resemblance instead of one?",
+        "answer": "Because proteins can be alike in ways that do not travel together. Two can have almost the same shape and behave differently, or have quite different shapes and share the exact problem we care about. Collapsing that into a single similarity score throws away which kind you had.",
+        "kind": "why",
+        "children": [
+          {
+            "question": "What is an example of the second case?",
+            "answer": "Proteins whose job is to detect unfamiliar chemicals all need a pocket that can change shape to fit whatever turns up. Two such proteins share that difficulty even if they are unrelated, and solving it for one tells you something about the other.",
+            "kind": "why",
+            "children": [],
+            "defines": [
+              "adaptable pocket"
+            ],
+            "evidence": []
+          }
+        ],
+        "defines": [],
+        "evidence": []
+      },
+      {
+        "question": "What does this change for whoever works on this next?",
+        "answer": "They get a ranked shortlist of reference proteins. Each one comes with the reason it is on the list. So they can choose references for a stated reason instead of defaulting to the closest relative.",
+        "kind": "so_what",
+        "children": [
+          {
+            "question": "Why is defaulting to the closest relative a problem?",
+            "answer": "It is often right and it is never examined. When the thing that makes the target hard is shared by something unrelated, the closest relative is the wrong choice and nobody notices, because no alternative was written down.",
+            "kind": "why",
+            "children": [],
+            "defines": [],
+            "evidence": []
+          }
+        ],
+        "defines": [],
+        "evidence": []
+      }
+    ]
+  },
+  "search": {
+    "run_id": "demo",
+    "channels": [
+      {
+        "channel": "keyword_search",
+        "n_retrieved": 180,
+        "n_admitted": 34,
+        "n_unique": 11,
+        "queries": [
+          "PXR ligand binding domain promiscuity",
+          "nuclear receptor adaptable pocket conformational ensemble",
+          "xenobiotic sensor structure prediction"
+        ],
+        "cost_note": "paperclip full-text, 3 query families"
+      },
+      {
+        "channel": "structured_query",
+        "n_retrieved": 64,
+        "n_admitted": 22,
+        "n_unique": 9,
+        "queries": [
+          "RCSB: uniprot O75469, has ligand, resolution < 3.0"
+        ]
+      },
+      {
+        "channel": "semantic_search",
+        "n_retrieved": 95,
+        "n_admitted": 18,
+        "n_unique": 3,
+        "queries": [
+          "proteins that bind structurally unrelated small molecules"
+        ],
+        "cost_note": "embedding search; 15 of 18 admitted hits were already found by keyword"
+      },
+      {
+        "channel": "backward_snowball",
+        "n_retrieved": 41,
+        "n_admitted": 19,
+        "n_unique": 14,
+        "queries": [
+          "references of PMC8864553 (methods section only)"
+        ]
+      }
+    ],
+    "coverage": [
+      {
+        "channel_a": "keyword_search",
+        "channel_b": "backward_snowball",
+        "n_a": 34,
+        "n_b": 19,
+        "n_both": 8,
+        "n_total_observed": 53
+      }
+    ],
+    "exploration_quota": 0.2,
+    "exploration_spent": 0.22,
+    "saturation_note": "Stopped on the fixture's query budget, not on saturation: the backward-snowball channel was still returning 14 unique results per 19 admitted when it was cut, which is a climbing curve rather than a flat one.",
+    "known_gaps": [
+      "No patent search. Paperclip cannot search patents despite its help text, and no separate patent channel was run — so the densest SAR literature for this target class is entirely absent.",
+      "No non-English channel. Regional indexes were not queried at all.",
+      "Negative results were not searched for explicitly, so the corpus is biased toward methods that reported working.",
+      "No graph-gap query was run against the fixture, so connections that exist in no single paper are unrepresented by construction."
+    ]
+  },
   "metrics": {
     "n_nodes": 41,
     "n_edges": 70,
@@ -838,7 +1158,8 @@
     "Every similarity score is an illustrative placeholder, not a measurement.",
     "Five of seven declared axes are unpopulated: pocket, motif, and compound have no edges; promiscuity and family carry only asserted membership.",
     "No domain-shift measurement was performed, because the fixture has no test compound set — that measurement is Stage 1's most decision-relevant output and its absence here is the largest gap.",
-    "One characteristic Stage 1 figure is still missing: a provenance chain tracing a claim through its evidence to its sources. `reagent report validate --strict` therefore fails this report, correctly."
+    "The search ledger reports roughly 65% estimated coverage, and that figure is an upper bound — the estimator assumes the two channels are independent, which they are not, and the violation inflates coverage rather than deflating it. Four regions were not searched at all: patents, non-English literature, explicit negative results, and graph-gap candidates.",
+    "No axis derivation was run, so the axes here are the ones the ProblemSpec declared rather than ones derived from what the target is. Nothing checked whether a connection type was missed entirely, which is the failure that cannot be recovered downstream."
   ],
   "open_questions": [
     "Do the fold and pocket axes agree for this target, or does high fold similarity coexist with dissimilar pockets?",

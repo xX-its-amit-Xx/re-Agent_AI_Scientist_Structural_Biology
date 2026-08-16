@@ -162,12 +162,33 @@ rigorously, with provable soundness.
 
 ## The LLM-era evidence that constrains design
 
-**Correlated error is a ceiling, not a nuisance [ROBUST].** Same-model ensembles realise
-only **0.43–0.44** of the reliability gain independence would give. Frontier model error
-vectors correlate at **r ≈ 0.77**. And deliberation measurably *inverts* the gain:
-independent aggregation **83.43 %** versus deliberative consensus **76.11 %** — below every
-single-model baseline. Models conform **more** when uncertain. Prompt discipline cannot fix
-this; only structural blindness can.
+**Correlated error is a ceiling, not a nuisance [ROBUST].** Models conform **more** when
+uncertain, and deliberation measurably *inverts* the aggregation gain. Prompt discipline
+cannot fix this; only structural blindness can.
+
+> **Four numbers withdrawn here — see [`00-provenance-audit.md`](00-provenance-audit.md) C2.**
+> This paragraph previously claimed same-model ensembles realise 0.43–0.44 of the independence
+> gain, frontier error vectors correlate at r ≈ 0.77, cross-family diversity cuts correlation
+> from 0.68 to 0.40, and independent aggregation beats deliberation 83.43% to 76.11%. **None
+> could be sourced, and 76.11 appears in a real table meaning the opposite** — it is
+> ReConcile's no-demonstration average in Wang et al. (ACL 2024) Table 3, where it sits
+> *above* the best single-agent baseline of 74.38.
+>
+> The conclusion is unchanged and is now carried by sourced evidence:
+> - Debate degraded majority-vote accuracy in **10 of 10** model configurations on
+>   CommonsenseQA, worst case −12.0 points, with correct→incorrect flips outnumbering the
+>   reverse in every round (Wynn, Satija & Hadfield, ICML MAS Workshop 2025, arXiv:2509.05396).
+> - Abandoning a correct position correlates with a sycophancy score at **r = 0.902**, and in
+>   up to **86.36%** of cases where an agent started correct, debate never reached that answer
+>   (Yao et al., arXiv:2509.23055).
+> - Deference follows the capability gradient, so votes are never independent: **92.36%**
+>   capitulation to a stronger peer, versus a **~47/53 coin flip** between comparable models
+>   (Xiong et al., Findings of EMNLP 2023, arXiv:2305.11595).
+> - Frontier models average **47.2%** conformity under induced self-doubt, and removing the
+>   last dissenting peer causes the jump — 32.6% → 69.9% (Weng, Chen & Wang, ICLR 2025,
+>   arXiv:2501.13381).
+> - Cross-family heterogeneity bought **+0.07 points**: 6 agents across 3 model families
+>   scored 78.66 against a best single agent's 78.59 (Wang et al., ACL 2024, Table 3).
 
 **Intrinsic self-critique is net-harmful without an external signal [ROBUST].** The most
 clearly refuted pattern in the literature and one of the most commonly shipped.
@@ -207,8 +228,24 @@ cut self-replicating prompt infection success by about 20 % and capped non-repli
 infection at two agents, against **+13.92 % to +209 %** attack success under global
 messaging.
 
-**Hierarchical aggregation damps where pipelines amplify [SINGLE].** 23.6 % degradation
-under injected faults versus **49.8 %** for linear pipelines.
+**Hierarchical aggregation damps where pipelines amplify [SINGLE].** Performance drop under
+an injected faulty agent: **hierarchical 5.5%**, linear chain **10.5%**, complete
+bidirectional **23.7%** (Huang et al., arXiv:2408.00989). Hierarchy is twice as fault-tolerant
+as a chain and four times as tolerant as all-to-all.
+
+**A dedicated verifier beats every topology change measured [SINGLE].** In the same study, an
+**Inspector agent recovered up to 96.4%** of the errors introduced by a faulty agent —
+out-performing every structural change the authors tried. Independently, MAST's largest single
+intervention gain was **+15.6% from adding an objective-verification step**. This is the
+strongest evidence in the folder for anything, and it argues for spending the budget on
+verification before topology.
+
+> **Correction — see [`00-provenance-audit.md`](00-provenance-audit.md) C1.** The
+> fault-tolerance line previously read *"23.6% degradation under injected faults versus 49.8%
+> for linear pipelines."* 23.6 was approximately the **all-to-all** figure mislabelled as
+> hierarchical, and 49.8 appears nowhere in the source. The direction survives and is much
+> stronger than we claimed — which matters because T8 orchestrator–worker *is* hierarchical,
+> so the corrected evidence favours the runner-up more than [`06`](06-chosen-design.md) admits.
 
 **Explicit progress state is worth a lot [VENDOR].** A two-ledger design — facts partitioned
 into verified / to-look-up / to-derive / **educated guesses**, plus a progress ledger with a
@@ -257,9 +294,30 @@ literature does not cite.
 There is **no compute-matched comparison of shared-artifact versus message-passing
 coordination for a knowledge-graph pipeline.** **Nobody measures pairwise error correlation
 between agents in a deployed system**, despite it being the quantity that determines whether
-the architecture helps at all. **Context compaction is entirely folklore** — not one
-published measurement of compression ratio against information retention. Stopping criteria
-are absent from the major deep-research survey. And **DCOP, the one formalism with actual
-guarantees, is never used as a baseline.**
+the architecture helps at all. Stopping criteria are absent from the major deep-research
+survey. And **DCOP, the one formalism with actual guarantees, is never used as a baseline.**
+
+> **Correction — compaction is no longer folklore.** This section previously read *"Context
+> compaction is entirely folklore — not one published measurement of compression ratio
+> against information retention."* That was defensible when written and is now wrong.
+> Retention under agent-trajectory compaction has been measured, and the numbers are worse
+> than the folklore assumed: compactors retain only **17% of injected session constraints**
+> on average, and policy-violation rates rise from **0% with the policy in full context to
+> 30% after compaction** (up to 59% for some model families), with the loss near-binary at
+> item level — when a constraint survives, violations stay at zero. Retained content also
+> **varies substantially run to run**, so an agent's post-compaction knowledge is not
+> reproducible. Counterweight: the loss is a property of ad-hoc summariser prompts rather
+> than of compaction itself, since trained compaction improves on no-compaction, and
+> compression can *raise* accuracy by removing distractors.
+>
+> **What this changes for us.** [`06`](06-chosen-design.md) requires that every compaction
+> emit a derivation edge to what it replaced. That is necessary and insufficient: the
+> derivation edge preserves the *audit trail* while the 17% figure says the *content* is
+> gone. Add a **pinned-invariants set** — constraints, identifiers, and decisions that
+> compaction may not touch — and prefer selective typed retention over free-form
+> summarisation. This is Cajal's point about summaries with a number attached to it.
+>
+> What remains genuinely unmeasured is a general compression-ratio-versus-retention curve
+> for arbitrary agent context.
 
 Two of those are papers that could be written as a by-product of building this.

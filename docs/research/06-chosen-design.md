@@ -96,12 +96,31 @@ compaction boundary.
 
 ## Why this rather than the runner-up
 
-**It is the only topology that gets independence by construction.** Same-model ensembles
-realise 0.43–0.44 of the reliability gain independence would give; frontier error vectors
-correlate at r ≈ 0.77; deliberation *inverts* the gain (83.43 % independent versus 76.11 %
-deliberative, below every single-model baseline). Personas do not help — 162 roles across
-four model families produced nothing. Prompt discipline cannot fix a structural problem.
-Structural blindness can.
+**It is the only topology that gets independence by construction.** Deliberation does not
+merely fail to add accuracy — it destroys correct answers that a cheaper aggregation would
+have kept. Debate degraded majority-vote accuracy in **10 of 10** model configurations on
+CommonsenseQA, worst case −12.0 points (Wynn, Satija & Hadfield, ICML MAS Workshop 2025,
+arXiv:2509.05396). In up to **86.36%** of cases where an agent started with the correct
+answer, debate never reached it, and the rate of abandoning a correct position correlates with
+a sycophancy score at **r = 0.902** (Yao et al., arXiv:2509.23055). Votes are never
+independent in either regime: **92.36%** capitulation to a stronger peer, versus a **~47/53
+coin flip** between comparable models (Xiong et al., Findings of EMNLP 2023, arXiv:2305.11595).
+Frontier models average **47.2%** conformity under induced self-doubt, and it is removing the
+*last dissenting peer* that causes the jump — 32.6% → 69.9% (Weng, Chen & Wang, ICLR 2025,
+arXiv:2501.13381). Cross-family heterogeneity bought **+0.07 points** at a strong-prompt
+operating point: 6 agents across 3 model families scored 78.66 against a best single agent's
+78.59 (Wang et al., ACL 2024, Table 3). Personas do not help — 162 roles across four model
+families and 2,410 questions produced no improvement (Zheng et al., Findings of EMNLP 2024,
+arXiv:2311.10054), though note that paper measures single-agent accuracy and not error
+correlation, so "personas do not decorrelate" remains an extrapolation from it.
+
+Prompt discipline cannot fix a structural problem. Structural blindness can.
+
+> **This paragraph was rewritten after an audit.** It previously rested on four figures —
+> 0.43–0.44 of the independence gain, r ≈ 0.77, 0.68 → 0.40, and 83.43% versus 76.11% — **none
+> of which could be sourced, and one of which meant the opposite of the claim.** See
+> [`00-provenance-audit.md`](00-provenance-audit.md) C2. The conclusion did not change; it was
+> resting on the weakest props available to it.
 
 **It is the only topology that gets provenance by construction.** The spread across
 architectures is 19 attributability points, retrofitting recovers less than half, and
@@ -202,16 +221,41 @@ That ratio should be a tunable parameter, not an emergent property.
 
 The evidence does not support jumping to the ambitious architecture. Cost differs by nearly
 two orders of magnitude at similar accuracy; agent benchmarks are pervasively
-non-reproducible; a temperature-warming retry loop matches elaborate scaffolds on HumanEval.
-And the gain decomposition is roughly **6 points from prompts, 3 from topology, 2 from
-workflow prompts** — architecture is about a quarter of the story.
+non-reproducible; a temperature-warming retry loop matches elaborate scaffolds on HumanEval —
+*"'State-of-the-art' agent architectures for HumanEval do not outperform simple baselines"*
+(Kapoor, Stroebl, Siegel, Nadgir & Narayanan, arXiv:2407.01502), who also note that nobody
+compares against retry, warming or escalation baselines at all.
 
-1. **Build T1 and T8, instrument them, and make them the baseline that must be beaten.**
-2. **Migrate the extraction stage only** to the stigmergic blackboard, because that is where
+**Verification comes first, and this is a change from the earlier ordering.** It was step 4.
+The evidence for it is now the strongest in the folder: a dedicated **Inspector agent recovered
+up to 96.4%** of the errors introduced by a faulty agent, out-performing every topology change
+the authors measured (Huang et al., arXiv:2408.00989), and MAST's largest single intervention
+gain was **+15.6% from adding an objective-verification step** (Cemri et al., arXiv:2503.13657
+v3). MAST's whole verification category — incorrect verification 9.10%, no or incomplete
+verification 8.20%, premature termination 6.20% — is verification failure. Nothing in topology
+buys returns of that size.
+
+1. **Adopt the schema, verification, provenance and stopping machinery first.** None of it is
+   topology-dependent, all of it is where defensibility comes from, and it is where the
+   measured returns are largest.
+2. **Build T1 and T8, instrument them, and make them the baseline that must be beaten.**
+3. **Migrate the extraction stage only** to the stigmergic blackboard, because that is where
    independence and provenance are won. Measure.
-3. **Migrate remaining coordination only if the measurement justifies it.**
-4. **Adopt the schema, verification, provenance and stopping machinery from day one**, since
-   none of it is topology-dependent and all of it is where defensibility comes from.
+4. **Migrate remaining coordination only if the measurement justifies it.**
+
+> **The gain-decomposition claim was withdrawn.** This section previously asserted *"roughly
+> 6 points from prompts, 3 from topology, 2 from workflow prompts — architecture is about a
+> quarter of the story."* Unsourced; see [`00-provenance-audit.md`](00-provenance-audit.md) C7.
+> The real picture is messier and points the same way: on one system a prompt change gave
+> **+5.0 points (significant)** while a topology change gave **+0.75 (Wilcoxon p = 0.4, not
+> significant)**; on another, topology (+15.6) beat prompts (+9.4). Measured on failure-mode
+> counts rather than task success, MAST concludes topology changes are the more effective of
+> the two. **Which lever dominates depends on the system and the backbone, and neither
+> reliably wins** — so do not lead with topology, but do not claim a ratio either.
+>
+> The extreme case: tuning one prompt parameter — how strongly agents are told to agree —
+> moved a debate protocol **from worst to best performing** (Smit et al., ICML 2024,
+> arXiv:2311.17371), which means published debate results are not really measuring debate.
 
 ## What to instrument
 
@@ -226,9 +270,26 @@ citation precision.
 - **pairwise error correlation between workers** — the number that tells us whether the
   independence discipline is actually holding, and which nobody in the multi-agent literature
   measures
+- **DCR, the oracle gap** — the fraction of items where *some* worker had it right and the
+  system did not output it. Borrowed from Yao et al. (arXiv:2509.23055), where it reached
+  86.36% for decentralised debate. More actionable than error correlation because it names a
+  specific recoverable loss rather than a property of a distribution, and it is the same
+  quantity `neglected-literature` measures one level up: the difference between what was
+  findable and what was reported.
+- **step repetition and termination-unawareness rates.** Together **28.1%** of measured
+  multi-agent failures (15.7% and 12.4%, MAST v3) and previously unaddressed here. The fixes
+  are an idempotency rule keyed on the work item and a hard per-worker step budget — the
+  latter now enforced by `AxisSweep`'s round accounting.
 
-That last one is the diagnostic that distinguishes this design from a story about this
+The last three are the diagnostics that distinguish this design from a story about this
 design.
+
+Worth claiming explicitly: **schema-forced extraction eliminates a whole failure category by
+construction.** MASLab found **79.66%** of one framework's failures on GPQA-Diamond were format
+errors rather than wrong answers (Ye et al., arXiv:2505.16988). That is free here. The
+countervailing cost is field order — see `reagent.contracts.ordering`, which pins reasoning
+fields before conclusion fields because generation order is where schema forcing *does* cost
+accuracy.
 
 ## Conditions that should make us revisit
 

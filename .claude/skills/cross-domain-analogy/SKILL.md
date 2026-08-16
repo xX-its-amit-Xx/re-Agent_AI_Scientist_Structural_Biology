@@ -117,21 +117,35 @@ For each card, in this order:
 
 ### Step 3b — Challenge from a different position, never from a different prompt
 
-**Do not appoint a critic agent to argue against a card it has just read.** Assigned
-dissent is measurably counterproductive: authentic minority dissent is superior to *all*
-forms of devil's advocate, and assigned advocacy produces **cognitive bolstering of the
-initial view** — it leaves the proposer more confident than before. The same result holds
-for language models, where persona assignment across 162 roles and four model families
-produced no improvement at all.
+**Do not appoint a critic agent to argue against a card it has just read.** Authentic
+minority dissent is superior to *all* forms of devil's advocate (Nemeth, Brown & Rogers 2001),
+and their framing of *why* is the part that transfers: **the difficulty of replicating
+authenticity through role-play.** For language models the measured version is that persona
+assignment across 162 roles, four model families and 2,410 questions produced **no improvement
+at all** (Zheng et al., Findings of EMNLP 2024).
+
+> Earlier wording here said assigned advocacy produces "cognitive bolstering of the initial
+> view", implying an agent grows more committed to a position. **That mechanism does not exist
+> for an agent — there is no attitude to bolster** — and the human result it borrowed was
+> itself mis-attributed. See `docs/research/00-provenance-audit.md` C8. The rule below is
+> unchanged; only its justification was wrong, and getting the mechanism right matters because
+> a wrong mechanism gets generalised wrongly.
 
 So decorrelate the challenger by **construction**, not by instruction:
 
 - **A different corpus.** The agent that challenges a card must have searched *different
   sources* than the agent that proposed it. Give it the target field's literature and ask
   what is already known there, rather than giving it the card and asking for objections.
-- **A different model where budget allows.** Different model families cut pairwise error
-  correlation from about 0.68 to 0.40; the same model in a different costume cuts it by
-  nothing.
+- **A different model where budget allows.** The same model in a different costume
+  decorrelates nothing. Be honest about the ceiling, though: at a strong-prompt operating
+  point, six agents across three model families beat the best single agent by **+0.07 points**
+  (Wang et al., ACL 2024, Table 3), and adding a *weaker* model to stronger ones costs accuracy
+  rather than adding diversity. Cross-family diversity is worth having and is not a large
+  effect.
+- **One mandated dissenter, if you must deliberate at all.** A single dissenting voice — even a
+  wrong one — roughly halves sycophancy and raises accuracy substantially (Zhu et al., ACL
+  2025). It is the cheapest intervention in the literature, and it works because unanimity
+  rather than dialogue is what drives conformity.
 - **A different objective.** The proposer is scored on finding a transferable mechanism;
   the challenger is scored on finding *prior art and a failed precondition*. Those are
   separate searches with separate success criteria, not the same search run twice with

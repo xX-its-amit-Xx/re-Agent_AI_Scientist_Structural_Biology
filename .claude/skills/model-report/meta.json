@@ -6,7 +6,10 @@
   "consumes": [
     "report.interpretation",
     "report.glossary",
-    "report.reasoning_trace"
+    "report.reasoning_trace",
+    "report.follow_ups",
+    "search.ledger",
+    "stage1.axis_sweeps"
   ],
   "produces": [
     "report.rendered",

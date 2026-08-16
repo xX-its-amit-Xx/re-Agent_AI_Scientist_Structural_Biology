@@ -241,6 +241,77 @@ def _interpretation_html(f: Finding, terms: dict[str, Any]) -> str:
     return f'<div class="interp">{mech}{"".join(blocks)}{analogy}{caveat}{imps}</div>'
 
 
+#: Kind -> CSS class on the disclosure, so the left rule carries the question type.
+_FU_CLASS = {
+    "what_is": "fu-what-is", "why": "fu-why", "how_known": "fu-how-known",
+    "how_measured": "fu-how-known", "so_what": "fu-so-what",
+    "what_if_wrong": "fu-what-if", "alternative": "fu-alt", "objection": "fu-objection",
+}
+
+
+def _followup_html(node: Any, terms: dict[str, Any], base_id: str, level: int = 1) -> str:
+    """One disclosure and its descendants.
+
+    Children are nested *inside* ``.fu-answer`` rather than as siblings of it: a screen
+    reader announces a sibling as a peer of the answer instead of as a sub-question, and
+    the indent that carries the hierarchy is lost.
+    """
+    kids = node.sorted_children()
+    inner = "".join(
+        _followup_html(k, terms, f"{base_id}-{i}", level + 1)
+        for i, k in enumerate(kids, 1)
+    )
+    count = (
+        f' <span class="fu-count">{len(kids)} more</span>' if kids else ""
+    )
+    cls = _FU_CLASS.get(node.kind.value, "fu-why")
+    return (
+        f'<details class="fu {cls}" id="{_e(base_id)}">'
+        f"<summary>{_e(node.question)}{count}</summary>"
+        f'<div class="fu-answer"><p>{_link_glossary(node.answer, terms)}</p>{inner}</div>'
+        "</details>"
+    )
+
+
+def _followup_tree_html(tree: Any, terms: dict[str, Any], prefix: str) -> str:
+    if tree is None:
+        return ""
+    branches = "".join(
+        _followup_html(b, terms, f"fu-{prefix}-{i}", 1)
+        for i, b in enumerate(tree.sorted_branches(), 1)
+    )
+    return (
+        '<div class="fu-tree">'
+        f'<p class="fu-lede">{_link_glossary(tree.lede, terms)}</p>'
+        f"{branches}</div>"
+    )
+
+
+def _followup_index_html(report: ModelReport, terms: dict[str, Any]) -> str:
+    """Flat, visually hidden copy of every question and answer.
+
+    Browsers do not search inside a closed ``<details>``, so without this a reader using
+    find-in-page cannot reach a definition that exists one click down. ``aria-hidden``
+    because a screen reader already reaches the content through the tree, and announcing
+    all of it twice is worse than not having the index.
+    """
+    rows: list[str] = []
+    trees = [("report", report.follow_ups)] + [
+        (f.id, f.follow_ups) for f in report.findings if f.follow_ups
+    ]
+    for owner, tree in trees:
+        if tree is None:
+            continue
+        for branch in tree.sorted_branches():
+            for _level, node in branch.walk():
+                rows.append(
+                    f"<p>{_e(owner)}: {_e(node.question)} {_e(node.answer)}</p>"
+                )
+    if not rows:
+        return ""
+    return f'<div class="fu-index" aria-hidden="true">{"".join(rows)}</div>'
+
+
 def _finding_html(f: Finding, terms: dict[str, Any]) -> str:
     color = CONF_COLOR[f.confidence]
     data = ""
@@ -274,6 +345,7 @@ def _finding_html(f: Finding, terms: dict[str, Any]) -> str:
   </header>
   <p class="stmt">{_e(f.statement)}</p>
   {_interpretation_html(f, terms)}
+  {_followup_tree_html(f.follow_ups, terms, f.id)}
   <details class="ev-wrap"><summary>evidence</summary>{_evidence_html(f)}{nodes}{data}</details>
 </article>"""
 
@@ -358,7 +430,10 @@ def render(report: ModelReport, out_path: Path, repo_root: Path | None = None) -
     if report.plain_summary:
         plain_html = (
             '<section class="plainbox"><h3>What this means, without the jargon</h3>'
-            f"<p>{_link_glossary(report.plain_summary, terms)}</p></section>"
+            f"<p>{_link_glossary(report.plain_summary, terms)}</p>"
+            # The report-level tree sits with the plain summary rather than at the end,
+            # because the reader who needs it is the reader who is still here.
+            f"{_followup_tree_html(report.follow_ups, terms, 'report')}</section>"
         )
 
     glossary_html = ""
@@ -577,6 +652,7 @@ def render(report: ModelReport, out_path: Path, repo_root: Path | None = None) -
         "__SUMMARY__": _e(report.executive_summary),
         "__PLAIN__": plain_html,
         "__GLOSSARY__": glossary_html,
+        "__FUINDEX__": _followup_index_html(report, terms),
         "__ASKS__": asks_html,
         "__REASONING__": reasoning_html,
         "__OBJECTIVE__": _e(report.objective),
@@ -799,6 +875,49 @@ _TEMPLATE = r"""<title>__TITLE__</title>
   details.ev-wrap summary { cursor:pointer; font-size:.78rem; color:var(--muted);
                             margin-top:.5rem; text-transform:uppercase;
                             letter-spacing:.05em; }
+
+  /* -- progressive disclosure ------------------------------------------
+     Native <details>, no JavaScript: the tree works with scripting off, which
+     the publish target effectively requires and which keeps the report from
+     being sometimes-unreadable. */
+  .fu-tree { margin:.7rem 0 .2rem; }
+  .fu-lede { margin:.2rem 0 .6rem; }
+  .fu { border-left:2px solid var(--line); padding-left:.7rem; margin:.35rem 0; }
+  .fu > summary { cursor:pointer; font-weight:500; font-size:.9rem;
+                  list-style:none; padding:.1rem 0; }
+  /* The UA disclosure marker is inconsistent across browsers and cannot be
+     positioned reliably, so it is removed and replaced. */
+  .fu > summary::-webkit-details-marker { display:none; }
+  .fu > summary::before { content:"\25B8\00a0"; color:var(--muted); }
+  .fu[open] > summary::before { content:"\25BE\00a0"; }
+  .fu > summary:hover { color:var(--accent); }
+  .fu-answer { padding:.25rem 0 .1rem; font-size:.92rem; }
+  .fu-answer > p { margin:.2rem 0 .45rem; }
+  .fu-count { font-size:.7rem; color:var(--muted); font-weight:400; }
+  /* Cumulative indent is capped by keeping the per-level padding small; past
+     level 3 the rule colour and marker carry depth instead, because 5 levels of
+     generous indent squeezes the text column badly on a narrow viewport. */
+  .fu .fu .fu .fu { padding-left:.45rem; }
+  .fu-what-is   { border-left-color:#56B4E9; }
+  .fu-why       { border-left-color:#0072B2; }
+  .fu-how-known { border-left-color:#A6A6A6; }
+  .fu-so-what   { border-left-color:#009E73; }
+  .fu-what-if   { border-left-color:#E69F00; }
+  .fu-alt       { border-left-color:#CC79A7; }
+  .fu-objection { border-left-color:#D55E00; }
+  /* Reachable by find-in-page and by text extraction; hidden from sight and
+     from screen readers, which already reach the content through the tree. */
+  .fu-index { position:absolute; width:1px; height:1px; overflow:hidden;
+              clip:rect(0 0 0 0); white-space:nowrap; }
+  @media print {
+    .fu { break-inside:avoid; }
+    /* The UA stylesheet hides a closed disclosure's contents, so !important is
+       doing real work here. A printed collapsed disclosure is a question with no
+       answer, which is worse than no disclosure at all. */
+    .fu > .fu-answer { display:block !important; }
+    .fu > summary::before { content:""; }
+    .fu-index { display:none; }
+  }
 </style>
 
 <div class="wrap">
@@ -860,6 +979,7 @@ _TEMPLATE = r"""<title>__TITLE__</title>
   __INPUTS__
 
   __GLOSSARY__
+  __FUINDEX__
 
   <footer>
     Generated by <code>reagent report render</code>. Every finding carries its own

@@ -15,7 +15,8 @@ Three columns decide almost everything for us, and they are not the ones usually
 **Error propagation** matters because our output is a knowledge graph that later stages
 treat as fact. One agent's fabrication becoming another's premise is not a quality problem,
 it is a correctness problem, and the correlated-error ceiling (same-model ensembles realise
-only 0.43–0.44 of the independence gain) means we cannot prompt our way out of it.
+the withdrawn independence figures are corrected in 00-provenance-audit.md C2) means we
+cannot prompt our way out of it.
 
 **Provenance** matters because retrofitting recovers less than half of what building it in
 achieves, and because citation precision correlates with perceived utility at **r = −0.96**.
@@ -53,15 +54,19 @@ are inside the context window rather than named in the output cannot be checked.
 each worker is given a disjoint partition and cannot see the others' output, the diversity
 term in γ² = ε − δ stays positive by construction rather than by instruction.
 
-**T6 is worth having but must be diversity-selected.** Same-model voting buys 0.43–0.44 of
-what independence would. Different model families cut pairwise error correlation from 0.68 to
+**T6 is worth having but must be diversity-selected.** The specific correlation figures here
+were withdrawn — see 00-provenance-audit.md C2. What is sourced: 6 agents across 3 model
+families bought +0.07 points over the best single agent at a strong-prompt operating point
+(Wang et al., ACL 2024, Table 3), and adding one weaker model to two stronger ones *cost*
+accuracy (Wynn et al., arXiv:2509.05396). Diversity that spans a capability gap imports the
+weak model's errors rather than decorrelating the strong one's. Placeholder ratio was 0.68 to
 0.40, so if you can afford heterogeneous models, that is where the money goes.
 
 ## Orchestrator-centred topologies
 
 | # | Topology | Mechanism | Cost | Err | Prov | Failure mode | Fit |
 |---|---|---|---|---|---|---|---|
-| T8 | Orchestrator–worker, synchronous | delegation + synthesis | **~15×** | B | B | synchronous blocking; vague briefs | **runner-up** |
+| T8 | Orchestrator–worker, synchronous | delegation + synthesis | **~3.75×** | B | B | synchronous blocking; vague briefs | **runner-up** |
 | T9 | Orchestrator–worker, async queue | task queue + shared memory | tunable | B | B | queue starvation; policy complexity | **strong** |
 | T10 | Hierarchical, multi-level | nested delegation | very high | B | C→D | telephone game; provenance collapse | only if breadth forces it |
 | T11 | Agents-as-tools | tool-call invocation | **cheapest MAS** | B | A | manager context becomes the bottleneck | **strong for bounded subtasks** |
@@ -93,7 +98,12 @@ advantage.
 This block contains the sharpest split in the whole enumeration.
 
 **T13 and T24 are the two most commonly shipped patterns and the two with evidence against
-them.** Debate loses to plain self-consistency at matched budget (83.0 % versus 88.2 %).
+them.** Debate does not merely fail to pay for itself — it **destroys correct answers a
+cheaper aggregation would have kept**: 10 of 10 configurations degraded on CommonsenseQA,
+worst case -12.0 points (Wynn et al., arXiv:2509.05396); up to 86.36% of correct starts lost
+(Yao et al., arXiv:2509.23055). Under a unified re-implementation, no multi-agent method beat
+plain self-consistency on Qwen-2.5-72B, which had the best average rank of twelve methods
+(Ye et al., MASLab, arXiv:2505.16988). The withdrawn 83.0/88.2 pair is in 00-provenance-audit.md C3.
 Self-critique without external signal *degrades* accuracy (95.5 % → 89.0 %). Both are
 excluded, and it is worth being explicit that excluding them is a finding, not a
 simplification.

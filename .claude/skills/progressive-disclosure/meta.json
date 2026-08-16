@@ -1,0 +1,15 @@
+{
+  "stage": "shared",
+  "owner": "amit",
+  "status": "implemented",
+  "summary": "Anticipate the reader's next question and answer it in place, nested five levels deep with no dead ends.",
+  "consumes": [
+    "report.interpretation",
+    "report.glossary"
+  ],
+  "produces": [
+    "report.follow_ups"
+  ],
+  "external_tools": [],
+  "credits": []
+}

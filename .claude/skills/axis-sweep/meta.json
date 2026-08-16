@@ -1,0 +1,27 @@
+{
+  "stage": "stage1_literature",
+  "owner": "amit",
+  "status": "implemented",
+  "summary": "Work one axis to exhaustion in its own worker, with an observable stopping rule.",
+  "consumes": [
+    "stage1.axes",
+    "stage1.axis_derivation"
+  ],
+  "produces": [
+    "kg.neighbourhood",
+    "stage1.axis_sweeps",
+    "search.ledger"
+  ],
+  "external_tools": [
+    "Agent",
+    "foldseek",
+    "mmseqs2",
+    "rcsb-search-api",
+    "uniprot",
+    "chembl",
+    "reactome",
+    "string-db",
+    "WebSearch"
+  ],
+  "credits": []
+}

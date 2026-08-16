@@ -19,6 +19,18 @@ For a protein-structure problem the axes typically bind to:
   * structural motif sharing   -> SHARES_MOTIF (3D motifs, or SAE features)
   * promiscuity                -> PROMISCUOUS_WITH, and breadth of BINDS
   * receptor / protein family  -> MEMBER_OF_FAMILY
+  * pathway membership         -> IN_PATHWAY, SHARES_PATHWAY_WITH
+  * cascade position           -> UPSTREAM_OF
+  * *analogous* cascade position -> ANALOGOUS_ROLE_TO
+  * shared binding partners    -> INTERACTS_WITH, SHARES_PARTNER_WITH
+  * localisation / expression  -> EXPRESSED_IN, CO_EXPRESSED_WITH
+  * being a kind of thing      -> HAS_PROPERTY
+
+Two of those deserve emphasis because they are the ones a similarity search
+structurally cannot produce. ``ANALOGOUS_ROLE_TO`` relates proteins that occupy the
+same *position* in different cascades at zero sequence identity. ``HAS_PROPERTY``
+reifies a class membership as a node, so "the target is a promiscuous binder" becomes
+a traversable hub rather than a sentence that an agent may forget to act on.
 
 For a DNA-encoded-library problem the same machinery binds to SHARES_SCAFFOLD,
 HAS_FRAGMENT (building blocks), SIMILAR_ASSAY_TO, and MEMBER_OF_FAMILY over
@@ -61,6 +73,12 @@ class NodeType(str, Enum):
     ANALOGY = "Analogy"            # a cross-domain mechanism card
     DOMAIN = "Domain"              # a field of study (for analogy provenance)
     FAMILY = "Family"              # protein family / receptor subfamily
+    # -- systems context: the target is embedded in networks, not just folds ----
+    PATHWAY = "Pathway"            # Reactome/KEGG/WikiPathways cascade
+    PROCESS = "Process"            # a biological process (GO BP) or function
+    TISSUE = "Tissue"              # anatomical site / cell type (UBERON, CL)
+    # -- the meta-concept, made explicit ---------------------------------------
+    PROPERTY = "Property"          # "promiscuous binder", "liver-enriched", "ligand-activated TF"
 
 
 class Predicate(str, Enum):
@@ -89,6 +107,38 @@ class Predicate(str, Enum):
     PROMISCUOUS_WITH = "PROMISCUOUS_WITH"  # attrs: n_distinct_ligands, breadth_score
     MODULATES = "MODULATES"                # e.g. PXR -MODULATES-> CYP3A4
     COMPETES_WITH = "COMPETES_WITH"
+
+    # --- systems / network position --------------------------------------
+    # A target is not only a fold. It occupies a position in a cascade, has partners,
+    # and is expressed somewhere — and each of those is a legitimate way for two
+    # proteins to be related even at zero sequence identity.
+    IN_PATHWAY = "IN_PATHWAY"                    # Protein -> Pathway; attrs: role, source_db
+    SHARES_PATHWAY_WITH = "SHARES_PATHWAY_WITH"  # attrs: pathway_ids, n_shared, jaccard
+    UPSTREAM_OF = "UPSTREAM_OF"                  # attrs: pathway, n_steps, direct
+    ANALOGOUS_ROLE_TO = "ANALOGOUS_ROLE_TO"
+    """Same *position* in a different cascade — the structural analogy of a role.
+
+    This is the axis a fold-similarity search cannot find. Two proteins can be the
+    xenobiotic sensor of their respective cascades, with the same upstream trigger
+    shape and the same downstream effector class, while sharing no detectable
+    homology. attrs: own_pathway, other_pathway, role, shared_elements.
+    """
+    INTERACTS_WITH = "INTERACTS_WITH"            # PPI; attrs: method, n_publications, score
+    SHARES_PARTNER_WITH = "SHARES_PARTNER_WITH"  # attrs: partners, n_shared, jaccard, partner_role
+    PARTICIPATES_IN = "PARTICIPATES_IN"          # Protein -> Process
+    EXPRESSED_IN = "EXPRESSED_IN"                # Protein -> Tissue; attrs: level, specificity
+    CO_EXPRESSED_WITH = "CO_EXPRESSED_WITH"      # attrs: tissue, correlation, dataset
+
+    # --- meta-properties -------------------------------------------------
+    HAS_PROPERTY = "HAS_PROPERTY"
+    """The target *is a kind of thing*, and that is itself a connector.
+
+    Reifying the property as a node is the whole point. "PXR is a promiscuous binder"
+    stops being a sentence in a report that an agent may or may not think to act on,
+    and becomes a node with a degree — so every other promiscuous binder is two hops
+    away, and a property with degree 1 is visibly an unexplored lead rather than an
+    invisible one. attrs: kind, basis, threshold.
+    """
 
     # --- epistemics ------------------------------------------------------
     SUPPORTED_BY = "SUPPORTED_BY"          # any node -> Paper
@@ -207,6 +257,19 @@ PREDICATE_DOMAINS.update({
     ),
     # cross-domain innovation
     Predicate.INSPIRES: ({NodeType.ANALOGY}, {NodeType.PIPELINE_STEP, NodeType.METHOD}),
+    # systems / network position
+    Predicate.IN_PATHWAY: ({NodeType.PROTEIN}, {NodeType.PATHWAY}),
+    Predicate.SHARES_PATHWAY_WITH: ({NodeType.PROTEIN}, {NodeType.PROTEIN}),
+    Predicate.UPSTREAM_OF: ({NodeType.PROTEIN}, {NodeType.PROTEIN}),
+    Predicate.ANALOGOUS_ROLE_TO: ({NodeType.PROTEIN}, {NodeType.PROTEIN}),
+    Predicate.INTERACTS_WITH: ({NodeType.PROTEIN}, {NodeType.PROTEIN}),
+    Predicate.SHARES_PARTNER_WITH: ({NodeType.PROTEIN}, {NodeType.PROTEIN}),
+    Predicate.PARTICIPATES_IN: ({NodeType.PROTEIN}, {NodeType.PROCESS}),
+    Predicate.EXPRESSED_IN: ({NodeType.PROTEIN}, {NodeType.TISSUE}),
+    Predicate.CO_EXPRESSED_WITH: ({NodeType.PROTEIN}, {NodeType.PROTEIN}),
+    # meta-properties. Deliberately unrestricted on the source side: a compound class,
+    # an assay, or a method can each be "a kind of thing" whose peers matter.
+    Predicate.HAS_PROPERTY: (None, {NodeType.PROPERTY}),
 })
 
 
@@ -234,6 +297,8 @@ class PredicateFamily(str, Enum):
     CHEMICAL = "chemical"          # small-molecule similarity
     COMPOSITION = "composition"    # part-of / member-of scaffolding
     INTERACTION = "interaction"    # binding and pharmacology
+    SYSTEMS = "systems"            # pathway, cascade position, protein-protein partners
+    CONTEXT = "context"            # where and what: expression, tissue, meta-properties
     DATA = "data"                  # where measurements live (lazy dataset pointers)
     EVIDENCE = "evidence"          # epistemic links to sources
     METHOD = "method"              # pipeline-space relations
@@ -277,17 +342,43 @@ PREDICATE_FAMILY: dict[Predicate, PredicateFamily] = {
     Predicate.ANALOGOUS_TO: PredicateFamily.ANALOGY,
     Predicate.ORIGINATES_IN: PredicateFamily.ANALOGY,
     Predicate.INSPIRES: PredicateFamily.ANALOGY,
+    # Network position gets its own colour rather than being folded into INTERACTION,
+    # because "binds this molecule" and "sits at this point in this cascade" are
+    # different questions and a reader filtering for one does not want the other.
+    Predicate.IN_PATHWAY: PredicateFamily.SYSTEMS,
+    Predicate.SHARES_PATHWAY_WITH: PredicateFamily.SYSTEMS,
+    Predicate.UPSTREAM_OF: PredicateFamily.SYSTEMS,
+    Predicate.ANALOGOUS_ROLE_TO: PredicateFamily.SYSTEMS,
+    Predicate.INTERACTS_WITH: PredicateFamily.SYSTEMS,
+    Predicate.SHARES_PARTNER_WITH: PredicateFamily.SYSTEMS,
+    Predicate.PARTICIPATES_IN: PredicateFamily.SYSTEMS,
+    Predicate.EXPRESSED_IN: PredicateFamily.CONTEXT,
+    Predicate.CO_EXPRESSED_WITH: PredicateFamily.CONTEXT,
+    Predicate.HAS_PROPERTY: PredicateFamily.CONTEXT,
 }
 
-#: Okabe-Ito, the standard colour-blind-safe categorical palette, extended with a
-#: deep purple and two greys.
+#: Okabe-Ito, the standard colour-blind-safe categorical palette, plus a deep purple,
+#: a darkened olive, and three greys.
 #:
-#: There are nine families against a stated ceiling of ~8 discriminable colours,
-#: which is deliberate and safe for one reason: **at most seven are ever visible at
-#: once.** Both grey families are hidden by default, and colour is always paired
-#: with dash pattern as a redundant channel (see ``visual_encoding_summary``). The
-#: two greys are dark and light respectively and never compete, because they are
-#: never both shown.
+#: **Honest accounting of the ceiling.** There are now eleven families and nine are
+#: visible by default, against a documented discriminability ceiling of about eight
+#: categorical colours. That is one over, and pretending otherwise would be worse than
+#: saying it. Three things keep it usable, and the third is the one that actually matters:
+#:
+#: 1. Only one of the three greys (COMPOSITION) is on by default, so the achromatic
+#:    slot is unambiguous unless a reader deliberately turns on everything — which is
+#:    the explicit hairball mode.
+#: 2. Colour is always paired with a dash pattern as a redundant channel.
+#: 3. **For SYSTEMS and CONTEXT, colour is not the primary discriminator — the axis
+#:    filter is.** These families exist because a reader asks "how is this connected
+#:    through the network?" as a deliberate question, and answers it by isolating that
+#:    family rather than by picking its hue out of nine. The weakest pair under
+#:    deuteranopia is CONTEXT's olive against CHEMICAL's green; they are separated by
+#:    lightness, by dash, and in practice by never being the two families in question
+#:    at the same time.
+#:
+#: Yellow (#F0E442) is deliberately absent: it is in the Okabe-Ito set but unusable for
+#: thin strokes on a light background. CONTEXT gets a darkened olive derivative instead.
 FAMILY_COLOR: dict[PredicateFamily, str] = {
     PredicateFamily.STRUCTURAL: "#0072B2",   # blue
     PredicateFamily.SEQUENCE: "#56B4E9",     # sky blue
@@ -295,16 +386,23 @@ FAMILY_COLOR: dict[PredicateFamily, str] = {
     PredicateFamily.INTERACTION: "#CC79A7",  # light reddish purple
     PredicateFamily.METHOD: "#D55E00",       # vermillion
     PredicateFamily.ANALOGY: "#E69F00",      # orange
-    PredicateFamily.DATA: "#6A3D9A",         # deep purple (dark, vs INTERACTION's light pink)
+    PredicateFamily.SYSTEMS: "#6A3D9A",      # deep purple (dark, vs INTERACTION's light pink)
+    PredicateFamily.CONTEXT: "#8C6D31",      # darkened olive — legible where #F0E442 is not
     PredicateFamily.COMPOSITION: "#454545",  # dark grey
-    PredicateFamily.EVIDENCE: "#A6A6A6",     # light grey
+    PredicateFamily.DATA: "#767676",         # mid grey  (hidden by default)
+    PredicateFamily.EVIDENCE: "#A6A6A6",     # light grey (hidden by default)
 }
 
 #: Dash patterns cycled within a family, so two structural predicates are
 #: distinguishable at the same colour. Solid is reserved for the first/primary
-#: predicate in each family. Six patterns covers the largest family (evidence, 6).
+#: predicate in each family. Seven patterns covers the largest families (SYSTEMS, 7).
+#:
+#: Beyond about five, a dash pattern stops being a reliable cue at typical edge widths.
+#: SYSTEMS is at seven, so its last two patterns are decoration rather than signal, and
+#: hover plus the axis filter carry the distinction. Recording that here so nobody later
+#: reads the length of this list as a claim about perception.
 DASH_CYCLE: list[list[int] | None] = [
-    None, [6, 3], [2, 3], [10, 3, 2, 3], [1, 3], [8, 2, 2, 2],
+    None, [6, 3], [2, 3], [10, 3, 2, 3], [1, 3], [8, 2, 2, 2], [4, 2, 1, 2],
 ]
 
 #: Families whose edges are hidden until the reader asks for them.
@@ -314,6 +412,11 @@ DASH_CYCLE: list[list[int] | None] = [
 #: Data edges are hidden for the same reason and because they answer a question
 #: the reader asks deliberately ("where do I get the numbers?") rather than
 #: incidentally.
+#:
+#: SYSTEMS and CONTEXT are deliberately **not** hidden despite being new and numerous.
+#: The whole reason they were added is that network position and meta-properties are the
+#: connections an agent forgets to look for; defaulting them to invisible would restore
+#: exactly the blind spot they exist to fix.
 HIDDEN_BY_DEFAULT: set[PredicateFamily] = {
     PredicateFamily.EVIDENCE,
     PredicateFamily.DATA,
@@ -340,7 +443,7 @@ def visual_encoding_summary() -> dict[str, str]:
     return {
         "node_fill": "node.type",
         "node_size": "degree (capped)",
-        "edge_stroke": "predicate family (9 defined, at most 7 visible at once)",
+        "edge_stroke": "predicate family (11 defined, 9 visible by default, 2 grey families opt-in)",
         "edge_dash": "predicate within family",
         "edge_width": "axis score, normalised per axis to its declared score_range",
         "edge_opacity": "confidence (4 levels)",

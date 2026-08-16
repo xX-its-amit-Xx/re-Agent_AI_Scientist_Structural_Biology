@@ -1,0 +1,23 @@
+{
+  "stage": "stage1_literature",
+  "owner": "amit",
+  "status": "implemented",
+  "summary": "Derive search axes from what the target IS, against a domain checklist with a coverage gate.",
+  "consumes": [
+    "problem.spec"
+  ],
+  "produces": [
+    "stage1.axis_derivation",
+    "stage1.axes",
+    "kg.property_nodes"
+  ],
+  "external_tools": [
+    "uniprot",
+    "reactome",
+    "string-db",
+    "chembl",
+    "WebSearch",
+    "WebFetch"
+  ],
+  "credits": []
+}

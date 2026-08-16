@@ -1,0 +1,28 @@
+{
+  "stage": "stage1_literature",
+  "owner": "amit",
+  "status": "implemented",
+  "summary": "Recover under-attended but relevant work; the exploration quota and the coverage ledger.",
+  "consumes": [
+    "problem.spec",
+    "kg.neighbourhood",
+    "stage1.axis_derivation"
+  ],
+  "produces": [
+    "kg.paper_nodes",
+    "kg.dataset_nodes",
+    "search.ledger",
+    "search.coverage",
+    "stage1.neglected_sources"
+  ],
+  "external_tools": [
+    "paperclip",
+    "WebSearch",
+    "WebFetch",
+    "openalex",
+    "semantic-scholar",
+    "github",
+    "zenodo"
+  ],
+  "credits": []
+}

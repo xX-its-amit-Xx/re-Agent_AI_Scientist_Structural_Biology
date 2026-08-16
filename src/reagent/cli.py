@@ -197,6 +197,54 @@ def cmd_report_validate(args: argparse.Namespace) -> int:
             for pr in probs:
                 print(f"        {fid}: {pr}")
 
+    # -- progressive disclosure: can a reader drill in? -------------------
+    if fu := report.follow_up_problems():
+        for p in fu:
+            if args.strict:
+                _err(p)
+                failures += 1
+            else:
+                print(f"  warn  {p}")
+    elif depths := report.disclosure_depth():
+        _ok(
+            f"follow-up trees on {len(depths)} sections, max depth "
+            f"{max(depths.values())}, no dead ends"
+        )
+    if bare := report.findings_without_follow_ups():
+        print(
+            f"  note  {len(bare)} decision-bearing findings a reader cannot drill into: "
+            f"{bare[:6]}"
+        )
+
+    # -- coverage: what did the search not reach? -------------------------
+    if covp := report.coverage_problems():
+        for p in covp:
+            if args.strict:
+                _err(p)
+                failures += 1
+            else:
+                print(f"  warn  {p}")
+    if mix := report.discovery_channel_mix():
+        _ok("channel mix: " + ", ".join(f"{k} {v:.0%}" for k, v in list(mix.items())[:5]))
+    if report.search is None and report.stage.value in {
+        "stage0_scouting", "stage1_literature",
+    }:
+        msg = (
+            "no search ledger on a retrieval stage, so 'we searched thoroughly' is an "
+            "assertion rather than a report. A missing source leaves no trace in the "
+            "citations, which is why the shape of the search has to be recorded."
+        )
+        if args.strict:
+            _err(msg)
+            failures += 1
+        else:
+            print(f"  warn  {msg}")
+    if neg := report.neglected_sources():
+        _ok(
+            f"{len(neg)} under-attended sources recovered "
+            f"({sorted({r for _, rs in neg for r in rs})})"
+        )
+
     if uninterp := report.uninterpreted_findings():
         print(f"  note  {len(uninterp)} findings have no interpretation: {uninterp[:6]}")
     if trivia := report.findings_without_implications():
@@ -256,6 +304,80 @@ def cmd_report_render(args: argparse.Namespace) -> int:
 # --------------------------------------------------------------------------
 # kg
 # --------------------------------------------------------------------------
+
+
+def cmd_axes_checklist(args: argparse.Namespace) -> int:
+    """Print the property checklist for a domain, with each item's question."""
+    from reagent.contracts.axes import CHECKLISTS, checklist_for
+    from reagent.contracts.problem import Domain
+
+    try:
+        domain = Domain(args.domain)
+    except ValueError:
+        _err(f"unknown domain {args.domain!r}; one of {[d.value for d in Domain]}")
+        return 1
+
+    items = checklist_for(domain)
+    registered = domain in CHECKLISTS
+    print(f"{domain.value}: {len(items)} checklist items")
+    if not registered:
+        print(
+            "  note  this domain has no registered checklist, so it falls back to the "
+            "largest one. That is deliberate: an unregistered domain should make the "
+            "coverage gate harder to pass, not trivially passable."
+        )
+    for k in items:
+        print(f"\n  {k.value}")
+        print(f"    {k.question}")
+    return 0
+
+
+def cmd_axes_derive(args: argparse.Namespace) -> int:
+    """Check a report's axis derivation against its domain checklist."""
+    try:
+        report = ModelReport.load(Path(args.report))
+    except Exception as exc:
+        _err(f"{args.report} is not a valid ModelReport:\n{exc}")
+        return 1
+
+    if report.sweep is None:
+        _err(
+            "report has no `sweep`, so there is no axis derivation to check. Run "
+            "target-properties first — accepting the ProblemSpec's axis list as final is "
+            "the failure this command exists to catch."
+        )
+        return 1
+
+    print(report.sweep.derivation.summary())
+    problems = report.sweep.derivation.problems()
+    if problems and args.strict:
+        print(f"FAIL ({len(problems)} problems)")
+        return 1
+    print("PASS" if not problems else f"WARN ({len(problems)} problems)")
+    return 0
+
+
+def cmd_axes_sweep_status(args: argparse.Namespace) -> int:
+    """Per-axis exhaustion status: the curve, the state, and every open lead."""
+    try:
+        report = ModelReport.load(Path(args.report))
+    except Exception as exc:
+        _err(f"{args.report} is not a valid ModelReport:\n{exc}")
+        return 1
+
+    if report.sweep is None:
+        _err("report has no `sweep` — nothing to report on")
+        return 1
+
+    print(report.sweep.summary())
+    problems = report.sweep.problems()
+    if leads := report.sweep.open_leads():
+        print(f"\n{len(leads)} axes stopped short and are worth resuming: {leads}")
+    if problems and args.strict:
+        print(f"FAIL ({len(problems)} problems)")
+        return 1
+    print("PASS" if not problems else f"WARN ({len(problems)} problems)")
+    return 0
 
 
 def cmd_kg_stats(args: argparse.Namespace) -> int:
@@ -502,6 +624,23 @@ def build_parser() -> argparse.ArgumentParser:
     rr.add_argument("path")
     rr.add_argument("-o", "--out", default=None)
     rr.set_defaults(func=cmd_report_render)
+
+    # axes — derive the search axes from the target, then check they were worked
+    ax = sub.add_parser(
+        "axes",
+        help="property checklist, axis derivation, and per-axis exhaustion status",
+    ).add_subparsers(dest="sub", required=True)
+    ac = ax.add_parser("checklist", help="the property checklist for a domain, with questions")
+    ac.add_argument("--domain", default="structural_biology")
+    ac.set_defaults(func=cmd_axes_checklist)
+    ad = ax.add_parser("derive", help="check a report's axis derivation against the checklist")
+    ad.add_argument("--report", required=True)
+    ad.add_argument("--strict", action="store_true")
+    ad.set_defaults(func=cmd_axes_derive)
+    asw = ax.add_parser("sweep-status", help="per-axis discovery curves, states, and open leads")
+    asw.add_argument("--report", required=True)
+    asw.add_argument("--strict", action="store_true")
+    asw.set_defaults(func=cmd_axes_sweep_status)
 
     # kg
     kg = sub.add_parser("kg", help="knowledge graph").add_subparsers(dest="sub", required=True)

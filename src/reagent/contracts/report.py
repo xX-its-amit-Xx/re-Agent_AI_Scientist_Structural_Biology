@@ -27,7 +27,10 @@ from typing import Any, ClassVar, Literal
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 # Re-exported so `from reagent.contracts.report import Evidence` keeps working.
+from .axes import NeighborhoodSweep
+from .discovery import SearchLedger
 from .evidence import Confidence, Evidence
+from .followup import FollowUpTree
 from .interpret import (
     Glossary,
     Interpretation,
@@ -84,6 +87,15 @@ class Finding(BaseModel):
             "kinds (prior, design_choice, negative_result, constraint) because those "
             "are the ones a downstream stage acts on, and an uninterpreted one gets "
             "either ignored or misapplied."
+        ),
+    )
+
+    follow_ups: FollowUpTree | None = Field(
+        default=None,
+        description=(
+            "The questions this finding provokes, answered in place and nested up to five "
+            "levels. Lets one report serve a specialist who opens nothing and a newcomer "
+            "who opens everything, instead of splitting the difference and serving neither."
         ),
     )
 
@@ -278,6 +290,32 @@ class ModelReport(BaseModel):
     )
     handoff: Handoff | None = None
 
+    follow_ups: FollowUpTree | None = Field(
+        default=None,
+        description=(
+            "Report-level disclosure tree, for the questions about the run as a whole "
+            "rather than about one finding: why this approach, what would have changed the "
+            "answer, what is still open."
+        ),
+    )
+    search: SearchLedger | None = Field(
+        default=None,
+        description=(
+            "What was searched, through which channels, and how much of the retrievable "
+            "literature that plausibly represents. A retrieval stage without this is "
+            "asserting thoroughness rather than reporting it."
+        ),
+    )
+    sweep: NeighborhoodSweep | None = Field(
+        default=None,
+        description=(
+            "Axis derivation and per-axis exhaustion, for stages that build a "
+            "neighbourhood. Carries the record of which connections were considered at "
+            "all — including the ones dismissed, which is the only way a reader can "
+            "disagree with a boundary they cannot otherwise see."
+        ),
+    )
+
     metrics: dict[str, Any] = Field(
         default_factory=dict, description="Headline numbers, e.g. {'n_proteins': 42}."
     )
@@ -410,6 +448,80 @@ class ModelReport(BaseModel):
             for imp in f.interpretation.implications:
                 out.setdefault(imp.for_stage, []).append((f.id, imp.decision))
         return out
+
+    # -- progressive disclosure -------------------------------------------
+
+    def follow_up_problems(self) -> list[str]:
+        """Places the reader's trail runs out. Advisory; `--strict` promotes these.
+
+        Checked against the *effective* glossary plus whatever each tree defines for
+        itself, so a term defined once for the run does not need re-explaining in every
+        branch that mentions it.
+        """
+        defined = self.effective_glossary().defined()
+        out: list[str] = []
+        if self.follow_ups:
+            out += [f"report follow-ups: {p}" for p in self.follow_ups.problems(defined)]
+        for f in self.findings:
+            if f.follow_ups:
+                out += [f"{f.id} follow-ups: {p}" for p in f.follow_ups.problems(defined)]
+        return out
+
+    def findings_without_follow_ups(self) -> list[str]:
+        """Decision-bearing findings a reader cannot drill into.
+
+        Advisory rather than fatal, because not every finding provokes a question. But a
+        `prior` or `design_choice` that nobody can interrogate is being asked to be taken
+        on trust, which is the opposite of what this project is for.
+        """
+        return [
+            f.id for f in self.findings
+            if f.kind in Finding.NEEDS_INTERPRETATION and f.follow_ups is None
+        ]
+
+    def disclosure_depth(self) -> dict[str, int]:
+        """Deepest disclosure level per finding. A report of all-depth-1 trees has
+        anticipated the first question and none of the ones its answers provoke."""
+        out = {f.id: f.follow_ups.depth() for f in self.findings if f.follow_ups}
+        if self.follow_ups:
+            out["__report__"] = self.follow_ups.depth()
+        return out
+
+    # -- search coverage --------------------------------------------------
+
+    def coverage_problems(self) -> list[str]:
+        """Ways the retrieval behind this report is not yet auditable.
+
+        Separate from every other check because it is about what is *absent*. A missing
+        source leaves no trace in the report that cites the ones we found, so the only
+        defence is to make the shape of the search itself reportable.
+        """
+        out: list[str] = []
+        if self.search:
+            out += [f"search: {p}" for p in self.search.problems()]
+        if self.sweep:
+            out += [f"sweep: {p}" for p in self.sweep.problems()]
+        return out
+
+    def neglected_sources(self) -> list[tuple[str, list[str]]]:
+        """Cited sources flagged as under-attended, with why. Feeds the report's
+        "what we found that the field mostly hasn't" section."""
+        out: list[tuple[str, list[str]]] = []
+        seen: set[str] = set()
+        for f in self.findings:
+            for e in f.evidence:
+                if e.is_neglected and e.locator not in seen:
+                    seen.add(e.locator)
+                    out.append((e.locator, [r.value for r in e.neglect]))
+        return out
+
+    def discovery_channel_mix(self) -> dict[str, float]:
+        """Share of admitted sources per channel, from the ledger if present.
+
+        Concentration is the warning: if one channel found everything, the others were
+        configured rather than run.
+        """
+        return self.search.channel_mix() if self.search else {}
 
     def audience_coverage(self) -> dict[str, int]:
         """How many findings speak to each audience register."""

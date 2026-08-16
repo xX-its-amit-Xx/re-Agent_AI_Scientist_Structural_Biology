@@ -22,6 +22,8 @@ sys.path.insert(0, str(REPO / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from demo_context import GLOSSARY, interpretations, trace  # noqa: E402
+from demo_followups import follow_ups, report_tree  # noqa: E402
+from demo_search import demo_ledger  # noqa: E402
 
 from reagent.contracts import (  # noqa: E402
     AgentIdentity,
@@ -170,10 +172,12 @@ def main() -> int:
         repo_root=REPO,
     )
 
+    fus = follow_ups()
     findings = [
         Finding(
             id="F-CONSTRAINT-01",
             interpretation=interps.get("F-CONSTRAINT-01"),
+            follow_ups=fus.get("F-CONSTRAINT-01"),
             kind=FindingKind.CONSTRAINT,
             statement=(
                 "Every quantitative edge in this fixture is a placeholder, flagged "
@@ -195,6 +199,7 @@ def main() -> int:
         Finding(
             id="F-FAMILY-01",
             interpretation=interps.get("F-FAMILY-01"),
+            follow_ups=fus.get("F-FAMILY-01"),
             kind=FindingKind.OBSERVATION,
             statement=(
                 f"The target sits in a receptor family with {len(nr_members)} members "
@@ -212,6 +217,7 @@ def main() -> int:
         Finding(
             id="F-PROMISC-01",
             interpretation=interps.get("F-PROMISC-01"),
+            follow_ups=fus.get("F-PROMISC-01"),
             kind=FindingKind.PRIOR,
             statement=(
                 "The most promiscuous neighbours are xenobiotic-handling enzymes and "
@@ -235,6 +241,7 @@ def main() -> int:
         Finding(
             id="F-NEG-01",
             interpretation=interps.get("F-NEG-01"),
+            follow_ups=fus.get("F-NEG-01"),
             kind=FindingKind.NEGATIVE,
             statement=(
                 "Five of the seven declared similarity axes are empty in this fixture. "
@@ -260,6 +267,7 @@ def main() -> int:
         Finding(
             id="F-DESIGN-01",
             interpretation=interps.get("F-DESIGN-01"),
+            follow_ups=fus.get("F-DESIGN-01"),
             kind=FindingKind.DESIGN_CHOICE,
             statement=(
                 "Each similarity axis writes its own predicate rather than a generic "
@@ -273,6 +281,7 @@ def main() -> int:
         Finding(
             id="F-RISK-01",
             interpretation=interps.get("F-RISK-01"),
+            follow_ups=fus.get("F-RISK-01"),
             kind=FindingKind.RISK,
             statement=(
                 f"Only {stats['cited_edge_fraction']:.0%} of edges carry a citation. The "
@@ -353,6 +362,8 @@ def main() -> int:
         ),
         glossary=GLOSSARY,
         reasoning=tr,
+        follow_ups=report_tree(),
+        search=demo_ledger(RUN),
         plain_summary=(
             "We were asked what other proteins resemble our target, so that later steps "
             "can borrow their known shapes. This run built the machinery for that question "
@@ -378,9 +389,15 @@ def main() -> int:
             "No domain-shift measurement was performed, because the fixture has no test "
             "compound set — that measurement is Stage 1's most decision-relevant output "
             "and its absence here is the largest gap.",
-            "One characteristic Stage 1 figure is still missing: a provenance chain "
-            "tracing a claim through its evidence to its sources. `reagent report "
-            "validate --strict` therefore fails this report, correctly.",
+            "The search ledger reports roughly 65% estimated coverage, and that figure is "
+            "an upper bound — the estimator assumes the two channels are independent, "
+            "which they are not, and the violation inflates coverage rather than "
+            "deflating it. Four regions were not searched at all: patents, non-English "
+            "literature, explicit negative results, and graph-gap candidates.",
+            "No axis derivation was run, so the axes here are the ones the ProblemSpec "
+            "declared rather than ones derived from what the target is. Nothing checked "
+            "whether a connection type was missed entirely, which is the failure that "
+            "cannot be recovered downstream.",
         ],
         open_questions=[
             "Do the fold and pocket axes agree for this target, or does high fold "

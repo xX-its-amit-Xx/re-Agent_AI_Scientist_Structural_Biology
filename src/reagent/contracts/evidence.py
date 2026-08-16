@@ -13,6 +13,8 @@ from enum import Enum
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from reagent.contracts.discovery import AttentionProfile, DiscoveryChannel, NeglectReason
+
 
 class SourceType(str, Enum):
     """Where a piece of evidence came from.
@@ -106,6 +108,31 @@ class Evidence(BaseModel):
     # For ANALOGY evidence only: the source domain it was lifted from.
     source_domain: str | None = None
 
+    # -- how we came to have this, and why it was easy or hard to find ------
+    found_via: DiscoveryChannel | None = Field(
+        default=None,
+        description=(
+            "Which discovery channel surfaced this. Required for coverage estimation: "
+            "without it, 'we searched thoroughly' cannot be checked, only asserted."
+        ),
+    )
+    neglect: list[NeglectReason] = Field(
+        default_factory=list,
+        description=(
+            "Why this source has less attention than its relevance warrants. Empty is the "
+            "normal case. Each entry must be backed by a signal in `attention` or by "
+            "`neglect_justification` — see the validator."
+        ),
+    )
+    attention: AttentionProfile | None = None
+    neglect_justification: str | None = Field(
+        default=None,
+        description=(
+            "Prose argument for the neglect reasons that no bibliometric field can "
+            "establish. Must name the specific mechanism, not assert being ahead of its time."
+        ),
+    )
+
     @field_validator("locator")
     @classmethod
     def _locator_nonempty(cls, v: str) -> str:
@@ -121,3 +148,45 @@ class Evidence(BaseModel):
                 "(e.g. 'quantitative finance') so it is never mistaken for domain evidence"
             )
         return self
+
+    @model_validator(mode="after")
+    def _neglect_claims_are_backed(self) -> Evidence:
+        """A neglect reason must rest on a signal or an argument, never on narrative.
+
+        This is the load-bearing guard for the ``neglected-literature`` skill. Hunting for
+        under-attended work is worth doing and is also the easiest thing in this project to
+        fake, because "few citations, but ahead of its time" fits every paper ever written.
+        Requiring either a bibliometric signal or a named mechanism is what separates
+        recovering a neglected result from laundering an irrelevant one.
+        """
+        if not self.neglect:
+            return self
+
+        probe = self.attention or AttentionProfile()
+        prose_only = probe.needs_written_justification
+
+        unbacked = [
+            r.value for r in self.neglect
+            if r not in prose_only and not (self.attention and self.attention.supports(r))
+        ]
+        if unbacked:
+            raise ValueError(
+                f"neglect reason(s) {unbacked} claimed for {self.locator} without a "
+                "supporting signal in `attention`. These reasons are bibliometric and must "
+                "be evidenced: "
+                + "; ".join(NeglectReason(r).note for r in unbacked)
+            )
+
+        needs_prose = [r.value for r in self.neglect if r in prose_only]
+        if needs_prose and not (self.neglect_justification or "").strip():
+            raise ValueError(
+                f"neglect reason(s) {needs_prose} for {self.locator} cannot be established "
+                "from citation data — they require `neglect_justification` naming the "
+                "specific mechanism. Without it this is an assertion that the work is "
+                "underrated, which is available for any work at all."
+            )
+        return self
+
+    @property
+    def is_neglected(self) -> bool:
+        return bool(self.neglect)

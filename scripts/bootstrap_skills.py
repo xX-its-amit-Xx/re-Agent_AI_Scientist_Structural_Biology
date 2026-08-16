@@ -67,10 +67,42 @@ META: dict[str, dict] = {
         "produces": ["data.local_cache", "data.fetch_report"],
         "external_tools": ["WebFetch", "curl"], "credits": [],
     },
+    "neglected-literature": {
+        "stage": "stage1_literature", "owner": "amit", "status": "implemented",
+        "summary": "Recover under-attended but relevant work; the exploration quota and "
+                   "the coverage ledger.",
+        "consumes": ["problem.spec", "kg.neighbourhood", "stage1.axis_derivation"],
+        "produces": ["kg.paper_nodes", "kg.dataset_nodes", "search.ledger",
+                     "search.coverage", "stage1.neglected_sources"],
+        "external_tools": ["paperclip", "WebSearch", "WebFetch", "openalex",
+                           "semantic-scholar", "github", "zenodo"],
+        "credits": [],
+    },
+    "target-properties": {
+        "stage": "stage1_literature", "owner": "amit", "status": "implemented",
+        "summary": "Derive search axes from what the target IS, against a domain checklist "
+                   "with a coverage gate.",
+        "consumes": ["problem.spec"],
+        "produces": ["stage1.axis_derivation", "stage1.axes", "kg.property_nodes"],
+        "external_tools": ["uniprot", "reactome", "string-db", "chembl", "WebSearch",
+                           "WebFetch"],
+        "credits": [],
+    },
+    "axis-sweep": {
+        "stage": "stage1_literature", "owner": "amit", "status": "implemented",
+        "summary": "Work one axis to exhaustion in its own worker, with an observable "
+                   "stopping rule.",
+        "consumes": ["stage1.axes", "stage1.axis_derivation"],
+        "produces": ["kg.neighbourhood", "stage1.axis_sweeps", "search.ledger"],
+        "external_tools": ["Agent", "foldseek", "mmseqs2", "rcsb-search-api", "uniprot",
+                           "chembl", "reactome", "string-db", "WebSearch"],
+        "credits": [],
+    },
     "target-neighborhood": {
         "stage": "stage1_literature", "owner": "amit", "status": "implemented",
         "summary": "Multi-axis neighbourhood of the target; measures the domain shift.",
-        "consumes": ["problem.spec", "kg.paper_nodes", "kg.claim_edges", "motif.features"],
+        "consumes": ["problem.spec", "kg.paper_nodes", "kg.claim_edges", "motif.features",
+                     "stage1.axes", "stage1.axis_sweeps", "search.ledger"],
         "produces": ["stage1.report", "kg.neighbourhood", "stage1.template_candidates",
                      "stage1.corpus_for_finetune", "stage1.subpopulations", "stage1.priors"],
         "external_tools": ["foldseek", "mmseqs2", "rcsb-search-api", "uniprot", "chembl"],
@@ -104,6 +136,14 @@ META: dict[str, dict] = {
         "produces": ["report.interpretation", "report.glossary", "report.reasoning_trace"],
         "external_tools": [], "credits": [],
     },
+    "progressive-disclosure": {
+        "stage": "shared", "owner": "amit", "status": "implemented",
+        "summary": "Anticipate the reader's next question and answer it in place, nested "
+                   "five levels deep with no dead ends.",
+        "consumes": ["report.interpretation", "report.glossary"],
+        "produces": ["report.follow_ups"],
+        "external_tools": [], "credits": [],
+    },
     "report-mcp": {
         "stage": "shared", "owner": "amit", "status": "implemented",
         "summary": "Serve a report and its graph over MCP; compare two structures in 3D.",
@@ -114,7 +154,8 @@ META: dict[str, dict] = {
     "model-report": {
         "stage": "shared", "owner": "amit", "status": "implemented",
         "summary": "How to write, visualize, and validate a stage's Model Report.",
-        "consumes": ["report.interpretation", "report.glossary", "report.reasoning_trace"],
+        "consumes": ["report.interpretation", "report.glossary", "report.reasoning_trace",
+                     "report.follow_ups", "search.ledger", "stage1.axis_sweeps"],
         "produces": ["report.rendered", "report.validated"],
         "external_tools": [], "credits": [],
     },

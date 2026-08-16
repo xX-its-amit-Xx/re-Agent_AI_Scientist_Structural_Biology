@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generated_from": ".claude/skills",
-  "n_skills": 20,
+  "n_skills": 24,
   "by_stage": {
     "shared": [
       "ai-scientist",
@@ -10,6 +10,7 @@
       "kg-visualize",
       "literature-harvest",
       "model-report",
+      "progressive-disclosure",
       "report-mcp"
     ],
     "stage0_scouting": [
@@ -17,10 +18,13 @@
       "pipeline-space-scouting"
     ],
     "stage1_literature": [
+      "axis-sweep",
       "compound-neighborhood",
       "esmc-sae-motifs",
+      "neglected-literature",
       "source-scout",
-      "target-neighborhood"
+      "target-neighborhood",
+      "target-properties"
     ],
     "stage2_biochem": [
       "pocket-anatomy",
@@ -39,16 +43,20 @@
   "by_status": {
     "implemented": [
       "ai-scientist",
+      "axis-sweep",
       "cross-domain-analogy",
       "data-materialize",
       "explain-significance",
       "kg-visualize",
       "literature-harvest",
       "model-report",
+      "neglected-literature",
       "pipeline-space-scouting",
+      "progressive-disclosure",
       "report-mcp",
       "source-scout",
-      "target-neighborhood"
+      "target-neighborhood",
+      "target-properties"
     ],
     "stub": [
       "compound-neighborhood",
@@ -299,7 +307,10 @@
       "consumes": [
         "report.interpretation",
         "report.glossary",
-        "report.reasoning_trace"
+        "report.reasoning_trace",
+        "report.follow_ups",
+        "search.ledger",
+        "stage1.axis_sweeps"
       ],
       "produces": [
         "report.rendered",
@@ -314,6 +325,46 @@
       ],
       "body_lines": 167,
       "summary": "How to write, visualize, and validate a stage's Model Report."
+    },
+    "progressive-disclosure": {
+      "name": "progressive-disclosure",
+      "path": ".claude/skills/progressive-disclosure",
+      "description": "Make a report readable by one reader who knows the field and another who knows nothing, without writing it twice. Anticipates the questions each claim provokes and answers them in nested dropdowns up to five levels deep, so a reader keeps opening until they reach something they already know. Enforces the completeness rule: an answer may use an unexplained term only if a child follow-up explains that term. Use when a report reads as opaque, when the plain register is fighting the expert one, or before publishing any report a non-specialist will read. Trigger on: \"too much jargon\", \"make it readable\", \"educational\", \"anticipate questions\", \"dropdowns\", \"explain deeper\", \"follow-up questions\", \"for someone with no background\", or /progressive-disclosure.",
+      "stage": "shared",
+      "owner": "amit",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash"
+      ],
+      "consumes": [
+        "report.interpretation",
+        "report.glossary"
+      ],
+      "produces": [
+        "report.follow_ups"
+      ],
+      "triggers": [
+        "too much jargon",
+        "make it readable",
+        "educational",
+        "anticipate questions",
+        "dropdowns",
+        "explain deeper",
+        "follow-up questions",
+        "for someone with no background"
+      ],
+      "references": [
+        "reference/question-catalogue.md",
+        "reference/rendering.md",
+        "reference/worked-tree.md"
+      ],
+      "body_lines": 139,
+      "summary": "Anticipate the reader's next question and answer it in place, nested five levels deep with no dead ends."
     },
     "report-mcp": {
       "name": "report-mcp",
@@ -403,7 +454,7 @@
         "reference/domain-map.md",
         "reference/scout-prompt.md"
       ],
-      "body_lines": 210,
+      "body_lines": 224,
       "summary": "Borrow mechanisms from unrelated fields; emit gated, falsifiable proposals."
     },
     "pipeline-space-scouting": {
@@ -456,6 +507,60 @@
       ],
       "body_lines": 154,
       "summary": "Map the method landscape, baselines, and failure modes for a problem class."
+    },
+    "axis-sweep": {
+      "name": "axis-sweep",
+      "path": ".claude/skills/axis-sweep",
+      "description": "Work a single neighbourhood axis to exhaustion in its own subagent, with an observable stopping rule. One worker owns one axis, sees only that axis, records its discovery curve round by round, and may claim saturation only when the curve has flattened across at least three rounds using distinct strategies. A sweep that ran out of budget is recorded as truncated, not saturated. Use after target-properties has derived the axes, to populate each one. Trigger on: \"sweep this axis\", \"exhaust this connection\", \"keep going\", \"did it stop early\", \"saturate\", \"one agent per axis\", \"fan out over axes\", or /axis-sweep.",
+      "stage": "stage1_literature",
+      "owner": "amit",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash",
+        "WebSearch",
+        "WebFetch"
+      ],
+      "consumes": [
+        "stage1.axes",
+        "stage1.axis_derivation"
+      ],
+      "produces": [
+        "kg.neighbourhood",
+        "stage1.axis_sweeps",
+        "search.ledger"
+      ],
+      "external_tools": [
+        "Agent",
+        "foldseek",
+        "mmseqs2",
+        "rcsb-search-api",
+        "uniprot",
+        "chembl",
+        "reactome",
+        "string-db",
+        "WebSearch"
+      ],
+      "triggers": [
+        "sweep this axis",
+        "exhaust this connection",
+        "keep going",
+        "did it stop early",
+        "saturate",
+        "one agent per axis",
+        "fan out over axes"
+      ],
+      "references": [
+        "reference/fanout.md",
+        "reference/saturation.md",
+        "reference/strategy-ladder.md"
+      ],
+      "body_lines": 130,
+      "summary": "Work one axis to exhaustion in its own worker, with an observable stopping rule."
     },
     "compound-neighborhood": {
       "name": "compound-neighborhood",
@@ -532,6 +637,65 @@
       ],
       "body_lines": 62,
       "summary": "Sparse-autoencoder features over a protein LM as candidate structural motifs."
+    },
+    "neglected-literature": {
+      "name": "neglected-literature",
+      "path": ".claude/skills/neglected-literature",
+      "description": "Deliberately recover relevant work the field has under-attended: recent papers with no citations yet, small-field work with a low ceiling, papers cited three times by the three papers that matter, sleeping beauties, interdisciplinary orphans, negative results, non-English and regional literature, theses and tech reports, methods abandoned for reasons that have since expired, work using vocabulary that predates the field's current terms, and connections that exist in no single paper. Runs as the exploration quota against a search that otherwise converges on hubs. Use after a first literature pass, before declaring coverage, and whenever a search feels finished. Trigger on: \"what are we missing\", \"underground sources\", \"understudied\", \"low citations\", \"serendipity\", \"obscure\", \"overlooked\", \"did we miss anything\", \"exhaustive search\", \"coverage\", or /neglected-literature.",
+      "stage": "stage1_literature",
+      "owner": "amit",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash",
+        "WebSearch",
+        "WebFetch"
+      ],
+      "consumes": [
+        "problem.spec",
+        "kg.neighbourhood",
+        "stage1.axis_derivation"
+      ],
+      "produces": [
+        "kg.paper_nodes",
+        "kg.dataset_nodes",
+        "search.ledger",
+        "search.coverage",
+        "stage1.neglected_sources"
+      ],
+      "external_tools": [
+        "paperclip",
+        "WebSearch",
+        "WebFetch",
+        "openalex",
+        "semantic-scholar",
+        "github",
+        "zenodo"
+      ],
+      "triggers": [
+        "what are we missing",
+        "underground sources",
+        "understudied",
+        "low citations",
+        "serendipity",
+        "obscure",
+        "overlooked",
+        "did we miss anything",
+        "exhaustive search",
+        "coverage"
+      ],
+      "references": [
+        "reference/channels.md",
+        "reference/coverage-estimation.md",
+        "reference/graph-gap-queries.md",
+        "reference/recovery-mechanisms.md"
+      ],
+      "body_lines": 159,
+      "summary": "Recover under-attended but relevant work; the exploration quota and the coverage ledger."
     },
     "source-scout": {
       "name": "source-scout",
@@ -612,7 +776,10 @@
         "problem.spec",
         "kg.paper_nodes",
         "kg.claim_edges",
-        "motif.features"
+        "motif.features",
+        "stage1.axes",
+        "stage1.axis_sweeps",
+        "search.ledger"
       ],
       "produces": [
         "stage1.report",
@@ -643,6 +810,56 @@
       ],
       "body_lines": 175,
       "summary": "Multi-axis neighbourhood of the target; measures the domain shift."
+    },
+    "target-properties": {
+      "name": "target-properties",
+      "path": ".claude/skills/target-properties",
+      "description": "Derive the search axes from the target itself instead of accepting a fixed list. Works through a domain checklist asking what kind of thing the target IS \u2014 its family, fold, pocket character, promiscuity, pathway membership, position in its cascade, the analogous position it occupies in OTHER cascades, its binding partners, its shared regulators, where it is expressed, how the field assays it \u2014 and turns each answer into a predicate to search along, reifying it as a Property node so it cannot be forgotten. Every checklist item must be used or explicitly dismissed. Run before any neighbourhood search. Trigger on: \"what is the target\", \"which axes\", \"how else could this connect\", \"meta concepts\", \"what kind of thing is this\", \"derive axes\", \"what are we not considering\", or /target-properties.",
+      "stage": "stage1_literature",
+      "owner": "amit",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash",
+        "WebSearch",
+        "WebFetch"
+      ],
+      "consumes": [
+        "problem.spec"
+      ],
+      "produces": [
+        "stage1.axis_derivation",
+        "stage1.axes",
+        "kg.property_nodes"
+      ],
+      "external_tools": [
+        "uniprot",
+        "reactome",
+        "string-db",
+        "chembl",
+        "WebSearch",
+        "WebFetch"
+      ],
+      "triggers": [
+        "what is the target",
+        "which axes",
+        "how else could this connect",
+        "meta concepts",
+        "what kind of thing is this",
+        "derive axes",
+        "what are we not considering"
+      ],
+      "references": [
+        "reference/analogous-roles.md",
+        "reference/property-kinds.md",
+        "reference/reification.md"
+      ],
+      "body_lines": 140,
+      "summary": "Derive search axes from what the target IS, against a domain checklist with a coverage gate."
     },
     "pocket-anatomy": {
       "name": "pocket-anatomy",

@@ -83,6 +83,15 @@ documented view of participants is that the colloquium was necessary for the phy
 Compartmentalisation and scientific progress were in direct conflict, and one was
 suspended locally to get the other.
 
+> **Do not cite this in support of our isolation discipline.** Read plainly, Los Alamos is
+> evidence **against** compartmentalisation: the people doing the physics thought it was
+> obstructing them, and it was locally abandoned. Our design nonetheless isolates workers
+> and funnels them into one synthesis point, and it should be justified by the measured
+> correlated-error results in [`04`](04-agent-architectures.md) — independent aggregation at
+> 83.43% against deliberative consensus at 76.11% — not by this episode. The two arrangements
+> look alike and rest on opposite evidence. The difference is that Oppenheimer's physicists
+> had genuinely different private information to pool, and same-family agents do not.
+
 **Janelia Research Campus.** Explicitly modelled on the LMB and Bell Labs. What it
 copied: small groups with hard caps, no tenure, shared instrumentation staff, internal
 funding removing grant-writing overhead. What it changed: it made group-size limits

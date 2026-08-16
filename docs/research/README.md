@@ -45,12 +45,20 @@ demands of a decision.
 |---|---|
 | [`05-topology-options.md`](05-topology-options.md) | The exhaustive enumeration: every orchestration option considered, with its coordination mechanism, cost profile, error-propagation behaviour, provenance quality, and failure mode. Including the ones we rejected, and why. |
 | [`06-chosen-design.md`](06-chosen-design.md) | The design we adopted, traced to the evidence behind each choice, with the alternatives it beat and the conditions that should make us revisit it. |
+| [`07-agent-native-coordination.md`](07-agent-native-coordination.md) | Where the human material stops transferring. Audits every human→agent inference in `01`–`03`: four transfer, **seven invert**, and most of the rest survive only because `04` measured the same thing on agents. Plus the 2024–2026 engineering practice, and the strongest version of the case *against* this architecture. |
+
+## Read this first
+
+| Document | Contents |
+|---|---|
+| [`00-provenance-audit.md`](00-provenance-audit.md) | **Corrections.** An adversarial audit went back to primary sources and found several load-bearing numbers here that could not be sourced, and one that meant the opposite of what we said. They are withdrawn, the design changes they imply are listed, and a standing citation rule is set. Read before citing any figure from `01`–`06`. |
 
 ## How to read this
 
 If you want the answer, read `06-chosen-design.md`. If you want to challenge the
 answer, read `05-topology-options.md` — it is written so that disagreeing with the
-conclusion means pointing at a specific row.
+conclusion means pointing at a specific row. If you want to know which of it survived
+checking, read `00-provenance-audit.md` and `07-agent-native-coordination.md`.
 
 The four investigation documents are the raw evidence. They are long and they are
 meant to be skimmed by heading, not read through.
@@ -64,6 +72,19 @@ documents say so; where a finding rests on a single vendor-authored paper, they 
 that too. A design justified by weak evidence that presents itself as strong is worse
 than an unjustified design, because nobody will revisit it.
 
-Status: investigations in progress. This index was written first so the question is
-fixed before the answers arrive — the same reason a `ProblemSpec` is written before a
-stage runs.
+**And the folder failed its own rule.** `04`–`06` were written with almost no citations, and
+numbers propagated between documents without their sources — the exact provenance discipline every
+`Finding` in a Model Report is required to carry, not applied to our own notes. Four figures were
+withdrawn as unsourceable and one was found to mean the opposite of the claim it supported. The
+conclusions survived; the warrants did not. `00-provenance-audit.md` records all of it, and the
+standing rule is now that **every number carries a locator at the point of use.**
+
+Two things worth taking from that. The design being right for partly wrong reasons is a real
+result, not an embarrassment to bury — a conclusion resting on the wrong mechanism gets generalised
+wrongly, which is why `07` exists. And a number repeated confidently across four documents acquires
+authority from the repetition alone, which is the same cumulative-advantage effect the
+`neglected-literature` skill was built to counter in the published literature. It applies to our
+own prose too.
+
+Status: seven investigations complete, one audit. This index was written first so the question was
+fixed before the answers arrived — the same reason a `ProblemSpec` is written before a stage runs.
