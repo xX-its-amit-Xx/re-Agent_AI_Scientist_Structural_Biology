@@ -39,10 +39,14 @@ agents:
       max_concurrent: 4
 
   - name: rescore
-    stage: stages/03_rescore.py
+    skill: .claude/skills/confidence-selection
     description: >
-      Collapses each target's ensemble to one pose. Reads confidences and
-      pose-agreement only — never reads data/challenge/structure_ground_truth.
+      Collapses each target's ensemble to one pose per item. Driven by a skill
+      rather than a script, because the selection rule is the scientific
+      judgement of this stage and must stay revisable — an earlier version
+      hardcoded pose-agreement (medoid) selection, which the reference case
+      refutes. Reads native confidences only; never reads
+      data/challenge/structure_ground_truth.
     permissions: [read_runs, write_runs]
     approval_required: false
 
