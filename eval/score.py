@@ -84,10 +84,14 @@ def score_with_ost(pairs: list[tuple[Path, Path, str]], workdir: Path) -> pd.Dat
     spec_path = workdir / "_ost_pairs.json"
     spec_path.write_text(json.dumps(spec))
 
+    # The image's ENTRYPOINT is already ["ost"], so the script path goes straight
+    # in as the first argument. Passing "ost" again makes the interpreter try to
+    # open a file literally named 'ost' and fail with a bare FileNotFoundError.
     cmd = [
         "docker", "run", "--rm",
+        "--platform", "linux/amd64",  # image is amd64-only; emulated on Apple silicon
         "-v", f"{ROOT}:/work",
-        OST_IMAGE, "ost", f"/work/{driver.relative_to(ROOT)}", f"/work/{spec_path.relative_to(ROOT)}",
+        OST_IMAGE, f"/work/{driver.relative_to(ROOT)}", f"/work/{spec_path.relative_to(ROOT)}",
     ]
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if proc.returncode != 0:
@@ -146,9 +150,13 @@ def main() -> int:
     if args.limit:
         ligands = ligands.head(args.limit)
 
+    # Resolve to absolute: paths are later rebased onto the container's /work
+    # mount via relative_to(ROOT), which raises on a relative input.
+    pose_dir = args.pose_dir if args.pose_dir.is_absolute() else (Path.cwd() / args.pose_dir).resolve()
+
     pairs = []
     for rec in ligands.itertuples(index=False):
-        model = args.pose_dir / f"{rec.structure_id}.pdb"
+        model = pose_dir / f"{rec.structure_id}.pdb"
         ref = ROOT / rec.ground_truth_pdb
         if model.exists() and ref.exists():
             pairs.append((model, ref, rec.structure_id))
