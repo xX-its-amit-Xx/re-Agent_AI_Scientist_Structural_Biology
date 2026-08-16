@@ -1,0 +1,16 @@
+{
+  "stage": "method",
+  "owner": "sumer",
+  "status": "implemented",
+  "summary": "Build a pool whose generators fail on different items, and measure it.",
+  "consumes": [
+    "problem.spec",
+    "method.budget_plan"
+  ],
+  "produces": [
+    "method.candidate_pool",
+    "method.correlation_matrix"
+  ],
+  "external_tools": [],
+  "credits": []
+}

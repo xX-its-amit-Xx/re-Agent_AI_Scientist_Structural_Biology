@@ -1,0 +1,17 @@
+{
+  "stage": "method",
+  "owner": "sumer",
+  "status": "implemented",
+  "summary": "Collapse the pool to one candidate per item via within-generator z-scores.",
+  "consumes": [
+    "method.candidate_pool",
+    "method.signal_spec",
+    "method.bottleneck_verdict"
+  ],
+  "produces": [
+    "method.selection",
+    "method.confidence_ranking"
+  ],
+  "external_tools": [],
+  "credits": []
+}

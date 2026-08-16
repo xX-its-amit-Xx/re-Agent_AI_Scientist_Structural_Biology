@@ -1,0 +1,16 @@
+{
+  "stage": "method",
+  "owner": "sumer",
+  "status": "implemented",
+  "summary": "Decide whether generation or selection is the limiting stage.",
+  "consumes": [
+    "method.candidate_pool",
+    "method.scored_pool"
+  ],
+  "produces": [
+    "method.oracle_curve",
+    "method.bottleneck_verdict"
+  ],
+  "external_tools": [],
+  "credits": []
+}

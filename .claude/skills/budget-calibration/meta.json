@@ -1,0 +1,15 @@
+{
+  "stage": "method",
+  "owner": "sumer",
+  "status": "implemented",
+  "summary": "Size a run against a hard ceiling from measured pilot cost.",
+  "consumes": [
+    "problem.spec"
+  ],
+  "produces": [
+    "method.budget_plan",
+    "method.cost_model"
+  ],
+  "external_tools": [],
+  "credits": []
+}

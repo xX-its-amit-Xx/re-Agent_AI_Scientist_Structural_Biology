@@ -1,0 +1,16 @@
+{
+  "stage": "method",
+  "owner": "sumer",
+  "status": "implemented",
+  "summary": "Package a result into exactly the artifact a grader accepts.",
+  "consumes": [
+    "problem.spec",
+    "method.rescued_selection"
+  ],
+  "produces": [
+    "method.submission",
+    "method.format_report"
+  ],
+  "external_tools": [],
+  "credits": []
+}

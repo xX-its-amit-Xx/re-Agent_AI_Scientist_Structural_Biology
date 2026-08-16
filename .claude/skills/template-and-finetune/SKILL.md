@@ -61,6 +61,22 @@ one comparable to theirs", say that instead of spending the compute.
 - **Respect each template's domain of validity.** A structure solved with a very
   different ligand class may not describe the pocket your ligands see.
 
+## Measured: the injection path is currently closed
+
+All five deployed cofolders accept exactly two inputs — `complexes` and `msas`.
+None exposes a `templates` field, and their schemas are `additionalProperties:
+false`, so an extra key is rejected rather than ignored. **A template set can be
+selected but not applied through the proto-tools path.**
+
+Two routes open it, and both are real work: extend our own AF3 service, where
+AF3's native template support is reachable, or supply the prior through the one
+input that *is* accepted — MSAs. Do not report templating as done because the set
+was chosen; selecting templates and injecting them are different deliverables,
+and only the first currently works.
+
+`stages/templates.py` does the selection, clustering all 64 receptors on pocket
+geometry rather than sequence.
+
 ## Choosing a template set
 
 0. **Read the corpus and the splits first.** `stage1.corpus_for_finetune` is the

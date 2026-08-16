@@ -1,0 +1,15 @@
+{
+  "stage": "method",
+  "owner": "sumer",
+  "status": "implemented",
+  "summary": "Decide whether a measured improvement clears the noise floor.",
+  "consumes": [
+    "method.scored_pool",
+    "method.selection"
+  ],
+  "produces": [
+    "method.significance_report"
+  ],
+  "external_tools": [],
+  "credits": []
+}

@@ -1,0 +1,17 @@
+{
+  "stage": "method",
+  "owner": "sumer",
+  "status": "implemented",
+  "summary": "Overwrite the lowest-confidence items with a decorrelated generator.",
+  "consumes": [
+    "method.selection",
+    "method.confidence_ranking",
+    "method.correlation_matrix"
+  ],
+  "produces": [
+    "method.rescued_selection",
+    "method.rescue_sweep"
+  ],
+  "external_tools": [],
+  "credits": []
+}
