@@ -86,6 +86,11 @@ def main() -> int:
     if args.split != "all":
         ligands = ligands[ligands.split == args.split]
 
+    # Resolve before use: the success line reports the path via relative_to(ROOT),
+    # which raises on a relative --out rather than on anything to do with the zip.
+    if not args.out.is_absolute():
+        args.out = (Path.cwd() / args.out).resolve()
+
     poses, missing = collect(args.pose_dir, ligands)
     print(f"poses found: {len(poses)}/{len(ligands)}")
     if missing:
