@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generated_from": ".claude/skills",
-  "n_skills": 26,
+  "n_skills": 28,
   "by_stage": {
     "shared": [
       "adversarial-verify",
@@ -20,9 +20,11 @@
     ],
     "stage1_literature": [
       "axis-sweep",
+      "binder-census",
       "compound-neighborhood",
       "esmc-sae-motifs",
       "neglected-literature",
+      "relation-expand",
       "source-scout",
       "target-neighborhood",
       "target-properties"
@@ -47,6 +49,7 @@
       "adversarial-verify",
       "ai-scientist",
       "axis-sweep",
+      "binder-census",
       "cross-domain-analogy",
       "data-materialize",
       "explain-significance",
@@ -57,6 +60,7 @@
       "parts-inventory",
       "pipeline-space-scouting",
       "progressive-disclosure",
+      "relation-expand",
       "report-mcp",
       "source-scout",
       "target-neighborhood",
@@ -623,6 +627,63 @@
       "body_lines": 130,
       "summary": "Work one axis to exhaustion in its own worker, with an observable stopping rule."
     },
+    "binder-census": {
+      "name": "binder-census",
+      "path": ".claude/skills/binder-census",
+      "description": "Find everything observed to bind a target and classify what kind of binder each one is \u2014 endogenous ligand, substrate, cofactor, drug designed for it, drug designed for something else, tool compound, fragment, covalent warhead, or crystallisation artefact. Names and excludes the buffer and cryoprotectant that a raw PDB census returns as ligands. Then decides whether a reference binding mode exists at all, and records what follows when it does not. Run for the target and for every compound of interest. Trigger on: \"what binds this\", \"all known ligands\", \"canonical binder\", \"intended binding mode\", \"endogenous ligand\", \"is this a real ligand\", \"promiscuity\", \"ligand census\", or /binder-census.",
+      "stage": "stage1_literature",
+      "owner": "amit",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash",
+        "WebSearch",
+        "WebFetch",
+        "Agent"
+      ],
+      "consumes": [
+        "problem.spec",
+        "stage1.axis_derivation",
+        "kg.paper_nodes"
+      ],
+      "produces": [
+        "stage1.binder_census",
+        "stage1.binding_mode",
+        "kg.compound_nodes",
+        "kg.claim_edges"
+      ],
+      "external_tools": [
+        "rcsb-search-api",
+        "pdbe",
+        "chembl",
+        "bindingdb",
+        "drugcentral",
+        "WebSearch",
+        "WebFetch",
+        "paperclip"
+      ],
+      "triggers": [
+        "what binds this",
+        "all known ligands",
+        "canonical binder",
+        "intended binding mode",
+        "endogenous ligand",
+        "is this a real ligand",
+        "promiscuity",
+        "ligand census"
+      ],
+      "references": [
+        "reference/artefact-codes.md",
+        "reference/binder-classes.md",
+        "reference/canonical-mode.md"
+      ],
+      "body_lines": 134,
+      "summary": "Everything that binds the target, classified; artefacts named; and whether a reference binding mode exists at all."
+    },
     "compound-neighborhood": {
       "name": "compound-neighborhood",
       "path": ".claude/skills/compound-neighborhood",
@@ -758,6 +819,68 @@
       "body_lines": 159,
       "summary": "Recover under-attended but relevant work; the exploration quota and the coverage ledger."
     },
+    "relation-expand": {
+      "name": "relation-expand",
+      "path": ".claude/skills/relation-expand",
+      "description": "Grow the knowledge graph outward across every relation type \u2014 protein-protein interaction, pathway and cascade, transcriptional control, RNA silencing, splice isoforms, sequence variants, orthology, drug-drug interaction, ADME \u2014 with a budget, a relevance decay, a hub penalty, an exploration quota, and a recorded frontier of what it could not reach. Every admitted node says which relation brought it in and through what, so a bad expansion can be undone by predicate. Use after target-properties has derived the axes and you want to go further out. Trigger on: \"expand the graph\", \"go further\", \"more connections\", \"all possible connections\", \"second-degree\", \"PPI network\", \"why is this node here\", \"how deep should we go\", or /relation-expand.",
+      "stage": "stage1_literature",
+      "owner": "amit",
+      "status": "implemented",
+      "allowed_tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash",
+        "WebSearch",
+        "WebFetch",
+        "Agent"
+      ],
+      "consumes": [
+        "kg.neighbourhood",
+        "stage1.axis_derivation",
+        "stage1.axes"
+      ],
+      "produces": [
+        "kg.neighbourhood",
+        "stage1.expansion_run",
+        "kg.gene_nodes",
+        "kg.regulatory_edges"
+      ],
+      "external_tools": [
+        "intact",
+        "biogrid",
+        "string-db",
+        "reactome",
+        "signor",
+        "chip-atlas",
+        "dorothea",
+        "mirtarbase",
+        "ensembl",
+        "gnomad",
+        "clinvar",
+        "drugbank",
+        "chembl",
+        "WebFetch"
+      ],
+      "triggers": [
+        "expand the graph",
+        "go further",
+        "more connections",
+        "all possible connections",
+        "second-degree",
+        "PPI network",
+        "why is this node here",
+        "how deep should we go"
+      ],
+      "references": [
+        "reference/sources.md",
+        "reference/tuning.md"
+      ],
+      "body_lines": 140,
+      "summary": "Bounded outward expansion across PPI, pathway, transcriptional, RNA, splicing, variant and drug-drug relations, with a recorded frontier."
+    },
     "source-scout": {
       "name": "source-scout",
       "path": ".claude/skills/source-scout",
@@ -840,7 +963,10 @@
         "motif.features",
         "stage1.axes",
         "stage1.axis_sweeps",
-        "search.ledger"
+        "search.ledger",
+        "stage1.binder_census",
+        "stage1.binding_mode",
+        "stage1.expansion_run"
       ],
       "produces": [
         "stage1.report",
@@ -943,7 +1069,9 @@
         "stage1.report",
         "kg.neighbourhood",
         "stage1.template_candidates",
-        "stage1.subpopulations"
+        "stage1.subpopulations",
+        "stage1.binder_census",
+        "stage1.binding_mode"
       ],
       "produces": [
         "stage2.parts_inventory",

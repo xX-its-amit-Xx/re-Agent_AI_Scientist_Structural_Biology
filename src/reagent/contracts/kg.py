@@ -88,6 +88,15 @@ class NodeType(str, Enum):
     TISSUE = "Tissue"              # anatomical site / cell type (UBERON, CL)
     # -- the meta-concept, made explicit ---------------------------------------
     PROPERTY = "Property"          # "promiscuous binder", "liver-enriched", "ligand-activated TF"
+    # -- the regulatory layer --------------------------------------------------
+    # A gene is not a protein and the distinction is load-bearing here: splice isoforms and
+    # sequence variants are gene-level objects, and folding them into the protein node loses
+    # the isoform relation entirely — which for a target with functionally distinct isoforms
+    # means silently averaging two different proteins.
+    GENE = "Gene"                  # a locus; splice isoforms and variants hang off this
+    RNA = "RNA"                    # miRNA, lncRNA, siRNA — regulates without binding the protein
+    VARIANT = "Variant"            # a specific allele, with its own phenotype and evidence
+
     # -- Stage 2 anatomy: the pieces both sides are made of --------------------
     # Deliberately few new types. POCKET, RESIDUE, MOTIF and FRAGMENT already exist and are
     # reused; SUBPOCKET is a POCKET with a PART_OF edge, and a functional group is a
@@ -155,6 +164,50 @@ class Predicate(str, Enum):
     away, and a property with degree 1 is visibly an unexplored lead rather than an
     invisible one. attrs: kind, basis, threshold.
     """
+
+    # --- pharmacology and drug-drug -------------------------------------------
+    # The clinical layer. For a xenobiotic sensor this is not peripheral: PXR matters
+    # medically almost entirely because of the interactions it mediates, and a graph that
+    # records what binds it but not what that binding does to a co-administered drug has
+    # captured the biochemistry and missed the reason anyone asked.
+    METABOLIZED_BY = "METABOLIZED_BY"        # Compound -> Protein; attrs: fraction, route
+    TRANSPORTED_BY = "TRANSPORTED_BY"        # Compound -> Protein; attrs: direction, km
+    INHIBITS = "INHIBITS"                    # attrs: ic50_nm, mode (competitive, TDI, ...)
+    INDUCES = "INDUCES"                      # attrs: fold, ec50_nm, readout
+    INTERACTS_CLINICALLY_WITH = "INTERACTS_CLINICALLY_WITH"
+    """A drug-drug interaction, with the protein that mediates it.
+
+    ``via`` is the field that matters and the one usually missing: a DDI recorded without its
+    mechanism is a warning label, while one recorded as "rifampicin induces this target, which
+    transcribes CYP3A4, which clears the other drug" is a causal chain the graph can check and
+    a model can use. attrs: mechanism, severity, via, direction.
+    """
+    SHARES_TARGET_WITH = "SHARES_TARGET_WITH"  # Compound<->Compound; attrs: n_shared, jaccard
+
+    # --- genetics: what the protein is transcribed from, and its variation ------
+    ENCODED_BY = "ENCODED_BY"                # Protein -> Gene
+    HAS_ISOFORM = "HAS_ISOFORM"              # Gene -> Protein; attrs: isoform_id, differs_by
+    SPLICE_VARIANT_OF = "SPLICE_VARIANT_OF"
+    """One isoform relative to another, with the splicing event that produced it.
+
+    Kept distinct from HAS_ISOFORM because the *event* carries the prediction: an exon skip
+    that removes part of the ligand-binding domain makes an isoform whose pocket does not
+    exist, and treating its activity data as the target's is a category error.
+    attrs: event_type, exons, functional_effect.
+    """
+    HAS_VARIANT = "HAS_VARIANT"              # Gene/Protein -> Variant; attrs: rsid, af
+    VARIANT_AFFECTS = "VARIANT_AFFECTS"      # Variant -> Protein/Pocket/Residue; attrs: effect
+    ORTHOLOG_OF = "ORTHOLOG_OF"              # attrs: species, identity, pocket_identity
+    PARALOG_OF = "PARALOG_OF"                # attrs: identity, duplication_event
+
+    # --- transcriptional and RNA regulation ------------------------------------
+    TRANSCRIPTIONALLY_ACTIVATES = "TRANSCRIPTIONALLY_ACTIVATES"   # Protein -> Gene
+    TRANSCRIPTIONALLY_REPRESSES = "TRANSCRIPTIONALLY_REPRESSES"   # Protein -> Gene
+    BINDS_PROMOTER_OF = "BINDS_PROMOTER_OF"  # Protein -> Gene; attrs: response_element, site
+    REGULATED_BY = "REGULATED_BY"            # Gene/Protein -> Protein/RNA; attrs: mechanism
+    TARGETS_TRANSCRIPT = "TARGETS_TRANSCRIPT"  # RNA -> Gene; attrs: seed_match, validated
+    SILENCED_BY = "SILENCED_BY"              # Gene/Protein -> RNA/Compound; attrs: knockdown_pct
+    CO_REGULATED_WITH = "CO_REGULATED_WITH"  # Gene<->Gene; attrs: correlation, condition
 
     # --- anatomy: which piece is part of what, and which piece touches which ---
     # Stage 2 extends the Stage 1 graph rather than starting a new one, so a template
@@ -332,6 +385,38 @@ PREDICATE_DOMAINS.update({
         {NodeType.RESIDUE, NodeType.POCKET, NodeType.MOTIF},
         {NodeType.FRAGMENT, NodeType.PHARMACOPHORE, NodeType.COMPOUND},
     ),
+    # pharmacology / clinical
+    Predicate.METABOLIZED_BY: ({NodeType.COMPOUND}, {NodeType.PROTEIN}),
+    Predicate.TRANSPORTED_BY: ({NodeType.COMPOUND}, {NodeType.PROTEIN}),
+    Predicate.INHIBITS: ({NodeType.COMPOUND, NodeType.PROTEIN}, {NodeType.PROTEIN}),
+    Predicate.INDUCES: ({NodeType.COMPOUND, NodeType.PROTEIN}, {NodeType.PROTEIN, NodeType.GENE}),
+    Predicate.INTERACTS_CLINICALLY_WITH: ({NodeType.COMPOUND}, {NodeType.COMPOUND}),
+    Predicate.SHARES_TARGET_WITH: ({NodeType.COMPOUND}, {NodeType.COMPOUND}),
+    # genetics
+    Predicate.ENCODED_BY: ({NodeType.PROTEIN}, {NodeType.GENE}),
+    Predicate.HAS_ISOFORM: ({NodeType.GENE}, {NodeType.PROTEIN}),
+    Predicate.SPLICE_VARIANT_OF: ({NodeType.PROTEIN}, {NodeType.PROTEIN}),
+    Predicate.HAS_VARIANT: ({NodeType.GENE, NodeType.PROTEIN}, {NodeType.VARIANT}),
+    Predicate.VARIANT_AFFECTS: (
+        {NodeType.VARIANT},
+        {NodeType.PROTEIN, NodeType.POCKET, NodeType.RESIDUE, NodeType.PROCESS},
+    ),
+    Predicate.ORTHOLOG_OF: ({NodeType.PROTEIN, NodeType.GENE}, {NodeType.PROTEIN, NodeType.GENE}),
+    Predicate.PARALOG_OF: ({NodeType.PROTEIN, NodeType.GENE}, {NodeType.PROTEIN, NodeType.GENE}),
+    # transcriptional / RNA regulation
+    Predicate.TRANSCRIPTIONALLY_ACTIVATES: ({NodeType.PROTEIN}, {NodeType.GENE}),
+    Predicate.TRANSCRIPTIONALLY_REPRESSES: ({NodeType.PROTEIN}, {NodeType.GENE}),
+    Predicate.BINDS_PROMOTER_OF: ({NodeType.PROTEIN}, {NodeType.GENE}),
+    Predicate.REGULATED_BY: (
+        {NodeType.GENE, NodeType.PROTEIN},
+        {NodeType.PROTEIN, NodeType.RNA, NodeType.COMPOUND},
+    ),
+    Predicate.TARGETS_TRANSCRIPT: ({NodeType.RNA}, {NodeType.GENE, NodeType.PROTEIN}),
+    Predicate.SILENCED_BY: (
+        {NodeType.GENE, NodeType.PROTEIN},
+        {NodeType.RNA, NodeType.COMPOUND},
+    ),
+    Predicate.CO_REGULATED_WITH: ({NodeType.GENE}, {NodeType.GENE}),
 })
 
 
@@ -358,13 +443,127 @@ class PredicateFamily(str, Enum):
     SEQUENCE = "sequence"          # primary-sequence relatedness
     CHEMICAL = "chemical"          # small-molecule similarity
     COMPOSITION = "composition"    # part-of / member-of scaffolding
-    INTERACTION = "interaction"    # binding and pharmacology
+    INTERACTION = "interaction"    # binding and physical contact
     SYSTEMS = "systems"            # pathway, cascade position, protein-protein partners
     CONTEXT = "context"            # where and what: expression, tissue, meta-properties
+    GENETIC = "genetic"            # gene, isoform, splice event, variant, orthology
+    REGULATORY = "regulatory"      # transcriptional control and RNA-mediated silencing
+    CLINICAL = "clinical"          # pharmacology, ADME, drug-drug interaction
     DATA = "data"                  # where measurements live (lazy dataset pointers)
     EVIDENCE = "evidence"          # epistemic links to sources
     METHOD = "method"              # pipeline-space relations
     ANALOGY = "analogy"            # cross-domain transfer
+
+    @property
+    def tier(self) -> FamilyTier:
+        return FAMILY_TIER[self]
+
+
+class FamilyTier(str, Enum):
+    """The grouping that lets the vocabulary grow while perception does not.
+
+    **The problem this solves.** Every time the graph gained a layer, a family was added and
+    the colour budget was stretched a little further with a paragraph of justification. That
+    does not scale: the vocabulary is now 69 predicates in 14 families, and there is no
+    arrangement of 14 categorical colours that a reader can tell apart. Adding a fifteenth
+    family would be worse, and refusing to add one would mean refusing to model the biology.
+
+    **The fix is to stop asking colour to carry it.** Families group into six tiers, and the
+    guarantee changes from *"colour identifies the family"* to **"colour identifies the family
+    within its tier"** — so the same hue means structural-similarity in the molecular tier and
+    transcriptional-activation in the regulatory tier, and that is fine, because the tier
+    filter is how a reader gets to either one.
+
+    A tier answers one kind of question, which is why it is the right unit for a filter:
+
+    * ``MOLECULAR`` — what is this thing, and what does it look like?
+    * ``PHYSICAL`` — what touches it?
+    * ``SYSTEMS`` — where does it sit in the network?
+    * ``REGULATORY`` — what controls it, and what does it control?
+    * ``CLINICAL`` — what does it do in a patient?
+    * ``PROVENANCE`` — who says so, and where is the data?
+    * ``META`` — how are we modelling it?
+
+    At most four families sit in any tier, so at most four hues are ever needed at once. The
+    ego view opens on the tiers relevant to the focal node's type; the rest render desaturated
+    and are one toggle away. Enabling every tier at once is explicitly hairball mode and is
+    labelled as such.
+    """
+
+    MOLECULAR = "molecular"
+    PHYSICAL = "physical"
+    SYSTEMS = "systems"
+    REGULATORY = "regulatory"
+    CLINICAL = "clinical"
+    PROVENANCE = "provenance"
+    META = "meta"
+
+    @property
+    def question(self) -> str:
+        return {
+            "molecular": "What is this made of, and what does it resemble?",
+            "physical": "What physically touches it, and where?",
+            "systems": "Where does it sit in the network?",
+            "regulatory": "What controls it, and what does it control?",
+            "clinical": "What does it do in a patient?",
+            "provenance": "Who says so, and where is the underlying data?",
+            "meta": "How are we modelling this?",
+        }[self.value]
+
+
+#: Which tier each family belongs to. The only table that has to stay complete as the
+#: vocabulary grows — a new family needs a tier, not a new colour.
+FAMILY_TIER: dict[PredicateFamily, FamilyTier] = {
+    PredicateFamily.STRUCTURAL: FamilyTier.MOLECULAR,
+    PredicateFamily.SEQUENCE: FamilyTier.MOLECULAR,
+    PredicateFamily.CHEMICAL: FamilyTier.MOLECULAR,
+    PredicateFamily.COMPOSITION: FamilyTier.MOLECULAR,
+    PredicateFamily.INTERACTION: FamilyTier.PHYSICAL,
+    PredicateFamily.SYSTEMS: FamilyTier.SYSTEMS,
+    PredicateFamily.CONTEXT: FamilyTier.SYSTEMS,
+    PredicateFamily.GENETIC: FamilyTier.REGULATORY,
+    PredicateFamily.REGULATORY: FamilyTier.REGULATORY,
+    PredicateFamily.CLINICAL: FamilyTier.CLINICAL,
+    PredicateFamily.DATA: FamilyTier.PROVENANCE,
+    PredicateFamily.EVIDENCE: FamilyTier.PROVENANCE,
+    PredicateFamily.METHOD: FamilyTier.META,
+    PredicateFamily.ANALOGY: FamilyTier.META,
+}
+
+#: Tiers shown chromatically when the ego view opens, keyed by the focal node's type.
+#:
+#: A default, not a restriction. It exists because opening on all seven tiers is the hairball
+#: this whole file is arranged to avoid, and because the right opening view genuinely differs:
+#: land on a compound and the clinical tier is the interesting one, land on a pocket and it is
+#: physical contact.
+DEFAULT_TIERS: dict[str, tuple[FamilyTier, ...]] = {
+    NodeType.PROTEIN.value: (FamilyTier.MOLECULAR, FamilyTier.SYSTEMS, FamilyTier.PHYSICAL),
+    NodeType.GENE.value: (FamilyTier.REGULATORY, FamilyTier.MOLECULAR),
+    NodeType.RNA.value: (FamilyTier.REGULATORY,),
+    NodeType.VARIANT.value: (FamilyTier.REGULATORY, FamilyTier.CLINICAL),
+    NodeType.COMPOUND.value: (FamilyTier.CLINICAL, FamilyTier.MOLECULAR, FamilyTier.PHYSICAL),
+    NodeType.FRAGMENT.value: (FamilyTier.PHYSICAL, FamilyTier.MOLECULAR),
+    NodeType.POCKET.value: (FamilyTier.PHYSICAL, FamilyTier.MOLECULAR),
+    NodeType.RESIDUE.value: (FamilyTier.PHYSICAL, FamilyTier.MOLECULAR),
+    NodeType.PATHWAY.value: (FamilyTier.SYSTEMS, FamilyTier.REGULATORY),
+    NodeType.METHOD.value: (FamilyTier.META,),
+    NodeType.ANALOGY.value: (FamilyTier.META,),
+    NodeType.PAPER.value: (FamilyTier.PROVENANCE,),
+    NodeType.DATASET.value: (FamilyTier.PROVENANCE,),
+}
+
+#: Fallback when the focal type has no entry.
+FALLBACK_TIERS: tuple[FamilyTier, ...] = (
+    FamilyTier.MOLECULAR, FamilyTier.PHYSICAL, FamilyTier.SYSTEMS,
+)
+
+
+def default_tiers_for(node_type: str) -> tuple[FamilyTier, ...]:
+    return DEFAULT_TIERS.get(node_type, FALLBACK_TIERS)
+
+
+def families_in(tier: FamilyTier) -> list[PredicateFamily]:
+    return [f for f, t in FAMILY_TIER.items() if t is tier]
 
 
 PREDICATE_FAMILY: dict[Predicate, PredicateFamily] = {
@@ -427,43 +626,91 @@ PREDICATE_FAMILY: dict[Predicate, PredicateFamily] = {
     Predicate.CONTACTS: PredicateFamily.INTERACTION,
     Predicate.OCCUPIES: PredicateFamily.INTERACTION,
     Predicate.COMPLEMENTARY_TO: PredicateFamily.INTERACTION,
+    # clinical
+    Predicate.METABOLIZED_BY: PredicateFamily.CLINICAL,
+    Predicate.TRANSPORTED_BY: PredicateFamily.CLINICAL,
+    Predicate.INHIBITS: PredicateFamily.CLINICAL,
+    Predicate.INDUCES: PredicateFamily.CLINICAL,
+    Predicate.INTERACTS_CLINICALLY_WITH: PredicateFamily.CLINICAL,
+    Predicate.SHARES_TARGET_WITH: PredicateFamily.CLINICAL,
+    # genetic
+    Predicate.ENCODED_BY: PredicateFamily.GENETIC,
+    Predicate.HAS_ISOFORM: PredicateFamily.GENETIC,
+    Predicate.SPLICE_VARIANT_OF: PredicateFamily.GENETIC,
+    Predicate.HAS_VARIANT: PredicateFamily.GENETIC,
+    Predicate.VARIANT_AFFECTS: PredicateFamily.GENETIC,
+    Predicate.ORTHOLOG_OF: PredicateFamily.GENETIC,
+    Predicate.PARALOG_OF: PredicateFamily.GENETIC,
+    # regulatory
+    Predicate.TRANSCRIPTIONALLY_ACTIVATES: PredicateFamily.REGULATORY,
+    Predicate.TRANSCRIPTIONALLY_REPRESSES: PredicateFamily.REGULATORY,
+    Predicate.BINDS_PROMOTER_OF: PredicateFamily.REGULATORY,
+    Predicate.REGULATED_BY: PredicateFamily.REGULATORY,
+    Predicate.TARGETS_TRANSCRIPT: PredicateFamily.REGULATORY,
+    Predicate.SILENCED_BY: PredicateFamily.REGULATORY,
+    Predicate.CO_REGULATED_WITH: PredicateFamily.REGULATORY,
 }
 
-#: Okabe-Ito, the standard colour-blind-safe categorical palette, plus a deep purple,
-#: a darkened olive, and three greys.
+#: Okabe-Ito, the standard colour-blind-safe categorical palette, allocated **per tier**.
 #:
-#: **Honest accounting of the ceiling.** There are now eleven families and nine are
-#: visible by default, against a documented discriminability ceiling of about eight
-#: categorical colours. That is one over, and pretending otherwise would be worse than
-#: saying it. Three things keep it usable, and the third is the one that actually matters:
+#: **What changed and why.** This table used to promise that colour identified the family, and
+#: that promise died quietly as the vocabulary grew — fourteen families cannot be told apart
+#: by hue, and no amount of careful shade-picking fixes it. The promise is now scoped:
 #:
-#: 1. Only one of the three greys (COMPOSITION) is on by default, so the achromatic
-#:    slot is unambiguous unless a reader deliberately turns on everything — which is
-#:    the explicit hairball mode.
-#: 2. Colour is always paired with a dash pattern as a redundant channel.
-#: 3. **For SYSTEMS and CONTEXT, colour is not the primary discriminator — the axis
-#:    filter is.** These families exist because a reader asks "how is this connected
-#:    through the network?" as a deliberate question, and answers it by isolating that
-#:    family rather than by picking its hue out of nine. The weakest pair under
-#:    deuteranopia is CONTEXT's olive against CHEMICAL's green; they are separated by
-#:    lightness, by dash, and in practice by never being the two families in question
-#:    at the same time.
+#:   **colour identifies the family within its tier.**
 #:
-#: Yellow (#F0E442) is deliberately absent: it is in the Okabe-Ito set but unusable for
-#: thin strokes on a light background. CONTEXT gets a darkened olive derivative instead.
+#: So blue means structural-similarity in the molecular tier and transcriptional-activation in
+#: the regulatory tier. That is not a collision to apologise for — it is the mechanism that
+#: lets the graph model splicing, drug-drug interaction and RNA silencing without the figure
+#: becoming unreadable. At most four families occupy a tier, so at most four hues are needed
+#: at once, comfortably inside the discriminability ceiling.
+#:
+#: Two channels still back it up. Dash pattern separates predicates inside a family, and
+#: **inactive tiers render desaturated** rather than competing for hue. Enabling every tier is
+#: hairball mode and the legend says so.
+#:
+#: Yellow (#F0E442) is absent throughout: it is in the Okabe-Ito set and unusable for thin
+#: strokes on a light background.
 FAMILY_COLOR: dict[PredicateFamily, str] = {
+    # molecular — what is this, and what does it resemble
     PredicateFamily.STRUCTURAL: "#0072B2",   # blue
     PredicateFamily.SEQUENCE: "#56B4E9",     # sky blue
     PredicateFamily.CHEMICAL: "#009E73",     # bluish green
+    PredicateFamily.COMPOSITION: "#454545",  # dark grey — scaffolding, deliberately achromatic
+    # physical — what touches it
     PredicateFamily.INTERACTION: "#CC79A7",  # light reddish purple
-    PredicateFamily.METHOD: "#D55E00",       # vermillion
+    # systems — where it sits
+    PredicateFamily.SYSTEMS: "#6A3D9A",      # deep purple
+    PredicateFamily.CONTEXT: "#8C6D31",      # darkened olive
+    # regulatory — what controls it. Hues reused from the molecular tier by design.
+    PredicateFamily.GENETIC: "#0072B2",      # blue
+    PredicateFamily.REGULATORY: "#009E73",   # bluish green
+    # clinical — what it does in a patient
+    PredicateFamily.CLINICAL: "#D55E00",     # vermillion
+    # meta — how we are modelling it
+    PredicateFamily.METHOD: "#D55E00",       # vermillion (never co-visible with clinical)
     PredicateFamily.ANALOGY: "#E69F00",      # orange
-    PredicateFamily.SYSTEMS: "#6A3D9A",      # deep purple (dark, vs INTERACTION's light pink)
-    PredicateFamily.CONTEXT: "#8C6D31",      # darkened olive — legible where #F0E442 is not
-    PredicateFamily.COMPOSITION: "#454545",  # dark grey
-    PredicateFamily.DATA: "#767676",         # mid grey  (hidden by default)
-    PredicateFamily.EVIDENCE: "#A6A6A6",     # light grey (hidden by default)
+    # provenance — who says so
+    PredicateFamily.DATA: "#767676",         # mid grey
+    PredicateFamily.EVIDENCE: "#A6A6A6",     # light grey
 }
+
+
+def color_collisions() -> dict[str, list[str]]:
+    """Families sharing a colour **within one tier**. Must always be empty.
+
+    Reused hues across tiers are the design. Reused hues *inside* a tier are a bug, and the
+    kind that survives review because the figure still renders. Exercised by the test suite.
+    """
+    out: dict[str, list[str]] = {}
+    for tier in FamilyTier:
+        seen: dict[str, list[str]] = {}
+        for fam in families_in(tier):
+            seen.setdefault(FAMILY_COLOR[fam], []).append(fam.value)
+        for colour, fams in seen.items():
+            if len(fams) > 1:
+                out[f"{tier.value}:{colour}"] = sorted(fams)
+    return out
 
 #: Dash patterns cycled within a family, so two structural predicates are
 #: distinguishable at the same colour. Solid is reserved for the first/primary

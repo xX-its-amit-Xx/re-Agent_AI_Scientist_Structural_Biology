@@ -1,0 +1,34 @@
+{
+  "stage": "stage1_literature",
+  "owner": "amit",
+  "status": "implemented",
+  "summary": "Bounded outward expansion across PPI, pathway, transcriptional, RNA, splicing, variant and drug-drug relations, with a recorded frontier.",
+  "consumes": [
+    "kg.neighbourhood",
+    "stage1.axis_derivation",
+    "stage1.axes"
+  ],
+  "produces": [
+    "kg.neighbourhood",
+    "stage1.expansion_run",
+    "kg.gene_nodes",
+    "kg.regulatory_edges"
+  ],
+  "external_tools": [
+    "intact",
+    "biogrid",
+    "string-db",
+    "reactome",
+    "signor",
+    "chip-atlas",
+    "dorothea",
+    "mirtarbase",
+    "ensembl",
+    "gnomad",
+    "clinvar",
+    "drugbank",
+    "chembl",
+    "WebFetch"
+  ],
+  "credits": []
+}

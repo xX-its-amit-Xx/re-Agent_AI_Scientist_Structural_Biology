@@ -1,0 +1,28 @@
+{
+  "stage": "stage1_literature",
+  "owner": "amit",
+  "status": "implemented",
+  "summary": "Everything that binds the target, classified; artefacts named; and whether a reference binding mode exists at all.",
+  "consumes": [
+    "problem.spec",
+    "stage1.axis_derivation",
+    "kg.paper_nodes"
+  ],
+  "produces": [
+    "stage1.binder_census",
+    "stage1.binding_mode",
+    "kg.compound_nodes",
+    "kg.claim_edges"
+  ],
+  "external_tools": [
+    "rcsb-search-api",
+    "pdbe",
+    "chembl",
+    "bindingdb",
+    "drugcentral",
+    "WebSearch",
+    "WebFetch",
+    "paperclip"
+  ],
+  "credits": []
+}

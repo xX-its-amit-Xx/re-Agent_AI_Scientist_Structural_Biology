@@ -91,6 +91,44 @@ class PropertyKind(str, Enum):
     CONFORMATIONAL_BEHAVIOUR = "conformational_behaviour"
     POST_TRANSLATIONAL = "post_translational"
 
+    # -- what binds it, exhaustively ---------------------------------------
+    LIGAND_CENSUS = "ligand_census"
+    """Everything observed to bind, classified by what kind of binder it is.
+
+    Distinct from ``known_chemotypes``, which asks about the *designed* chemistry. This asks
+    for the complete set — endogenous ligands, substrates, cofactors, drugs aimed elsewhere,
+    tool compounds, fragments — and, critically, requires the crystallisation artefacts to be
+    named and excluded rather than silently counted. See ``contracts.biology``.
+    """
+    INTENDED_BINDING_MODE = "intended_binding_mode"
+    """Whether a reference pose exists at all, and what follows if it does not.
+
+    Kept separate from the census because the answer is often *no*, and that absence is the
+    most decision-relevant fact available about a promiscuous target. An anchor-based prior
+    applied to a target with no canonical mode has already inverted on a real test set.
+    """
+
+    # -- how it is regulated -----------------------------------------------
+    TRANSCRIPTIONAL_TARGETS = "transcriptional_targets"
+    """What this protein turns on or off, if it is a regulator. For a ligand-activated
+    transcription factor this is the entire output of binding, and a graph that records the
+    binding but not the consequence has stopped one step short of why anyone cares."""
+    UPSTREAM_REGULATION = "upstream_regulation"      # what controls its expression
+    RNA_REGULATION = "rna_regulation"                # miRNA, lncRNA, siRNA knockdown evidence
+    SPLICE_ISOFORMS = "splice_isoforms"
+    """Which isoforms exist and how they differ functionally. An exon skip that removes part of
+    the ligand-binding domain produces an isoform whose pocket does not exist, and pooling its
+    activity data with the canonical form averages two different proteins."""
+    SEQUENCE_VARIANTS = "sequence_variants"          # alleles, and which touch the pocket
+
+    # -- what it does in a patient -----------------------------------------
+    DRUG_INTERACTIONS = "drug_interactions"
+    """Which drug-drug interactions this protein mediates, and by what mechanism. For a
+    xenobiotic sensor this is most of its clinical significance, and the mediating chain —
+    inducer, target, effector enzyme, cleared drug — is checkable where a bare warning is not.
+    """
+    ADME_ROLE = "adme_role"                          # metabolism, transport, clearance
+
     # -- how it is studied -------------------------------------------------
     ASSAY_PRECEDENT = "assay_precedent"             # how the field measures it
     STRUCTURAL_COVERAGE = "structural_coverage"     # how much experimental structure exists
@@ -146,6 +184,20 @@ _KIND_QUESTIONS: dict[str, str] = {
     "conformational_behaviour": "Is it rigid, flexible, or partly disordered, and what shares "
                                 "that behaviour?",
     "post_translational": "Which modifications regulate it, and what else they regulate?",
+    "ligand_census": "What is the complete set of things observed to bind it — endogenous "
+                     "ligands, substrates, cofactors, drugs aimed elsewhere, tool compounds, "
+                     "fragments — with crystallisation artefacts named and excluded?",
+    "intended_binding_mode": "Is there a reference pose the protein was selected for, or is "
+                             "breadth itself the function — and what follows either way?",
+    "transcriptional_targets": "What does it turn on or off, and through which response "
+                               "elements?",
+    "upstream_regulation": "What controls its expression, and under what conditions?",
+    "rna_regulation": "Which RNAs regulate it, and which knockdowns have been validated?",
+    "splice_isoforms": "Which isoforms exist, which splicing events produce them, and do they "
+                       "share the pocket?",
+    "sequence_variants": "Which alleles exist, at what frequency, and do any touch the pocket?",
+    "drug_interactions": "Which drug-drug interactions does it mediate, and by what mechanism?",
+    "adme_role": "What is its role in metabolism, transport and clearance?",
     "assay_precedent": "How does the field measure it, and which targets are measured the "
                        "same way?",
     "structural_coverage": "How much experimental structure exists, in which states?",
@@ -182,6 +234,13 @@ CHECKLISTS: dict[Domain, tuple[PropertyKind, ...]] = {
         PropertyKind.POST_TRANSLATIONAL, PropertyKind.ASSAY_PRECEDENT,
         PropertyKind.STRUCTURAL_COVERAGE, PropertyKind.SPECIES_CONSERVATION,
         PropertyKind.DISEASE_ASSOCIATION,
+        # The exhaustive layers. Each is here so the coverage gate forces an answer: an agent
+        # may decide splicing is irrelevant to this target, but it may not decide so silently.
+        PropertyKind.LIGAND_CENSUS, PropertyKind.INTENDED_BINDING_MODE,
+        PropertyKind.TRANSCRIPTIONAL_TARGETS, PropertyKind.UPSTREAM_REGULATION,
+        PropertyKind.RNA_REGULATION, PropertyKind.SPLICE_ISOFORMS,
+        PropertyKind.SEQUENCE_VARIANTS, PropertyKind.DRUG_INTERACTIONS,
+        PropertyKind.ADME_ROLE,
     ),
     Domain.PROTEIN_DESIGN: (
         PropertyKind.SEQUENCE_IDENTITY, PropertyKind.FOLD,
@@ -207,6 +266,8 @@ CHECKLISTS: dict[Domain, tuple[PropertyKind, ...]] = {
         PropertyKind.TISSUE_LOCALISATION, PropertyKind.INDUCIBILITY,
         PropertyKind.PATHWAY_MEMBERSHIP, PropertyKind.ASSAY_PRECEDENT,
         PropertyKind.SPECIES_CONSERVATION, PropertyKind.DISEASE_ASSOCIATION,
+        PropertyKind.DRUG_INTERACTIONS, PropertyKind.ADME_ROLE,
+        PropertyKind.LIGAND_CENSUS, PropertyKind.SEQUENCE_VARIANTS,
     ),
     Domain.CHEMINFORMATICS: (
         PropertyKind.SCAFFOLD_CLASS, PropertyKind.FUNCTIONAL_GROUP_CONTENT,

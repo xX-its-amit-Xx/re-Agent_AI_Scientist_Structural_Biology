@@ -10,7 +10,10 @@
     "motif.features",
     "stage1.axes",
     "stage1.axis_sweeps",
-    "search.ledger"
+    "search.ledger",
+    "stage1.binder_census",
+    "stage1.binding_mode",
+    "stage1.expansion_run"
   ],
   "produces": [
     "stage1.report",

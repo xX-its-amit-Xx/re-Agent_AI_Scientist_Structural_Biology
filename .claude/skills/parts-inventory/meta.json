@@ -8,7 +8,9 @@
     "stage1.report",
     "kg.neighbourhood",
     "stage1.template_candidates",
-    "stage1.subpopulations"
+    "stage1.subpopulations",
+    "stage1.binder_census",
+    "stage1.binding_mode"
   ],
   "produces": [
     "stage2.parts_inventory",
