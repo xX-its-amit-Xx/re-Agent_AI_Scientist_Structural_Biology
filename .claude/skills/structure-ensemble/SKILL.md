@@ -14,7 +14,14 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent
 
 # Structure ensemble
 
-**Owner: Sumer.** The compute backend is provisioned and verified — see
+**Owner: Sumer.** The claim here — *diversity across generators beats quality of
+any one generator, and the oracle gap tells you which lever to pull* — is not a
+fact about proteins. It holds for anything that produces a pool and then picks
+from it. The worked example throughout is co-folding for the OpenADMET PXR
+challenge, because that is where these numbers were measured; read the structure
+of the argument, not the domain it is stated in.
+
+The compute backend is provisioned and verified — see
 [`reference/backends.md`](reference/backends.md) for what is deployed, what it
 costs, and the capacity ceiling you are working under. Everything below is
 judgement; the backend doc is the part you must not improvise.

@@ -15,8 +15,15 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 # Template and finetune
 
 **Owner: Sumer.** The two ways to inject what is already known about a target
-into generation: hand the model a measured structure to start from, or adapt the
-model's weights to the family.
+into generation: hand the model a measured exemplar to start from, or adapt the
+model's weights to the family. Those are the general moves — conditioning on
+known-good instances, and transfer learning — and the general judgement is knowing
+which gaps are closeable by cleverness and which only by data.
+
+This is the most instance-bound of the three Stage 3 skills: everything under
+*Choosing a template set* is written against the OpenADMET PXR receptor set and
+will need replacing wholesale for another challenge. The guard rails and the
+curriculum above and below it are not.
 
 Judge both by the same test — does the pool's oracle improve? A template set that
 does not widen the pool has bought nothing, however respectable its provenance.

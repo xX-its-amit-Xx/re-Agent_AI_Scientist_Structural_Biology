@@ -16,7 +16,13 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 # Confidence selection
 
 **Owner: Sumer.** This is the highest-leverage step in the pipeline and the one
-where clever approaches most reliably lose to simple ones. Read
+where clever approaches most reliably lose to simple ones.
+
+Nothing below is specific to structural biology. Read "generator" for co-folding
+model and "candidate" for pose, and every finding still holds — for LLM sampling
+with a reranker, for retrieval plus rerank, for any ensemble whose members report
+confidence in incomparable units. The worked example is co-folding for the
+OpenADMET PXR challenge because that is where the numbers were measured. Read
 `ai-scientist/reference/pxr-case-study.md` before designing anything here, and
 [`reference/scoring.md`](reference/scoring.md) before trusting any number you
 compute.
@@ -78,6 +84,13 @@ So restrict every signal to the ligand and the interface, and never rank on a
 global score or a model's default `ranking_score` field. Carry global protein
 pLDDT as a deliberate **negative control**: it should land near 0.5 AUC, and if it
 does not, your harness is wrong and nothing downstream of it is trustworthy.
+
+The transferable rule is about **scope**, not about pLDDT: restrict the confidence
+signal to the sub-object you are actually predicting, never the whole object the
+model happened to emit. A generator is confident about most of its output for
+reasons that have nothing to do with the part being scored, and averaging that in
+buries the signal. The same mistake in a text pipeline is ranking on whole-response
+logprob when only a generated span is being judged.
 
 **Better than interface pTM: minimum interface PAE** — the minimum predicted
 aligned error over protein-ligand token pairs. It beat interface pTM on every
