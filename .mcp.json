@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "pxr-stage3": {
+      "command": ".venv/bin/python",
+      "args": ["stage3_mcp/server.py"],
+      "env": {}
+    }
+  }
+}
