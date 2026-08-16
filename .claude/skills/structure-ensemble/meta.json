@@ -1,7 +1,7 @@
 {
   "stage": "stage3_prior",
   "owner": "sumer",
-  "status": "stub",
+  "status": "implemented",
   "summary": "Generate a diverse candidate pool across multiple models and seeds.",
   "consumes": [
     "stage1.priors",
