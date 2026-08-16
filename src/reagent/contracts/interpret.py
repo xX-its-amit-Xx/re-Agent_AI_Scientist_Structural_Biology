@@ -69,6 +69,56 @@ class ImplicationStrength(str, Enum):
 #: Module level, not a class attribute: pydantic treats a leading-underscore class
 #: attribute as a private attribute, so `_DIRECTIONAL` inside the model became a
 #: ModelPrivateAttr and every direction was rejected.
+#: Causal connectives. A `mechanism` without one of these is almost always a restatement
+#: of the finding rather than an account of why it holds — the knowledge-telling default.
+CAUSAL = re.compile(
+    r"\b(because|therefore|since|as\s+a\s+result|which\s+means|means\s+that|"
+    r"consequently|hence|thus|requires?|depends?\s+on|follows?\s+from|"
+    r"leads?\s+to|results?\s+in|causes?|drives?|forces?|produces?|explains?|"
+    r"prevents?|allows?|enables?|discards?|destroys?|makes?\s+it|"
+    r"cannot\s+\w+\s+without|only\s+if|in\s+order\s+to|no\s+way\s+to|"
+    r"so\s+that|so\s+(the|it|a|an|we|you|they|there|its|their))\b"
+    # A comma-led "so" is reliably consecutive; a bare "so" is not (cf. "so many").
+    r"|,\s+so\b",
+    re.I,
+)
+
+#: Verb stems that name a consequence. Inflections are generated rather than listed,
+#: because a hand-maintained word list loses to English morphology — an earlier version
+#: matched "dilutes" but not "diluted", and "overstates" but not "over-generalises",
+#: producing false "this explains nothing" verdicts on genuine consequence clauses.
+_CONSEQUENCE_STEMS = [
+    "fail", "break", "degrade", "regress", "miss", "inflate", "understate",
+    "overstate", "generalise", "generalize", "invert", "inherit", "accumulate",
+    "dilute", "swamp", "bury", "lose", "waste", "discard", "reject", "omit",
+    "hide", "become", "collapse", "drift", "diverge", "mislead", "distort",
+    "underestimate", "overestimate", "propagate", "contaminate", "obscure",
+]
+
+#: Modal and lexical markers that also count as committing to an outcome.
+_CONSEQUENCE_WORDS = (
+    r"would|will|should|expect|predicts?|implies|"
+    r"no\s+longer|ceases?|stops?|never|cannot|"
+    r"turns?\s+into|reads?\s+as|looks?\s+like|"
+    r"unusable|worthless|noisier|worse|wrong|silently|lost|undetectable"
+)
+
+
+def _stem_alternation(stems: list[str]) -> str:
+    """`dilute` -> `dilut(?:e|es|ed|ing)`, so all four inflections match."""
+    parts = []
+    for s in stems:
+        base = s[:-1] if s.endswith("e") else s
+        parts.append(rf"{re.escape(base)}(?:e|es|ed|ing|s)?")
+    return "|".join(parts)
+
+
+#: Language committing to an observable consequence, as opposed to asserting relevance.
+COMMITTING = re.compile(
+    rf"\b(?:{_CONSEQUENCE_WORDS}|{_stem_alternation(_CONSEQUENCE_STEMS)})\b",
+    re.I,
+)
+
 DIRECTIONAL = re.compile(
     r"\b(argues?|arguing|favours?|favors?|supports?|opposes?|prefers?|"
     r"recommends?|advises?|warrants?|justifies|rules?\s+out|"
@@ -389,6 +439,60 @@ class Interpretation(BaseModel):
                 f"the layperson register averages {avg:.0f} words per sentence, over the "
                 "32-word limit. Long sentences are the other way a plain register fails; "
                 "aim under 25, which leaves room for the occasional longer one."
+            )
+        return problems
+
+    def knowledge_building_problems(self) -> list[str]:
+        """Whether this interpretation adds anything the source text did not already say.
+
+        Explainers — human and model alike — default to *knowledge-telling*: restating the
+        input more fluently. Roscoe & Chi (2007) found tutor-learning gains "often
+        underwhelming" because of "a pervasive knowledge-telling bias… even when trained,
+        focus more on delivering knowledge rather than developing it." And a fluent
+        explanation is weak evidence of understanding: an LLM judge preferred the *worse*
+        chemistry system on fluency grounds where four expert chemists did not.
+
+        So the test is not readability. It is whether the interpretation commits to
+        something checkable that the finding alone does not entail — a mechanism, a
+        prediction, a boundary condition, or a reconciliation. Advisory rather than fatal,
+        because the judgement is partly editorial; `--strict` promotes it.
+        """
+        problems: list[str] = []
+
+        if not self.mechanism:
+            problems.append(
+                "no `mechanism` — without a causal account this states that something is "
+                "so, not why, and a reader cannot predict the next case from it"
+            )
+        elif not CAUSAL.search(self.mechanism):
+            problems.append(
+                "`mechanism` contains no causal language (because, therefore, so that, "
+                "which means, requires, leads to). A mechanism explains why; a restatement "
+                "does not."
+            )
+
+        if not self.implications:
+            problems.append(
+                "no implications — nothing downstream changes, so this is context rather "
+                "than a finding to act on"
+            )
+        else:
+            weak = [
+                i.for_stage for i in self.implications
+                if not COMMITTING.search(i.direction + " " + i.if_wrong)
+            ]
+            if len(weak) == len(self.implications):
+                problems.append(
+                    "no implication commits to an observable consequence. Say what would be "
+                    "seen if this holds, or what breaks if it does not — an implication that "
+                    "only asserts relevance cannot be checked or refused."
+                )
+
+        if not self.caveat_for_reader:
+            problems.append(
+                "no `caveat_for_reader` — naming the likeliest misreading is often worth "
+                "more than the finding, because it is what stops the finding being "
+                "over-applied outside the conditions it holds under"
             )
         return problems
 

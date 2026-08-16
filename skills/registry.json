@@ -192,7 +192,7 @@
         "reference/chemical-significance.md",
         "reference/downstream-implications.md"
       ],
-      "body_lines": 174,
+      "body_lines": 217,
       "summary": "Write why a finding matters, for each audience, and how the agent decided."
     },
     "kg-visualize": {
@@ -403,7 +403,7 @@
         "reference/domain-map.md",
         "reference/scout-prompt.md"
       ],
-      "body_lines": 182,
+      "body_lines": 210,
       "summary": "Borrow mechanisms from unrelated fields; emit gated, falsifiable proposals."
     },
     "pipeline-space-scouting": {

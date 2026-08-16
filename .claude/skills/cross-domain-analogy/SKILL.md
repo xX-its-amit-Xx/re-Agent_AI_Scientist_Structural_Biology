@@ -115,6 +115,34 @@ For each card, in this order:
 4. **Name the mutation.** Which pipeline step, skill, or parameter changes? "The
    whole pipeline" is not an acceptable answer and the contract rejects it.
 
+### Step 3b — Challenge from a different position, never from a different prompt
+
+**Do not appoint a critic agent to argue against a card it has just read.** Assigned
+dissent is measurably counterproductive: authentic minority dissent is superior to *all*
+forms of devil's advocate, and assigned advocacy produces **cognitive bolstering of the
+initial view** — it leaves the proposer more confident than before. The same result holds
+for language models, where persona assignment across 162 roles and four model families
+produced no improvement at all.
+
+So decorrelate the challenger by **construction**, not by instruction:
+
+- **A different corpus.** The agent that challenges a card must have searched *different
+  sources* than the agent that proposed it. Give it the target field's literature and ask
+  what is already known there, rather than giving it the card and asking for objections.
+- **A different model where budget allows.** Different model families cut pairwise error
+  correlation from about 0.68 to 0.40; the same model in a different costume cuts it by
+  nothing.
+- **A different objective.** The proposer is scored on finding a transferable mechanism;
+  the challenger is scored on finding *prior art and a failed precondition*. Those are
+  separate searches with separate success criteria, not the same search run twice with
+  opposite instructions.
+
+The productive form of this is the one the evidence supports and that the dismantled
+Vatican canonisation procedure implemented: **written objection, written answer, and
+advancement gated on a recorded finding that the objection was met.** Record both sides on
+the proposal, then let the human decide — do not have the proposer resolve its own
+objection.
+
 Discard aggressively here. A 70 % discard rate at this step is healthy.
 
 ### Step 4 — Cost it and write the kill criterion

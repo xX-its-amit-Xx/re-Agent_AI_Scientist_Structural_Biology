@@ -478,3 +478,85 @@ def test_report_roundtrips_the_new_layers(tmp_path):
     assert back.findings[0].interpretation is not None
     assert back.findings[0].interpretation.implications[0].for_stage == "stage3_prior"
     assert back.reasoning_sources() == ["doi:10.1/a"]
+
+
+# --------------------------------------------------------------------------
+# knowledge-telling: a fluent explanation is weak evidence of understanding
+# --------------------------------------------------------------------------
+
+
+def test_knowledge_building_catches_restatement():
+    """Roscoe & Chi: explainers default to delivering knowledge, not developing it."""
+    telling = Interpretation(
+        for_audience={Audience.LAYPERSON: _plain()},
+        mechanism="These two proteins are similar in the shape of their binding sites.",
+        implications=[Implication(
+            for_stage="stage3_prior", decision="which templates to use",
+            direction="Argues FOR including them among the templates.",
+            if_wrong="The template choice is suboptimal in some way.",
+        )],
+    )
+    problems = telling.knowledge_building_problems()
+    assert any("no causal language" in p for p in problems), (
+        "a mechanism that restates the finding must be caught"
+    )
+    assert any("observable consequence" in p for p in problems)
+    assert any("caveat_for_reader" in p for p in problems)
+
+
+def test_knowledge_building_accepts_a_real_explanation():
+    building = Interpretation(
+        mechanism=(
+            "A protein that must handle many unrelated molecules cannot achieve that with "
+            "a tight cavity, so selection favours a large one with flexible walls."
+        ),
+        for_audience={Audience.LAYPERSON: _plain()},
+        implications=[Implication(
+            for_stage="stage3_prior", decision="which structures enter the corpus",
+            direction="Argues FOR including promiscuous non-family proteins.",
+            if_wrong="The corpus is diluted with folds that share nothing useful.",
+        )],
+        caveat_for_reader="Sharing the problem is not sharing the solution.",
+    )
+    assert building.knowledge_building_problems() == []
+
+
+def test_consequence_matching_survives_english_morphology():
+    """An earlier word-list version matched 'dilutes' but not 'diluted'."""
+    from reagent.contracts.interpret import COMMITTING
+
+    for inflected in ("is diluted with folds", "dilutes the corpus", "diluting the set",
+                      "over-generalises from one family", "generalised badly",
+                      "inherits a fabricated ordering", "effort is wasted"):
+        assert COMMITTING.search(inflected), f"missed a real consequence: {inflected}"
+
+    for mere_relevance in ("This is relevant to the next stage.",
+                           "It concerns the template set.",
+                           "The choice is important here."):
+        assert not COMMITTING.search(mere_relevance), f"false positive: {mere_relevance}"
+
+
+def test_causal_detection_discriminates():
+    from reagent.contracts.interpret import CAUSAL
+
+    assert CAUSAL.search("Selection favours a large cavity because it must handle many.")
+    assert CAUSAL.search("The data no longer carries it, so the query cannot discriminate.")
+    assert not CAUSAL.search("These two proteins are similar in shape.")
+
+
+def test_report_surfaces_knowledge_telling_per_finding():
+    bare = Finding(
+        id="F-T", kind=FindingKind.PRIOR,
+        statement="Promiscuous non-family proteins are candidate transfer sources.",
+        confidence=Confidence.TENTATIVE,
+        evidence=[Evidence(source_type=SourceType.PAPER, locator="doi:10.1/x")],
+        interpretation=Interpretation(
+            for_audience={Audience.LAYPERSON: _plain()},
+            mechanism="They are alike in the relevant way.",
+            implications=[an_implication()],
+        ),
+    )
+    r = _report(findings=[bare])
+    telling = r.knowledge_telling_findings()
+    assert "F-T" in telling
+    assert any("no causal language" in p for p in telling["F-T"])

@@ -71,6 +71,49 @@ looking at the same shared motif genuinely see different things.
 | `ML_PRACTITIONER` | What does it change about training data, features, splits, or which model to trust? |
 | `CLINICIAN` | What would this mean in a patient — exposure, interactions, liabilities? |
 
+### The evidence says a good explanation is weak evidence of understanding
+
+Three findings converge on the thing this skill does, and they are uncomfortable:
+
+- Explainers exhibit *"a pervasive knowledge-telling bias… even when trained, focus more on
+  delivering knowledge rather than developing it"* (Roscoe & Chi 2007). An explain stage
+  will default to fluent restatement unless the task structure forbids it.
+- A language-model judge preferred the **worse** chemistry system on fluency grounds while
+  four expert chemists preferred the better one.
+- Citation precision correlates with perceived utility at **r = −0.96**. Readability and
+  attributability are measurably opposed objectives.
+
+So do not treat "it reads well" as evidence of anything. Two mechanical tests, both
+implementable, are what actually discriminate.
+
+**Jargon ablation, which is Feynman's real test.** Not "explain it simply" — his actual
+instruction was *"without using the new word which you have just learned, try to rephrase
+what you have just learned in your own language."* Ban the term, demand the restatement,
+then score the restatement for **mechanism**, not for fluency. `undefined_jargon` is half of
+this; reading the result and asking whether it names a cause is the other half.
+
+**Require knowledge-building, not knowledge-telling.** An interpretation must state
+something the source text does not: a prediction, a boundary condition, or a reconciliation
+of two claims. **An explanation fully entailed by the retrieved text has demonstrated
+nothing.** That is what `mechanism` and `Implication.if_wrong` are for, and they should be
+judged against that standard rather than merely for being present.
+
+The reason a mechanistic explanation is the right probe: the illusion of explanatory depth
+is *"far stronger for explanatory knowledge than many other kinds of knowledge"*
+(Rozenblit & Keil 2002). Asking for a mechanism detects exactly the class of gap that
+asking for a summary does not.
+
+### And a caution about the deliverable itself
+
+Constructing a concept map beat reading texts and outlines; **studying a pre-built map
+showed no detectable effect** (Nesbit & Adesope 2010). A knowledge graph handed to a reader
+is the arm of that comparison that did not work.
+
+The consequence for this project is specific: the *interactive* path — where a reader
+queries the graph, compares two entities, and traverses provenance — is doing the work, not
+the static figure. When choosing where to spend effort, weight the MCP tools over the
+rendered report.
+
 ### The plain register, concretely
 
 Three moves do most of the work.

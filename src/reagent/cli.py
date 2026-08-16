@@ -182,6 +182,21 @@ def cmd_report_validate(args: argparse.Namespace) -> int:
         gloss = report.effective_glossary()
         _ok(f"plain language checks out ({len(gloss.terms)} glossary terms defined)")
 
+    if telling := report.knowledge_telling_findings():
+        msg = (
+            f"{len(telling)} interpretations restate rather than explain "
+            f"({sorted(telling)[:5]}). An explanation entailed by the source text has "
+            "demonstrated nothing — require a mechanism, a prediction, or a boundary."
+        )
+        if args.strict:
+            _err(msg)
+            failures += 1
+        else:
+            print(f"  warn  {msg}")
+        for fid, probs in sorted(telling.items())[:3]:
+            for pr in probs:
+                print(f"        {fid}: {pr}")
+
     if uninterp := report.uninterpreted_findings():
         print(f"  note  {len(uninterp)} findings have no interpretation: {uninterp[:6]}")
     if trivia := report.findings_without_implications():

@@ -368,6 +368,23 @@ class ModelReport(BaseModel):
             )
         return problems
 
+    def knowledge_telling_findings(self) -> dict[str, list[str]]:
+        """Findings whose interpretation restates rather than explains.
+
+        The failure this detects is the default behaviour of any explainer, human or
+        model: producing a more fluent version of the input and stopping there. Kept
+        separate from `plain_language_problems` because the two failures are opposite —
+        one is prose that is too hard to read, this one is prose that reads well and says
+        nothing new.
+        """
+        out: dict[str, list[str]] = {}
+        for f in self.findings:
+            if f.interpretation is None:
+                continue
+            if probs := f.interpretation.knowledge_building_problems():
+                out[f.id] = probs
+        return out
+
     def uninterpreted_findings(self) -> list[str]:
         """Findings with no interpretation. Fatal only for the decision-bearing kinds,
         which the Finding validator already enforces; the rest is advisory."""

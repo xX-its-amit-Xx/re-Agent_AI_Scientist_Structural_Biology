@@ -190,7 +190,8 @@ def interpretations() -> dict[str, Interpretation]:
                     strength=ImplicationStrength.DECISIVE,
                     if_wrong=(
                         "If a placeholder is treated as measured, every downstream ranking "
-                        "inherits a fabricated ordering while looking fully cited."
+                        "inherits a fabricated ordering while looking fully cited, and the "
+                        "error becomes undetectable because the provenance trail is intact."
                     ),
                 ),
             ],
@@ -312,14 +313,21 @@ def interpretations() -> dict[str, Interpretation]:
                     ),
                 ),
             ],
+            caveat_for_reader=(
+                "An empty axis means the comparison was never run, not that it was run and "
+                "found nothing. Reading it the second way would turn missing work into a "
+                "negative result."
+            ),
         ),
 
         "F-DESIGN-01": Interpretation(
             mechanism=(
-                "Collapsing distinct relations into one generic link discards the very "
-                "distinction a later query needs. Once two proteins are merely 'similar', "
-                "there is no way to ask which kind of similarity held, so the graph can "
-                "answer only vaguer questions than the data supports."
+                "A query can only discriminate along dimensions the data still carries, so "
+                "collapsing distinct relations into one generic link destroys the very "
+                "distinction a later question depends on. Once two proteins are merely "
+                "'similar', there is no way to recover which kind of similarity held, which "
+                "means the graph can answer only vaguer questions than the evidence "
+                "actually supports."
             ),
             for_audience={
                 Audience.LAYPERSON: (
@@ -347,11 +355,17 @@ def interpretations() -> dict[str, Interpretation]:
                     ),
                     strength=ImplicationStrength.STRONG,
                     if_wrong=(
-                        "Queries mix incommensurable scores, and a strong fold match and a "
-                        "weak chemical match become indistinguishable."
+                        "Queries mix incommensurable scores, so a strong fold match and a "
+                        "weak chemical match become indistinguishable and the ranking "
+                        "silently reflects whichever axis happens to be densest."
                     ),
                 ),
             ],
+            caveat_for_reader=(
+                "Separate predicates make the axes queryable; they do not make the axes "
+                "comparable. A score on one axis still cannot be weighed against a score "
+                "on another without normalising inside each one first."
+            ),
         ),
     }
 
