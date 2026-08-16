@@ -1,0 +1,401 @@
+{
+  "name": "CB1 Cannabinoid Receptor",
+  "slug": "cb1-cannabinoid-receptor",
+  "created": 1786832474.0282161,
+  "literature": {
+    "nodes": [
+      {
+        "id": "cb1",
+        "type": "Protein",
+        "label": "CB1 (CNR1)",
+        "summary": "Class A GPCR, primary receptor for endocannabinoids (anandamide, 2-AG) and THC. Densest GPCR in the CNS; targets appetite, pain, mood. Has both an orthosteric pocket (deep, lipid-facing) and a distinct extrahelical allosteric pocket.",
+        "source_url": "https://www.uniprot.org/uniprotkb/P21554",
+        "source_note": null,
+        "x": 0.33602299191256846,
+        "y": 0.4743830517747365
+      },
+      {
+        "id": "cb1_inactive_5tgz",
+        "type": "Paper",
+        "label": "CB1 inactive state, PDB 5TGZ",
+        "summary": "Crystal structure of CB1 bound to the inverse agonist/antagonist taranabant, captured in the inactive conformation. Used as the rigid-receptor reference state.",
+        "source_url": "https://www.rcsb.org/structure/5TGZ",
+        "source_note": null,
+        "x": 0.008251200109611312,
+        "y": 0.20870309265462395
+      },
+      {
+        "id": "cb1_active_6n4b",
+        "type": "Paper",
+        "label": "CB1 active state, PDB 6N4B",
+        "summary": "Cryo-EM structure of CB1 bound to a synthetic agonist and coupled to Gi, active conformation with TM6 swung outward for G-protein engagement.",
+        "source_url": "https://www.rcsb.org/structure/6N4B",
+        "source_note": null,
+        "x": 0.9628627858287058,
+        "y": 0.0
+      },
+      {
+        "id": "toggle_switch",
+        "type": "Concept",
+        "label": "Toggle-switch activation (W356/F200)",
+        "summary": "Rotamer switch of a conserved Trp (W6.48) and Phe (F3.36) deep in the orthosteric pocket that couples ligand binding to TM6 outward movement - the canonical class A GPCR activation micro-switch, well characterized specifically in CB1.",
+        "source_url": "https://pubmed.ncbi.nlm.nih.gov/27698698/",
+        "source_note": null,
+        "x": 1.0,
+        "y": 0.29186282405821046
+      },
+      {
+        "id": "allosteric_pocket",
+        "type": "Concept",
+        "label": "Extrahelical allosteric (NAM) site",
+        "summary": "Lipid-facing pocket between TM1/TM2/TM3/H8, distinct from the orthosteric pocket, bound by negative allosteric modulators like ORG27569 - relevant because it means CB1 has two druggable sites, not one, and they can be coupled (probe dependence).",
+        "source_url": null,
+        "source_note": "General GPCR allostery knowledge, grounded in published CB1 NAM structures - not tied to a single paper.",
+        "x": 0.0,
+        "y": 1.0
+      }
+    ],
+    "edges": [
+      {
+        "source": "cb1",
+        "relation": "has_structure",
+        "target": "cb1_inactive_5tgz",
+        "note": ""
+      },
+      {
+        "source": "cb1",
+        "relation": "has_structure",
+        "target": "cb1_active_6n4b",
+        "note": ""
+      },
+      {
+        "source": "cb1_inactive_5tgz",
+        "relation": "informs",
+        "target": "toggle_switch",
+        "note": "rotamer state visible by comparison to active structure"
+      },
+      {
+        "source": "cb1_active_6n4b",
+        "relation": "informs",
+        "target": "toggle_switch",
+        "note": ""
+      },
+      {
+        "source": "toggle_switch",
+        "relation": "extends",
+        "target": "cb1",
+        "note": ""
+      },
+      {
+        "source": "cb1",
+        "relation": "has_limitation",
+        "target": "allosteric_pocket",
+        "note": "orthosteric-only screen misses this site"
+      }
+    ]
+  },
+  "playground": [
+    {
+      "id": "pg-1786844756679",
+      "ts": 1786844756.6799462,
+      "kind": "pymol_image",
+      "title": "CB1 agonist binding pocket - ligand, contacts, toggle switch (6N4B)",
+      "body": "No CB1 structure exists with the actual natural ligand (anandamide/2-AG) bound - checked the PDB directly, zero hits for either, they're too metabolically unstable/low-affinity to crystallize. This is the closest real alternative: 6N4B, active-state Gi complex, bound to its co-crystallized synthetic full agonist (comp id KCA, an indazole-carboxamide/'Spice'-type agonist), shown in magenta. Cyan = the 16 residues actually within 4.5A of the ligand, computed directly in PyMOL (not assumed): F170, S173, F174, F177, H178, V196, T197, F200, F268, P269, Y275, L276, W356, M363, F379, S383. Orange = the toggle switch (W356/F200) - notably these are themselves direct ligand contacts, not just nearby, which is exactly how ligand binding couples to the TM6 activation motion. G-protein/scFv16 faded in background for context.",
+      "asset": "cb1-cannabinoid-receptor/assets/1786844756679_cb1_ligand_switch.png",
+      "request_id": null,
+      "section_title": "Pocket dynamics"
+    },
+    {
+      "id": "pg-1786842254362",
+      "ts": 1786842254.3627248,
+      "kind": "pymol_image",
+      "title": "Toggle-switch close-up - W356/F200 rotamer flip (5TGZ/6N4B superposed)",
+      "body": "Same superposition, zoomed on toggle-switch pair W356(6.48)/F200(3.36). Blue = inactive rotamer (5TGZ), red = active rotamer (6N4B). Visible side-chain rotation, modeled directly from deposited coordinates.",
+      "asset": "cb1-cannabinoid-receptor/assets/1786842254362_switch_closeup.png",
+      "request_id": null,
+      "section_title": "Toggle-switch mechanism (modeled overlay)"
+    },
+    {
+      "id": "pg-1786842252411",
+      "ts": 1786842252.4111385,
+      "kind": "pymol_image",
+      "title": "Toggle-switch overlay - inactive vs active receptor (5TGZ/6N4B superposed)",
+      "body": "cealign superposition (RMSD 3.68A/264 residues) of 5TGZ (blue, inactive) and 6N4B (salmon, active, Gi/scFv16 stripped). TM6 outward swing visible at intracellular face; blue-only domain is the 5TGZ flavodoxin fusion chaperone.",
+      "asset": "cb1-cannabinoid-receptor/assets/1786842252410_switch_wide.png",
+      "request_id": null,
+      "section_title": "Toggle-switch mechanism (modeled overlay)"
+    },
+    {
+      "id": "pg-1786841464064",
+      "ts": 1786841464.0645618,
+      "kind": "pymol_image",
+      "title": "CB1 vs CB2 orthosteric pocket - side by side",
+      "body": "Structure-based comparison, not just a sequence alignment: CB1 (5TGZ) and CB2 (5ZTY), both inactive-state, T4L/flavodoxin-fusion crystal structures with fusion domains stripped. Superposed with PyMOL cealign (RMSD 3.0A over 280 aligned residues) so both panels share the exact same camera. Cyan = the 10 pocket-lining positions identical between subtypes (full aromatic cage + toggle-switch Trp); orange = the 8 that diverge; red = the toggle-switch Trp (CB1 W356 / CB2 W258), conserved. Same color code as the earlier CB2-only selectivity figure. PyMOL headless render.",
+      "asset": "cb1-cannabinoid-receptor/assets/1786841464063_cb1_cb2_sidebyside.png",
+      "request_id": null,
+      "section_title": "CB2 selectivity cross-check"
+    },
+    {
+      "id": "pg-1786840935448",
+      "ts": 1786840935.4481106,
+      "kind": "pymol_image",
+      "title": "CB2 pocket - conserved vs. divergent residues vs. CB1 (5ZTY)",
+      "body": "CB2 orthosteric pocket (PDB 5ZTY, inactive, T4L-fusion crystal structure; residue numbers = canonical CB2/UniProt P34972 numbering, confirmed identical to PDB author numbering via the deposition's own UNP-residue range annotation). Cyan/blue = the 10 of 18 CB1 pocket-lining positions that are identical in CB2 (F87, S90, F91, T114, F117, M157, W194, W258, M265, S285 - includes the full aromatic cage and the toggle-switch Trp). Orange = the 8 positions that diverge (G99, I110, L154, L195, A199, V261, L269, L273). Red = W258, the CB2 toggle-switch equivalent of CB1's W356 - fully conserved. PyMOL headless render, same color scheme as the CB1 pocket figures for direct visual comparison.",
+      "asset": "cb1-cannabinoid-receptor/assets/1786840935447_cb2_pocket_selectivity.png",
+      "request_id": null,
+      "section_title": "CB2 selectivity cross-check"
+    },
+    {
+      "id": "pg-1786836201127",
+      "ts": 1786836201.1279795,
+      "kind": "image",
+      "title": "CB1 active-state receptor + Gi coupling context (6N4B)",
+      "body": "Active-state cryo-EM (6N4B), receptor chain R opaque, Gi heterotrimer + scFv16 faded below. Cyan = same pocket-lining residue set as the 5TGZ render; orange = toggle-switch W356(6.48)/F200(3.36) in the active rotamer. Same author-numbering scheme confirmed identical across both depositions (verified atom-select), so this and the 5TGZ render are directly residue-to-residue comparable. Live 3Dmol.js capture, agent-controlled.",
+      "asset": "cb1-cannabinoid-receptor/assets/1786836201127_preview_1786836190677.png",
+      "request_id": null,
+      "section_title": "Inactive vs. active pocket comparison (structural verification)"
+    },
+    {
+      "id": "pg-1786836116967",
+      "ts": 1786836116.9677076,
+      "kind": "image",
+      "title": "CB1 orthosteric pocket - aromatic cage + surface (5TGZ, inactive)",
+      "body": "Inactive-state (5TGZ, taranabant-bound) pocket. Cyan = aromatic/polar pocket-lining residues (F170, F174, W279, S173, S383 region). Orange = toggle-switch pair W356(6.48)/F200(3.36) in inactive rotamer. Translucent surface shows the deep, narrow, lipid-facing cavity shape - live 3Dmol.js capture, agent-controlled.",
+      "asset": "cb1-cannabinoid-receptor/assets/1786836116966_preview_1786836107971.png",
+      "request_id": null,
+      "section_title": "Inactive vs. active pocket comparison (structural verification)"
+    },
+    {
+      "id": "pg-1786834319840",
+      "ts": 1786834319.840628,
+      "kind": "image",
+      "title": "CB1 pocket - reviewed before promoting",
+      "body": "Checked with Read before adding - camera framing and residue highlighting confirmed correct.",
+      "asset": "cb1-cannabinoid-receptor/assets/1786834319840_preview_1786834307025.png",
+      "request_id": null,
+      "section_title": "Critical residues + pocket character"
+    },
+    {
+      "id": "pg-1786833987391",
+      "ts": 1786833987.3917985,
+      "kind": "viewer_snapshot",
+      "title": "CB1 pocket - JS viewer capture",
+      "body": "Captured directly from the live 3Dmol viewer, no PyMOL backend.",
+      "asset": "cb1-cannabinoid-receptor/assets/1786833987390_snapshot.png",
+      "request_id": "509d89f3268f",
+      "section_title": "Critical residues + pocket character"
+    },
+    {
+      "id": "pg-1786832548525",
+      "ts": 1786832548.5259175,
+      "kind": "pymol_image",
+      "title": "CB1 orthosteric pocket - toggle switch view",
+      "body": "PDB 5TGZ (inactive, taranabant-bound), top-down into orthosteric pocket. Orange = toggle-switch residues W356(6.48)/F200(3.36). Blue = surrounding pocket-lining residues. Fusion protein (crystallization chaperone, not part of CB1) faded in background.",
+      "asset": "cb1-cannabinoid-receptor/assets/1786832548525_fig_cb1_pocket.png",
+      "section_title": "Critical residues + pocket character"
+    }
+  ],
+  "stages": [
+    {
+      "id": 2,
+      "name": "Biochem Exploration",
+      "owner": "Denny",
+      "questions": [
+        "What are the critical amino acids and their complementary fragments?",
+        "What is the dynamics of the pocket?"
+      ],
+      "tools": [
+        "ChimeraX",
+        "PyMOL"
+      ],
+      "status": "done",
+      "sections": [
+        {
+          "title": "Critical residues + pocket character",
+          "content": "Pocket is deep and narrow, lined almost entirely by aromatics (F170, F174, W279, F200, W356) plus a few polar anchors (S383, S173) - consistent with CB1's endogenous ligands being lipids (anandamide, 2-AG). Deviation flag: this pocket is far more hydrophobic/aromatic than a typical Rule-of-Three fragment screen assumes, so fragment hits here should skew toward larger, more lipophilic, ring-heavy chemotypes rather than small polar fragments - same reasoning as the PXR pocket case, different mechanism (lipid-binding vs xenobiotic-sensing).",
+          "ts": 1786832548.5261018
+        },
+        {
+          "title": "Pocket dynamics",
+          "content": "Two solved end-states (5TGZ inactive / 6N4B active) show TM6 swings ~10A outward on the intracellular side upon activation - the toggle switch (W356 rotamer flip) is the microswitch that couples orthosteric occupancy to that macroscopic motion. Any rigid-receptor docking run should specify which end-state it's using and should not assume the orthosteric site itself changes shape much between the two states - the big conformational change is on the intracellular G-protein-coupling face, not the ligand pocket.",
+          "ts": 1786832548.5262625
+        },
+        {
+          "title": "Inactive vs. active pocket comparison (structural verification)",
+          "content": "Directly compared the same pocket-lining residue set (182, 193, 197, 237, 240, 280, 284, 356, 200, 359, 363, 367, 371) across 5TGZ (inactive, taranabant-bound) and 6N4B (active, Gi-coupled) via atom-level selection in the live viewer - confirmed identical author-numbering and residue identity in both depositions (chain R in 6N4B), so the two renders are directly residue-to-residue comparable, not just visually similar. This closes the gap from the earlier pocket-dynamics note, which described the TM6 motion from literature but hadn't been checked against the actual coordinate sets. Side-by-side (see Playground renders), the orthosteric cage itself (cyan residues) holds essentially the same shape and packing in both states - the visible difference is confined to the toggle-switch pair (orange, W356/F200) and the large-scale TM6 outward swing at the intracellular face, consistent with the class A GPCR activation mechanism. Practical implication for docking: a single rigid-receptor pocket model built from either end-state should transfer reasonably well to the other for orthosteric-site work, since the ligand-facing geometry doesn't reorganize much - the state choice matters for anything touching the intracellular/G-protein interface, not for orthosteric fragment or ligand posing.",
+          "ts": 1786836209.5498745
+        },
+        {
+          "title": "Allosteric (NAM) site - druggability and probe dependence",
+          "content": "The extrahelical allosteric pocket (TM1/TM2/TM3/H8 interface, lipid-facing, distinct from the orthosteric cage) is the binding site for negative allosteric modulators like ORG27569. Structurally it sits outside the deep aromatic tunnel explored above, so a ligand there doesn't compete directly with orthosteric binders - instead it acts through conformational coupling, which is why NAM pharmacology at CB1 shows probe dependence (effect direction/magnitude depends on which orthosteric ligand is co-bound, not a fixed antagonism). Practical read for the pipeline: this is a second, mechanistically distinct druggable site on the same target, not a fallback pocket - a screen scoped only to the orthosteric cage (this report's main focus) structurally cannot find NAM-type chemotypes, and any hit series from that site needs functional (not just binding) assays to characterize direction of modulation before it can be compared against orthosteric hits on the same footing.",
+          "ts": 1786836226.636586
+        },
+        {
+          "title": "Synthesis - design implications for downstream screening",
+          "content": "Pulling the biochem exploration together into concrete constraints for Stage 3/4: (1) Chemotype - pocket is deep, narrow, and aromatic-dominated (F170, F174, W279, F200, W356) with only sparse polar anchoring (S173, S383), so favor larger, lipophilic, ring-heavy candidates over classic small polar fragments; a Rule-of-Three fragment library will underperform here without reweighting toward aromatics. (2) State choice - orthosteric-site work (docking, fragment posing) is not state-sensitive between 5TGZ/6N4B since the cage itself is conserved across inactive/active (verified atom-level, see comparison section above); only intracellular/G-protein-face work needs to commit to a state. (3) Site count - CB1 has two mechanistically independent druggable sites (orthosteric cage + extrahelical NAM pocket); this report's residue/pocket analysis covers the orthosteric site only, so an allosteric-site campaign would need its own separate pocket characterization pass before Stage 3 sampling begins. (4) Selectivity - CB2 cross-reactivity (44% overall / ~68% TM identity per Stage 1 homolog scan) remains an open flag for any orthosteric hit; a residue-level CB1-vs-CB2 pocket alignment wasn't done in this pass and would need dedicated follow-up before hit prioritization.",
+          "ts": 1786836232.4369297
+        },
+        {
+          "title": "CB2 selectivity cross-check",
+          "content": "Residue-level CB1-vs-CB2 pocket alignment, done properly rather than left as a flag: pulled canonical sequences (CB1 UniProt P21554, CB2 UniProt P34972), ran a global pairwise alignment (Biopython, BLOSUM62), and mapped all 18 CB1 orthosteric pocket-lining residues used in this report onto their CB2-aligned counterparts. Cross-checked the CB2 numbering against a real structure (PDB 5ZTY, inactive CB2, T4L-fusion crystal) - its deposited UNP-residue-range annotation confirms 5ZTY's author numbering equals canonical CB2 UniProt numbering exactly for the receptor portion, so these are real, structure-usable residue numbers, not just an abstract sequence alignment.\nResult: 10 of 18 pocket positions are identical between CB1 and CB2, including the entire aromatic cage core (F170/F87, F174/F91, F200/F117, W279/W194) and the toggle switch itself (W356/W258) - the deep recognition pocket that binds the endocannabinoid/THC pharmacophore is essentially the same receptor in both subtypes, which is exactly why cross-reactivity is a real risk here, not a theoretical one.\n8 positions diverge: CB1 R182->CB2 G99 (loses a charged residue - the largest change, likely near the pocket rim/entrance rather than the deep core), CB1 F237->CB2 L154 (loses an aromatic ring), CB1 S284->CB2 A199 (loses an H-bond donor/acceptor), plus four conservative hydrophobic swaps (L193/I110, I280/L195, L359/V261, V367/L269, M371/L273 - all aliphatic-for-aliphatic). Practical read: the three non-conservative divergences (R182/G99, F237/L154, S284/A199) are the actual selectivity handles for medchem - a CB1-selective ligand should be designed to exploit the charge, aromaticity, or H-bonding lost at those three CB2 positions. Conversely, any orthosteric hit whose binding mode leans mainly on the conserved aromatic cage (the F/W residues) should be assumed CB2-cross-reactive until shown otherwise - don't rely on the deep pocket alone for selectivity.",
+          "ts": 1786836965.4754026,
+          "status": "complete"
+        },
+        {
+          "title": "Toggle-switch mechanism (modeled overlay)",
+          "content": "Built an actual structural model of the activation switch rather than describing it from literature alone: fetched 5TGZ (inactive, chain A only, taranabant-bound) and 6N4B (active, chain R only, Gi/scFv16 stripped) fresh from RCSB and superposed them in PyMOL with cealign restricted to each receptor's own polymer chain (RMSD 3.68A over 264 aligned residues - structure-based CE alignment, robust to the flavodoxin fusion insert still present in 5TGZ's crystallization construct).\n\nWide frame (overlay, blue=inactive/5TGZ, salmon=active/6N4B): with the two receptors aligned on their shared TM bundle, the intracellular end of TM6 visibly splays outward in the active (salmon) structure relative to inactive (blue) - the same ~10A outward swing described in the pocket-dynamics section, now shown directly as a coordinate-level overlay rather than cited from the literature. The blue-only globular domain at lower left is the 5TGZ flavodoxin fusion chaperone (crystallization aid, not CB1 sequence) - included in the render because chain-stripping removed the Gi/scFv16 binding partners from 6N4B but the fusion domain in 5TGZ is covalently part of chain A and can't be cleanly excluded without a residue-range cut; it does not overlap the receptor helices and doesn't confound the alignment.\n\nClose-up frame (toggle-switch pair, resi 356+200, same color code): the W356 (6.48) side chain rotamer is visibly rotated between the two states - inactive (blue) points the indole ring into one packing arrangement against F200, active (salmon/red) has swung to a different rotamer that opens the path for the TM6 kink. This is the microswitch itself, not an inference from B-factors or literature description - both side chains are modeled from their respective deposited coordinate sets, superposed on a common frame.\n\nPractical read: this confirms (at the coordinate level, not just citation level) the two claims the pocket-dynamics section made from literature - (1) the orthosteric cage packing around the switch is a real, visible rotamer flip, not a subtle shift, and (2) the switch is spatially and mechanistically upstream of the TM6 motion, consistent with treating W356/F200 as the actionable microswitch for any future work on biased agonism or state-selective ligand design.",
+          "ts": 1786842244.5421226,
+          "status": "complete"
+        }
+      ]
+    }
+  ],
+  "viewer": {
+    "commands": [
+      {
+        "op": "load",
+        "args": {
+          "pdb_id": "6N4B",
+          "url": null,
+          "format": "pdb"
+        },
+        "ts": 1786836119.4048975
+      },
+      {
+        "op": "style",
+        "args": {
+          "selector": {},
+          "style": {
+            "cartoon": {
+              "colorscheme": "chain"
+            }
+          }
+        },
+        "ts": 1786836124.1578252
+      },
+      {
+        "op": "zoom",
+        "args": {
+          "selector": {}
+        },
+        "ts": 1786836124.1814141
+      },
+      {
+        "op": "style",
+        "args": {
+          "selector": {
+            "resi": "356,200"
+          },
+          "style": {
+            "stick": {
+              "colorscheme": "orangeCarbon"
+            },
+            "sphere": {
+              "scale": 0.3,
+              "color": "orange"
+            }
+          }
+        },
+        "ts": 1786836139.4372034
+      },
+      {
+        "op": "zoom",
+        "args": {
+          "selector": {
+            "resi": "356,200"
+          }
+        },
+        "ts": 1786836139.451196
+      },
+      {
+        "op": "style",
+        "args": {
+          "selector": {},
+          "style": {
+            "cartoon": {
+              "color": "lightgrey",
+              "opacity": 0.5
+            }
+          }
+        },
+        "ts": 1786836180.744347
+      },
+      {
+        "op": "style",
+        "args": {
+          "selector": {
+            "chain": "R"
+          },
+          "style": {
+            "cartoon": {
+              "color": "grey",
+              "opacity": 1
+            }
+          }
+        },
+        "ts": 1786836181.8532255
+      },
+      {
+        "op": "style",
+        "args": {
+          "selector": {
+            "chain": "R",
+            "resi": "182,193,197,237,240,280,284,359,363,367,371"
+          },
+          "style": {
+            "stick": {
+              "colorscheme": "cyanCarbon"
+            },
+            "cartoon": {
+              "color": "skyblue"
+            }
+          }
+        },
+        "ts": 1786836182.9317687
+      },
+      {
+        "op": "style",
+        "args": {
+          "selector": {
+            "chain": "R",
+            "resi": "356,200"
+          },
+          "style": {
+            "stick": {
+              "colorscheme": "orangeCarbon"
+            },
+            "cartoon": {
+              "color": "orange"
+            }
+          }
+        },
+        "ts": 1786836184.0219488
+      },
+      {
+        "op": "label",
+        "args": {
+          "selector": {
+            "chain": "R",
+            "resi": "356"
+          },
+          "text": "W356 (toggle switch, active rotamer)"
+        },
+        "ts": 1786836184.5800066
+      },
+      {
+        "op": "zoom",
+        "args": {
+          "selector": {
+            "chain": "R"
+          }
+        },
+        "ts": 1786836184.9230442
+      }
+    ]
+  },
+  "report": {
+    "pdf_path": "cb1-cannabinoid-receptor/report.pdf",
+    "generated_ts": 1786842257.6914988
+  },
+  "md_jobs": []
+}

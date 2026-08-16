@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>PXR Fragment Screening Report — DUMMY</title>
+<style>
+  @page {
+    size: letter;
+    margin: 20mm 18mm 22mm;
+    @bottom-left { content: "DUMMY / TEMPLATE - not a real result"; font-size: 8pt; color: #999; }
+    @bottom-right { content: "Page " counter(page) " of " counter(pages); font-size: 8pt; color: #999; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 10.5pt;
+    line-height: 1.5;
+    color: #1c1c1c;
+    margin: 0;
+  }
+  .sans { font-family: -apple-system, "Segoe UI", Arial, sans-serif; }
+  .banner {
+    background: #2a2f39;
+    color: #f4f2ec;
+    padding: 8px 14px;
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+    font-size: 9.5pt;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  header.doc-header {
+    border-bottom: 2.5px solid #1c1c1c;
+    padding-bottom: 12px;
+    margin-bottom: 22px;
+  }
+  header.doc-header h1 {
+    font-size: 22pt;
+    margin: 0 0 6px;
+  }
+  header.doc-header .meta {
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+    font-size: 9pt;
+    color: #555;
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  header.doc-header .meta strong { color: #1c1c1c; }
+
+  section { margin-bottom: 26px; page-break-inside: avoid; }
+  section.allow-break { page-break-inside: auto; }
+
+  h2 {
+    font-size: 13.5pt;
+    margin: 0 0 10px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #c9c4b6;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  h2 .num {
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 10pt;
+    color: #b8862f;
+    font-weight: normal;
+  }
+  h3 {
+    font-size: 10.5pt;
+    margin: 14px 0 6px;
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #555;
+  }
+  p { margin: 0 0 8px; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+    font-size: 8.7pt;
+    margin: 6px 0 4px;
+  }
+  th, td {
+    border: 1px solid #d9d4c6;
+    padding: 5px 7px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: #eae7dd;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 7.7pt;
+    letter-spacing: 0.03em;
+  }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tr:nth-child(even) td { background: #faf9f5; }
+
+  .pill {
+    display: inline-block;
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+    font-size: 7.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 1.5px 7px;
+    border-radius: 999px;
+    color: #fff;
+  }
+  .pill.high { background: #3f8f83; }
+  .pill.med { background: #b8862f; }
+  .pill.low { background: #b0503f; }
+
+  .two-col { display: flex; gap: 24px; }
+  .two-col > div { flex: 1; }
+
+  .callout {
+    background: #f4f2ec;
+    border-left: 3px solid #c1642c;
+    padding: 8px 12px;
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+    font-size: 9pt;
+    margin: 8px 0;
+  }
+  .callout strong { color: #c1642c; }
+
+  .figure-placeholder {
+    border: 1.5px dashed #b3ad9c;
+    background: #f7f6f2;
+    height: 130px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+    font-size: 8.5pt;
+    color: #918c7b;
+    margin: 6px 0 10px;
+    text-align: center;
+  }
+
+  .stat-row { display: flex; gap: 14px; margin: 8px 0 4px; }
+  .stat {
+    flex: 1;
+    border: 1px solid #d9d4c6;
+    padding: 8px 10px;
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+  }
+  .stat .label {
+    font-size: 7.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #777;
+  }
+  .stat .value {
+    font-size: 15pt;
+    font-family: Georgia, serif;
+    margin-top: 2px;
+  }
+  .stat .sub { font-size: 8pt; color: #777; margin-top: 1px; }
+
+  ul.tight { margin: 4px 0; padding-left: 18px; }
+  ul.tight li { margin-bottom: 4px; }
+
+  code.smiles {
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 7.8pt;
+    background: #f2f0e9;
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+
+  td.struct { width: 62px; padding: 3px 5px; }
+  td.struct img { width: 56px; height: auto; display: block; }
+
+  .figure-block { margin: 8px 0 10px; }
+  .figure-block img {
+    max-width: 100%;
+    display: block;
+    border: 1px solid #d9d4c6;
+  }
+  .figure-caption {
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+    font-size: 8pt;
+    color: #777;
+    margin-top: 4px;
+  }
+  .legend-swatches {
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+    font-size: 8pt;
+    color: #555;
+    display: flex;
+    gap: 14px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+  .legend-swatches span { display: inline-flex; align-items: center; gap: 5px; }
+  .legend-swatches i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+  .appendix-block { margin-bottom: 14px; }
+  .appendix-block h4 {
+    font-size: 9.5pt;
+    margin: 0 0 4px;
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+  }
+
+  .section-overview {
+    font-style: italic;
+    color: #4a4738;
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+    font-size: 9.5pt;
+    margin: -4px 0 14px;
+  }
+
+  .reasoning {
+    margin-top: 16px;
+    border: 1px dashed #b3ad9c;
+    background: #fbfaf7;
+    padding: 10px 13px 12px;
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+  }
+  .reasoning .reasoning-label {
+    font-size: 7.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #918c7b;
+    margin-bottom: 5px;
+    display: block;
+  }
+  .reasoning p {
+    font-size: 8.8pt;
+    color: #3a3730;
+    margin: 0 0 5px;
+  }
+  .reasoning p:last-child { margin-bottom: 0; }
+  .reasoning .flag {
+    display: inline-block;
+    font-size: 7.3pt;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: #c1642c;
+    color: #fff;
+    margin-right: 6px;
+  }
+</style>
+</head>
+<body>
+
+<div class="banner">DUMMY / TEMPLATE REPORT — all values below are illustrative placeholders, not a real screening result</div>
+
+<header class="doc-header">
+  <h1>Fragment Screening &amp; Pocket Analysis Report</h1>
+  <div class="meta">
+    <span><strong>Target:</strong> Pregnane X Receptor, ligand-binding domain (PXR-LBD)</span>
+    <span><strong>Structure:</strong> PDB 1ILH (illustrative)</span>
+    <span><strong>Run date:</strong> 2026-08-15</span>
+    <span><strong>Agent/pipeline version:</strong> sbdd-agent v0.1-dummy</span>
+  </div>
+</header>
+
+<section>
+  <h2><span class="num">01</span> Target Overview</h2>
+  <p class="section-overview">Real deposited crystal structure available and used directly; pocket is the well-characterized orthosteric xenobiotic-sensing site, already flagged for unusually high plasticity in &sect;03.</p>
+  <div class="two-col">
+    <div>
+      <p><strong>Source:</strong> deposited crystal structure (not predicted). Resolution 2.75&nbsp;&Aring;, holo form, single LBD chain, space group C222<sub>1</sub>.</p>
+      <p><strong>Oligomeric state:</strong> monomeric LBD construct (residues 142&ndash;434); full-length receptor is monomeric nuclear receptor, DBD+LBD, functions with RXR&alpha; heterodimer partner.</p>
+      <p><strong>Pocket class:</strong> orthosteric, xenobiotic-sensing ligand-binding pocket. Known unusually large and plastic &mdash; see &sect;03.</p>
+    </div>
+    <div>
+      <p><strong>Known ligand prior (ChEMBL query):</strong> 214 bioactive compounds on record for this target, potency range 40&nbsp;nM&ndash;38&nbsp;&micro;M, chemically diverse (steroids, statins, antibiotics, herbicide metabolites &mdash; consistent with promiscuity).</p>
+      <p><strong>Crystallization artifacts flagged in pocket:</strong> 1 PEG fragment (chain A, resi 501) overlapping candidate site 2 &mdash; excluded from hot-spot mapping.</p>
+    </div>
+  </div>
+  <div class="reasoning">
+    <span class="reasoning-label">Agent reasoning</span>
+    <p>Used the deposited crystal form rather than an AlphaFold prediction &mdash; resolution (2.75&nbsp;&Aring;) and pocket coverage were sufficient, so the structure-prediction and pLDDT-confidence steps were skipped per pipeline rule (real structure &gt; predicted, see &sect;06 for how this changes the confidence appendix).</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">02</span> Pocket &amp; Druggability</h2>
+  <p class="section-overview">Three candidate pockets enumerated; one clears the druggability threshold and matches the known ligand-bound volume range.</p>
+  <table>
+    <thead>
+      <tr><th>Pocket ID</th><th class="num">Volume (&Aring;&sup3;)</th><th class="num">Druggability score</th><th>Enclosure</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Site 1 (orthosteric)</td><td class="num">1,340</td><td class="num">0.91</td><td>High</td><td>Selected &mdash; matches known ligand-bound volume range</td></tr>
+      <tr><td>Site 2</td><td class="num">410</td><td class="num">0.38</td><td>Medium</td><td>Overlaps PEG artifact, deprioritized</td></tr>
+      <tr><td>Site 3 (surface groove)</td><td class="num">190</td><td class="num">0.19</td><td>Low</td><td>Below druggability threshold, excluded</td></tr>
+    </tbody>
+  </table>
+  <div class="figure-placeholder">[ Figure 1 &mdash; PyMOL render: target cartoon, Site 1 surface colored by druggability, selected pocket outlined ]</div>
+  <div class="reasoning">
+    <span class="reasoning-label">Agent reasoning</span>
+    <p>Site 2's raw volume (410&nbsp;&Aring;&sup3;) and enclosure were not disqualifying on their own, but it was deprioritized because the top-scoring subpocket overlapped a PEG cryoprotectant molecule (&sect;01) rather than genuine protein-lined surface &mdash; without that overlap its druggability score would likely have cleared threshold. Flagged for re-evaluation if a PEG-free structure becomes available.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">03</span> Pocket Flexibility</h2>
+  <p class="section-overview">Pocket is substantially more plastic than a typical orthosteric site &mdash; plasticity score sits well above the ensemble-docking threshold, driven almost entirely by the AF-2 helix and &beta;-sheet lid rather than the core hot spot.</p>
+  <div class="stat-row">
+    <div class="stat">
+      <div class="label">Plasticity score</div>
+      <div class="value">0.52</div>
+      <div class="sub">normalized volume range, 28 superposed structures</div>
+    </div>
+    <div class="stat">
+      <div class="label">Apo &rarr; holo &Delta;volume</div>
+      <div class="value">+640 &Aring;&sup3;</div>
+      <div class="sub">largest holo vs. apo pocket</div>
+    </div>
+    <div class="stat">
+      <div class="label">Docking strategy</div>
+      <div class="value" style="font-size:12pt;">Ensemble required</div>
+      <div class="sub">score &gt; 0.4 threshold</div>
+    </div>
+  </div>
+  <p><strong>Named flexible elements:</strong> AF-2 helix (residues 407&ndash;422, repositions on agonist binding); &beta;-sheet lid (residues 245&ndash;260, opens to accommodate bulkier ligands).</p>
+  <div class="figure-block">
+    <img src="fig_pocket_overlay.png" alt="Overlay of three PXR-LBD conformational states" />
+    <div class="figure-caption">Figure 1 &mdash; three real deposited PXR-LBD structures superposed on a rigid core (residues 145&ndash;400): orange = 1ILH (SR12813-bound), sky blue (translucent) = 8SVN (apo), purple = 8FPE (T0-BP-bound). AF-2 helix highlighted red, &beta;-sheet lid highlighted yellow across all three states &mdash; this is where the visible spread concentrates, consistent with the RMSF table below.</div>
+    <div class="legend-swatches">
+      <span><i style="background:#e08947;"></i>SR12813-bound (1ILH)</span>
+      <span><i style="background:#a9c7e8;"></i>apo (8SVN)</span>
+      <span><i style="background:#7d3f9e;"></i>T0-BP-bound (8FPE)</span>
+      <span><i style="background:#b0302a;"></i>AF-2 helix</span>
+      <span><i style="background:#d4c92a;"></i>&beta;-sheet lid</span>
+    </div>
+  </div>
+  <h3>Per-residue RMSF, pocket-lining only (top 6)</h3>
+  <table>
+    <thead><tr><th>Residue</th><th class="num">RMSF (&Aring;)</th><th>Element</th></tr></thead>
+    <tbody>
+      <tr><td>Leu411</td><td class="num">2.14</td><td>AF-2 helix</td></tr>
+      <tr><td>Gln285</td><td class="num">1.87</td><td>&beta;-sheet lid</td></tr>
+      <tr><td>Phe420</td><td class="num">1.65</td><td>AF-2 helix</td></tr>
+      <tr><td>Met243</td><td class="num">0.71</td><td>helix 3</td></tr>
+      <tr><td>Trp299</td><td class="num">0.44</td><td>core hot spot</td></tr>
+      <tr><td>Tyr306</td><td class="num">0.39</td><td>core hot spot</td></tr>
+    </tbody>
+  </table>
+  <div class="callout"><strong>Interpretation:</strong> flexibility concentrated at the AF-2 helix and lid, not the core hot spot (W299/F288/Y306 stay rigid). Every fragment below docked only against the single deposited structure gets a Conformational Confidence downgrade in &sect;05.</div>
+  <div class="reasoning">
+    <span class="reasoning-label">Agent reasoning</span>
+    <p><span class="flag">Deviation from default</span>Plasticity score (0.52) exceeded the 0.4 ensemble-docking threshold, so ensemble docking was used as the primary strategy for this target instead of the faster rigid-receptor default. This is consistent with this receptor's known behavior as an unusually promiscuous, plastic sensor rather than a typical rigid orthosteric pocket &mdash; treat rigid-only results from earlier triage passes on this target as unreliable.</p>
+  </div>
+</section>
+
+<section class="allow-break">
+  <h2><span class="num">04</span> Hot-Spot Map</h2>
+  <p class="section-overview">One dominant, rigid apolar hot spot anchors the pocket; two secondary polar/charged anchors sit closer to the flexible AF-2 region and are treated as lower-confidence handles.</p>
+  <div class="two-col">
+    <div class="figure-placeholder" style="height:150px;">[ Figure 2 &mdash; hot-spot probe map, apolar/donor/acceptor grids overlaid on pocket ]</div>
+    <div>
+      <h3>Core hot spot (rigid across ensemble)</h3>
+      <ul class="tight">
+        <li><strong>Trp299</strong> &mdash; apolar, present in 100% of known ligand complexes</li>
+        <li><strong>Phe288</strong> &mdash; apolar/&pi;-stacking</li>
+        <li><strong>Tyr306</strong> &mdash; H-bond donor, secondary apolar contact</li>
+      </ul>
+      <h3>Secondary anchor points</h3>
+      <ul class="tight">
+        <li>His407 &mdash; H-bond acceptor, AF-2-adjacent (flexible)</li>
+        <li>Arg410 &mdash; salt bridge / H-bond donor</li>
+      </ul>
+    </div>
+  </div>
+  <div class="reasoning">
+    <span class="reasoning-label">Agent reasoning</span>
+    <p>Only one core hot spot was retained (rather than the 3&ndash;5 typically seen on a less hydrophobic pocket) because the two next-highest-scoring probe clusters both sat on the flexible AF-2 helix (&sect;03) and their apparent "hot spot" signal varied by &gt;40% across ensemble frames &mdash; judged noise from the flexible region rather than a real anchor, so they were downgraded to secondary/informational rather than reported as core.</p>
+  </div>
+</section>
+
+<section class="allow-break">
+  <h2><span class="num">05</span> Fragment Hit Table</h2>
+  <p class="section-overview">Six fragments passed triage; selection skews toward larger, more hydrophobic character than a standard Rule-of-Three library would prioritize &mdash; see reasoning below.</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Site ID</th><th>Structure</th><th>SMILES</th><th class="num">MW</th>
+        <th class="num">LE</th><th class="num">LLE</th>
+        <th class="num">Score</th>
+        <th>Key interactions (PLIP)</th>
+        <th>Conf.</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>PXR-x0001</td><td class="struct"><img src="fig_frag_x0001.png" alt="PXR-x0001 structure" /></td><td><code class="smiles">c1ccc2[nH]ccc2c1</code></td><td class="num">117</td>
+        <td class="num">0.41</td><td class="num">4.1</td><td class="num">-6.8</td>
+        <td>Trp299 &pi;-stack, Tyr306 H-bond</td>
+        <td><span class="pill high">High</span></td>
+      </tr>
+      <tr>
+        <td>PXR-x0002</td><td class="struct"><img src="fig_frag_x0002.png" alt="PXR-x0002 structure" /></td><td><code class="smiles">O=C(N)c1ccncc1</code></td><td class="num">122</td>
+        <td class="num">0.38</td><td class="num">3.6</td><td class="num">-6.1</td>
+        <td>Phe288 hydrophobic, His407 H-bond</td>
+        <td><span class="pill med">Med</span></td>
+      </tr>
+      <tr>
+        <td>PXR-x0003</td><td class="struct"><img src="fig_frag_x0003.png" alt="PXR-x0003 structure" /></td><td><code class="smiles">Clc1ccc(cc1)S(=O)(=O)N</code></td><td class="num">205</td>
+        <td class="num">0.29</td><td class="num">2.8</td><td class="num">-6.4</td>
+        <td>Arg410 salt bridge, Trp299 apolar</td>
+        <td><span class="pill med">Med</span></td>
+      </tr>
+      <tr>
+        <td>PXR-x0004</td><td class="struct"><img src="fig_frag_x0004.png" alt="PXR-x0004 structure" /></td><td><code class="smiles">c1ccc(cc1)C(=O)O</code></td><td class="num">122</td>
+        <td class="num">0.33</td><td class="num">3.9</td><td class="num">-5.9</td>
+        <td>Tyr306 H-bond only</td>
+        <td><span class="pill low">Low</span></td>
+      </tr>
+      <tr>
+        <td>PXR-x0005</td><td class="struct"><img src="fig_frag_x0005.png" alt="PXR-x0005 structure" /></td><td><code class="smiles">CC(C)n1cnc2c1cccc2</code></td><td class="num">160</td>
+        <td class="num">0.31</td><td class="num">2.2</td><td class="num">-6.6</td>
+        <td>Trp299 &pi;-stack, Phe288 hydrophobic</td>
+        <td><span class="pill high">High</span></td>
+      </tr>
+      <tr>
+        <td>PXR-x0006</td><td class="struct"><img src="fig_frag_x0006.png" alt="PXR-x0006 structure" /></td><td><code class="smiles">Nc1ncnc2[nH]ccc12</code></td><td class="num">135</td>
+        <td class="num">0.27</td><td class="num">3.3</td><td class="num">-5.7</td>
+        <td>His407 H-bond only, AF-2-adjacent</td>
+        <td><span class="pill low">Low</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="sans" style="font-size:8pt;color:#777;">LE = score &divide; heavy-atom count. LLE = pIC50-equivalent &minus; clogP (estimated). Score = docking &Delta;G proxy, kcal/mol. Conf. = Conformational Confidence, discounted per &sect;03 for fragments docked against a single rigid structure only.</p>
+  <div class="reasoning">
+    <span class="reasoning-label">Agent reasoning</span>
+    <p><span class="flag">Deviation from default</span>20 of 28 pocket-lining residues are hydrophobic (unusually high for an orthosteric site), so small polar Rule-of-Three fragments (sub-150&nbsp;Da, cLogP&nbsp;&lt;1) scored poorly in initial triage &mdash; they satisfied the size/polarity rule but made almost no contact with the dominant hot spot (Trp299/Phe288). Fragment ranking was reweighted to tolerate slightly higher MW and lower polarity than the standard cutoff, which is why PXR-x0003 (205&nbsp;Da, chlorophenyl sulfonamide, the least "rule-compliant" fragment here) still placed above two smaller, more polar fragments &mdash; its extra bulk buys real hot-spot contact that the smaller polar fragments could not achieve.</p>
+    <p>This reweighting is target-specific, not a general library-selection default; a less hydrophobic pocket would have kept the standard Rule-of-Three ranking unmodified.</p>
+  </div>
+</section>
+
+<section class="allow-break">
+  <h2><span class="num">06</span> Confidence Appendix</h2>
+  <p class="section-overview">Structure-quality metrics come from the real deposited crystal; fragment-confidence metrics come from computation only &mdash; kept in separate blocks deliberately.</p>
+  <div class="appendix-block">
+    <h4>Target structure (crystallographic, wwPDB-style)</h4>
+    <table>
+      <tbody>
+        <tr><th style="width:26%;">Resolution</th><td>2.75 &Aring;</td><th style="width:22%;">R<sub>work</sub> / R<sub>free</sub></th><td>0.198 / 0.241</td></tr>
+        <tr><th>Clashscore</th><td>4.2 (percentile 88)</td><th>Ramachandran outliers</th><td>0.2%</td></tr>
+        <tr><th>Pocket-lining altlocs</th><td>2 residues (Leu411, Gln285)</td><th>Ligand density (deposited)</th><td>n/a &mdash; apo pocket</td></tr>
+      </tbody>
+    </table>
+    <div class="figure-block">
+      <img src="fig_bfactor_confidence.png" alt="PXR-LBD colored by B-factor" />
+      <div class="figure-caption">Figure 2 &mdash; PDB 1ILH colored by per-residue B-factor (blue = low/rigid &rarr; red = high/flexible). This is the confidence map for this section: since the target is a real deposited crystal structure rather than a predicted model, B-factor is the correct per-residue confidence signal here, not AlphaFold pLDDT &mdash; pLDDT only applies to predicted structures and was not computed (&sect;01). The red region matches the AF-2/lid area already flagged in &sect;03, cross-confirming that signal from an independent metric.</div>
+    </div>
+  </div>
+  <div class="appendix-block">
+    <h4>Computational confidence (proposed fragments &mdash; not experimentally validated)</h4>
+    <p>Confidence tiers reflect docking-score consistency across ensemble frames and PLIP interaction persistence, not real density. No fragment listed in &sect;05 has been synthesized, soaked, or otherwise experimentally confirmed. Treat as a triage ranking for follow-up, not a result.</p>
+  </div>
+  <div class="reasoning">
+    <span class="reasoning-label">Agent reasoning</span>
+    <p>The two confidence blocks above were kept structurally separate rather than merged into one score, since blending a real experimental metric (R<sub>free</sub>, clashscore) with an unvalidated computational one (docking consistency) would let a high-quality crystal structure silently launder confidence into fragments that have no experimental support of their own.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">07</span> Recommendations</h2>
+  <p class="section-overview">Two fragments clear both hot-spot engagement and conformational confidence bars; the rest need either more ensemble sampling or should be dropped.</p>
+  <ul class="tight">
+    <li>Prioritize PXR-x0001 and PXR-x0005 (High confidence, core hot-spot engagement) for synthesis/soak follow-up.</li>
+    <li>Re-run PXR-x0002/x0003 confidence after adding &ge;3 more ensemble frames spanning AF-2 helix conformations.</li>
+    <li>Deprioritize PXR-x0004 and PXR-x0006 &mdash; single-point H-bond only, no core hot-spot contact.</li>
+    <li>Consider fragment growth vectors toward His407/Arg410 for x0001 given adjacent secondary anchors.</li>
+  </ul>
+</section>
+
+</body>
+</html>

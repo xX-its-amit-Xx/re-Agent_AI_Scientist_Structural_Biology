@@ -1,0 +1,608 @@
+<title>SBDD Concept Map</title>
+<style>
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+}
+
+:root {
+  --ground: #f4f2ec;
+  --surface: #ffffff;
+  --surface-2: #eae7dd;
+  --border: #d9d4c6;
+  --ink: #232019;
+  --ink-dim: #6b6558;
+  --accent: #c1642c;
+  --accent-ink: #ffffff;
+  --concept: #3f8f83;
+  --method: #7d63c9;
+  --paper: #b8862f;
+  --link-line: #c7c1b1;
+  --focus: #2f6ef2;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #191c22;
+    --surface: #21252d;
+    --surface-2: #2a2f39;
+    --border: #383e4a;
+    --ink: #eae7de;
+    --ink-dim: #9a9d92;
+    --accent: #e08947;
+    --accent-ink: #191c22;
+    --concept: #5bb3a6;
+    --method: #a48ee0;
+    --paper: #d4a548;
+    --link-line: #3c414d;
+    --focus: #6d9bff;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: #191c22;
+  --surface: #21252d;
+  --surface-2: #2a2f39;
+  --border: #383e4a;
+  --ink: #eae7de;
+  --ink-dim: #9a9d92;
+  --accent: #e08947;
+  --accent-ink: #191c22;
+  --concept: #5bb3a6;
+  --method: #a48ee0;
+  --paper: #d4a548;
+  --link-line: #3c414d;
+  --focus: #6d9bff;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 280px 1fr 340px;
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+  min-height: 560px;
+}
+
+header {
+  grid-column: 1 / 4;
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+header h1 {
+  font-family: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+  font-size: 21px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: 0.2px;
+}
+
+header .sub {
+  color: var(--ink-dim);
+  font-size: 13px;
+}
+
+.legend {
+  margin-left: auto;
+  display: flex;
+  gap: 16px;
+  font-size: 12.5px;
+  color: var(--ink-dim);
+}
+
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.dot.concept { background: var(--concept); }
+.dot.method { background: var(--method); }
+.dot.paper { background: var(--paper); }
+
+nav.sidebar {
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  overflow-y: auto;
+  padding: 14px 12px 20px;
+}
+
+nav.sidebar input[type="search"] {
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--ground);
+  color: var(--ink);
+  font-size: 13.5px;
+  margin-bottom: 14px;
+}
+
+nav.sidebar input[type="search"]:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.group-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-dim);
+  margin: 16px 4px 6px;
+}
+
+.group-label:first-child { margin-top: 0; }
+
+.node-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 7px 8px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink);
+  font-size: 13.5px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.node-btn:hover { background: var(--surface-2); }
+.node-btn.active { background: var(--surface-2); border-color: var(--border); font-weight: 600; }
+.node-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: -1px; }
+.node-btn.hidden { display: none; }
+
+.node-btn .dot { flex: none; }
+.node-btn .label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+main {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(var(--border) 1px, transparent 1px);
+  background-size: 22px 22px;
+  background-position: -4px -4px;
+}
+
+main svg { width: 100%; height: 100%; display: block; cursor: grab; }
+main svg.grabbing { cursor: grabbing; }
+
+.edge {
+  stroke: var(--link-line);
+  stroke-width: 1.2;
+  fill: none;
+  transition: stroke 0.15s, stroke-width 0.15s, opacity 0.15s;
+}
+
+.edge.dim { opacity: 0.15; }
+.edge.lit { stroke: var(--accent); stroke-width: 2; opacity: 1; }
+
+.edge-label {
+  font-size: 9.5px;
+  fill: var(--ink-dim);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.edge-label.lit { opacity: 1; fill: var(--accent); }
+
+.node circle {
+  stroke: var(--surface);
+  stroke-width: 2;
+  transition: stroke-width 0.15s, filter 0.15s, opacity 0.15s;
+}
+
+.node text {
+  font-size: 11px;
+  fill: var(--ink);
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: var(--ground);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.node { cursor: pointer; }
+.node.dim { opacity: 0.25; }
+.node.selected circle { stroke: var(--accent); stroke-width: 3; }
+.node:hover circle { filter: brightness(1.12); }
+.node:focus-visible circle { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.zoom-controls {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.zoom-controls button {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 16px;
+  cursor: pointer;
+  line-height: 1;
+}
+.zoom-controls button:hover { background: var(--surface-2); }
+.zoom-controls button:focus-visible { outline: 2px solid var(--focus); }
+
+aside.detail {
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  padding: 22px 22px 24px;
+  overflow-y: auto;
+}
+
+.empty-state {
+  color: var(--ink-dim);
+  font-size: 14px;
+}
+
+.empty-state p { margin: 0 0 10px; }
+
+.type-pill {
+  display: inline-block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 3px 9px;
+  border-radius: 999px;
+  color: var(--accent-ink);
+  margin-bottom: 12px;
+}
+.type-pill.concept { background: var(--concept); }
+.type-pill.method { background: var(--method); }
+.type-pill.paper { background: var(--paper); }
+
+.detail h2 {
+  font-family: ui-serif, Georgia, "Iowan Old Style", serif;
+  font-size: 20px;
+  margin: 0 0 4px;
+  text-wrap: balance;
+}
+
+.detail .summary {
+  margin: 12px 0 18px;
+  color: var(--ink);
+}
+
+.detail .meta {
+  font-size: 12.5px;
+  color: var(--ink-dim);
+  margin-bottom: 4px;
+}
+
+.detail a.paper-link {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--accent);
+  word-break: break-all;
+}
+
+.source-block {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.source-note {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-dim);
+  font-style: italic;
+}
+
+.rel-section h3 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-dim);
+  margin: 18px 0 8px;
+}
+
+.rel-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--ground);
+  color: var(--ink);
+  font-size: 13px;
+  cursor: pointer;
+  margin-bottom: 6px;
+  font-family: inherit;
+}
+.rel-item:hover { border-color: var(--accent); }
+.rel-item:focus-visible { outline: 2px solid var(--focus); }
+.rel-item .rel-tag {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 10.5px;
+  color: var(--accent);
+}
+
+@media (max-width: 880px) {
+  .app { grid-template-columns: 1fr; grid-template-rows: auto 44vh 1fr; }
+  nav.sidebar { border-right: none; border-bottom: 1px solid var(--border); }
+  aside.detail { border-left: none; border-top: 1px solid var(--border); }
+}
+</style>
+
+<div class="app">
+  <header>
+    <h1>SBDD Concept Map</h1>
+    <span class="sub">structure-based drug design &middot; concepts, methods &amp; papers</span>
+    <div class="legend">
+      <span><i class="dot concept"></i>Concept</span>
+      <span><i class="dot method"></i>Method</span>
+      <span><i class="dot paper"></i>Paper</span>
+    </div>
+  </header>
+
+  <nav class="sidebar" id="sidebar" aria-label="Node index">
+    <input type="search" id="search" placeholder="Filter nodes&hellip;" aria-label="Filter nodes" />
+    <div id="node-list"></div>
+  </nav>
+
+  <main id="main">
+    <svg id="graph" viewBox="0 0 1900 1250" aria-label="Concept graph">
+      <g id="viewport">
+        <g id="edges"></g>
+        <g id="edge-labels"></g>
+        <g id="nodes"></g>
+      </g>
+    </svg>
+    <div class="zoom-controls">
+      <button id="zoom-in" aria-label="Zoom in">+</button>
+      <button id="zoom-out" aria-label="Zoom out">&minus;</button>
+      <button id="zoom-reset" aria-label="Reset view">&#8634;</button>
+    </div>
+  </main>
+
+  <aside class="detail" id="detail">
+    <div class="empty-state">
+      <p><strong>Click a node</strong> in the graph or the list on the left to read its summary.</p>
+      <p>Drag the canvas to pan, scroll to zoom. Selecting a node highlights everything it connects to &mdash; click a connection to jump there.</p>
+    </div>
+  </aside>
+</div>
+
+<script>
+const DATA = {"nodes": [{"id": "hot_spot", "type": "Concept", "label": "Binding hot spot", "summary": "Small sub-region of a pocket contributing disproportionately to binding free energy; found via fragment screening or computational fragment mapping.", "url": null, "year": null, "source_url": "https://academic.oup.com/bioinformatics/article/25/5/621/183466", "source_note": null, "x": 217.9, "y": 567.4, "degree": 5}, {"id": "pharmacophore", "type": "Concept", "label": "Pharmacophore", "summary": "3D arrangement of features (H-bond donor/acceptor, hydrophobe, aromatic, charge) required for a ligand to bind; often built by anchoring to hot spots.", "url": null, "year": null, "source_url": "https://pubmed.ncbi.nlm.nih.gov/18570371/", "source_note": null, "x": 156.6, "y": 948.2, "degree": 1}, {"id": "water_displacement", "type": "Concept", "label": "Water displacement", "summary": "Displacing an ordered, enthalpically unhappy water from the pocket can yield a large affinity gain independent of the ligand's own direct interactions.", "url": null, "year": null, "source_url": null, "source_note": "General medicinal-chemistry knowledge - not tied to a single paper turned up in search; standard SBDD textbook concept.", "x": 918.3, "y": 1053.4, "degree": 1}, {"id": "shape_complementarity", "type": "Concept", "label": "Shape complementarity", "summary": "Geometric fit between ligand and pocket; necessary but not sufficient for affinity - overweighted by naive scoring functions.", "url": null, "year": null, "source_url": null, "source_note": "General medicinal-chemistry knowledge - not tied to a single paper turned up in search.", "x": 792.4, "y": 1085.5, "degree": 1}, {"id": "electrostatic_complementarity", "type": "Concept", "label": "Electrostatic complementarity", "summary": "Alignment of ligand/pocket charge and H-bond donor-acceptor patterns; usually the dominant term once shape is roughly satisfied.", "url": null, "year": null, "source_url": null, "source_note": "General medicinal-chemistry knowledge - not tied to a single paper turned up in search.", "x": 1010.0, "y": 1081.9, "degree": 1}, {"id": "induced_fit", "type": "Concept", "label": "Induced fit", "summary": "Pocket/loop conformational change upon ligand binding; apo structures can misrepresent the true holo pocket.", "url": null, "year": null, "source_url": null, "source_note": "General structural-biology knowledge - not tied to a single paper turned up in search.", "x": 1610.9, "y": 958.4, "degree": 3}, {"id": "cryptic_pocket", "type": "Concept", "label": "Cryptic pocket", "summary": "Binding site not visible/open in the unliganded (apo) structure, only forms upon ligand engagement.", "url": null, "year": null, "source_url": null, "source_note": "General structural-biology knowledge - not tied to a single paper turned up in search.", "x": 1770.0, "y": 998.8, "degree": 2}, {"id": "pocket_flexibility", "type": "Concept", "label": "Pocket flexibility / plasticity", "summary": "How much a pocket's volume/shape varies across structures or an MD trajectory, not just atomic wobble within one static structure (e.g. PXR's unusually plastic pocket). Quantified as a plasticity score (normalized pocket-volume range across superposed structures or MD frames); drives whether rigid or ensemble docking is valid, and should discount per-fragment confidence when only one rigid structure was used.", "url": null, "year": null, "source_url": null, "source_note": "General structural-biology knowledge, grounded in the PXR case discussed in this session - not tied to a single paper.", "x": 1597.7, "y": 895.7, "degree": 4}, {"id": "rigid_receptor_docking", "type": "Concept", "label": "Rigid-receptor docking (limitation)", "summary": "Standard docking approximation holding the protein fixed while sampling only ligand pose/conformation; breaks down under induced fit or cryptic pockets.", "url": null, "year": null, "source_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6270832/", "source_note": "Review discusses docking limitations generally; not specific to this failure mode by name.", "x": 1616.4, "y": 930.4, "degree": 5}, {"id": "scoring_function_limitations", "type": "Concept", "label": "Scoring function limitations", "summary": "Docking scoring functions are fast empirical/knowledge-based approximations to binding free energy; often poor at ranking hits by affinity even when pose prediction is good.", "url": null, "year": null, "source_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6270832/", "source_note": null, "x": 1063.5, "y": 130.0, "degree": 2}, {"id": "binding_free_energy", "type": "Concept", "label": "Binding free energy (dG)", "summary": "The thermodynamic quantity determining affinity; decomposes into enthalpic (H-bonds, vdW, electrostatics) and entropic (conformational, solvent release) terms.", "url": null, "year": null, "source_url": null, "source_note": "Standard thermodynamics/textbook concept - not tied to a single paper turned up in search.", "x": 889.4, "y": 1120.0, "degree": 5}, {"id": "free_energy_perturbation", "type": "Concept", "label": "Free energy perturbation (FEP)", "summary": "Rigorous but expensive alchemical method to compute relative binding free energy differences between ligands.", "url": null, "year": null, "source_url": null, "source_note": "General computational-chemistry knowledge - not tied to a single paper turned up in search.", "x": 881.9, "y": 1042.8, "degree": 2}, {"id": "druggability", "type": "Concept", "label": "Druggability", "summary": "Assessment of whether a pocket is likely to bind a small molecule with high affinity - based on volume, hydrophobicity, enclosure, and hot-spot hit-rate in fragment screens.", "url": null, "year": null, "source_url": "https://academic.oup.com/bioinformatics/article/25/5/621/183466", "source_note": null, "x": 288.1, "y": 188.6, "degree": 1}, {"id": "conformational_ensemble_docking", "type": "Concept", "label": "Ensemble docking", "summary": "Docking against multiple receptor conformations (from MD, NMR, or multiple crystal structures) to partly account for flexibility rigid docking misses.", "url": null, "year": null, "source_url": null, "source_note": "General computational-chemistry knowledge - not tied to a single paper turned up in search.", "x": 1710.6, "y": 895.8, "degree": 2}, {"id": "docking", "type": "Method", "label": "Molecular docking", "summary": "Computational sampling of ligand poses in a binding site with a scoring-function estimate of affinity; fast first-pass triage.", "url": null, "year": null, "source_url": "https://pure.bond.edu.au/ws/files/12803722/A_practical_guide_to_molecular_docking_and_homology_modelling_for_medicinal_chemists.pdf", "source_note": null, "x": 1181.5, "y": 645.5, "degree": 6}, {"id": "fragment_based_screening", "type": "Method", "label": "Fragment-based screening", "summary": "Screening small (~150-250 Da) fragment libraries by NMR/X-ray/SPR to directly identify hot spots and build up ligands atom-by-atom.", "url": null, "year": null, "source_url": "https://academic.oup.com/bioinformatics/article/25/5/621/183466", "source_note": null, "x": 316.3, "y": 577.1, "degree": 2}, {"id": "molecular_dynamics_refinement", "type": "Method", "label": "MD refinement", "summary": "Post-docking molecular dynamics used to relax a docked pose, check pose stability, and estimate free energy more rigorously (e.g. MM-GBSA).", "url": null, "year": null, "source_url": "https://www.sciencedirect.com/science/article/abs/pii/S0959440X17301100", "source_note": null, "x": 982.4, "y": 1056.7, "degree": 4}, {"id": "mdpocket", "type": "Method", "label": "MDpocket", "summary": "fpocket-based tool that tracks cavity volume, shape, and opening/closing across an MD trajectory or other conformational ensemble, instead of a single static structure.", "url": null, "year": null, "source_url": "https://academic.oup.com/bioinformatics/article/27/23/3276/234086", "source_note": null, "x": 1550.1, "y": 833.1, "degree": 1}, {"id": "nakamura2021_hotspots", "type": "Paper", "label": "Exploring protein hotspots by optimized fragment pharmacophores", "summary": "Nature Communications 2021. Fragment-pharmacophore method for locating and characterizing protein binding hot spots.", "url": "https://www.nature.com/articles/s41467-021-23443-y", "year": 2021, "source_url": null, "source_note": null, "x": 130.0, "y": 535.1, "degree": 1}, {"id": "bioinf2009_hotspots", "type": "Paper", "label": "Fragment-based identification of druggable 'hot spots' of proteins", "summary": "Bioinformatics 2009. Computational fragment-mapping approach to hot spot / druggability prediction.", "url": "https://academic.oup.com/bioinformatics/article/25/5/621/183466", "year": 2009, "source_url": null, "source_note": null, "x": 231.8, "y": 595.9, "degree": 2}, {"id": "pmc6270832_docking_review", "type": "Paper", "label": "Challenges, Applications, and Recent Advances of Protein-Ligand Docking in Structure-Based Drug Design", "summary": "Review covering docking scoring-function and sampling limitations.", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6270832/", "year": 2018, "source_url": null, "source_note": null, "x": 1124.1, "y": 386.7, "degree": 2}, {"id": "cosb2018_docking_to_md", "type": "Paper", "label": "Protein structure-based drug design: from docking to molecular dynamics", "summary": "Current Opinion in Structural Biology review on moving from a naive dock to MD-based refinement and free-energy estimation.", "url": "https://www.sciencedirect.com/science/article/abs/pii/S0959440X17301100", "year": 2018, "source_url": null, "source_note": null, "x": 1079.8, "y": 850.5, "degree": 2}, {"id": "bond_practical_guide", "type": "Paper", "label": "A Practical Guide to Molecular Docking and Homology Modelling for Medicinal Chemists", "summary": "Introductory, chemist-facing guide to running and sanity-checking docking/homology modelling.", "url": "https://pure.bond.edu.au/ws/files/12803722/A_practical_guide_to_molecular_docking_and_homology_modelling_for_medicinal_chemists.pdf", "year": 2018, "source_url": null, "source_note": null, "x": 1220.5, "y": 607.0, "degree": 1}], "edges": [{"source": "hot_spot", "target": "pharmacophore", "relation": "anchors", "note": ""}, {"source": "hot_spot", "target": "druggability", "relation": "informs", "note": "hit-rate in fragment screens"}, {"source": "water_displacement", "target": "binding_free_energy", "relation": "contributes_to", "note": ""}, {"source": "shape_complementarity", "target": "binding_free_energy", "relation": "insufficient_for", "note": ""}, {"source": "electrostatic_complementarity", "target": "binding_free_energy", "relation": "contributes_to", "note": ""}, {"source": "induced_fit", "target": "cryptic_pocket", "relation": "causes", "note": ""}, {"source": "pocket_flexibility", "target": "induced_fit", "relation": "extends", "note": "operationalizes induced fit as a measurable score across structures/frames, not just a qualitative risk"}, {"source": "pocket_flexibility", "target": "conformational_ensemble_docking", "relation": "informs", "note": "plasticity score above threshold makes ensemble docking mandatory"}, {"source": "rigid_receptor_docking", "target": "induced_fit", "relation": "fails_under", "note": ""}, {"source": "rigid_receptor_docking", "target": "cryptic_pocket", "relation": "fails_under", "note": ""}, {"source": "rigid_receptor_docking", "target": "pocket_flexibility", "relation": "fails_under", "note": ""}, {"source": "free_energy_perturbation", "target": "molecular_dynamics_refinement", "relation": "rigorous_variant_of", "note": ""}, {"source": "free_energy_perturbation", "target": "binding_free_energy", "relation": "estimates", "note": ""}, {"source": "conformational_ensemble_docking", "target": "rigid_receptor_docking", "relation": "mitigates", "note": ""}, {"source": "docking", "target": "rigid_receptor_docking", "relation": "has_limitation", "note": ""}, {"source": "docking", "target": "scoring_function_limitations", "relation": "has_limitation", "note": ""}, {"source": "docking", "target": "molecular_dynamics_refinement", "relation": "refined_by", "note": ""}, {"source": "fragment_based_screening", "target": "hot_spot", "relation": "identifies", "note": ""}, {"source": "molecular_dynamics_refinement", "target": "binding_free_energy", "relation": "estimates", "note": ""}, {"source": "mdpocket", "target": "pocket_flexibility", "relation": "identifies", "note": ""}, {"source": "nakamura2021_hotspots", "target": "hot_spot", "relation": "extends", "note": ""}, {"source": "bioinf2009_hotspots", "target": "hot_spot", "relation": "introduces", "note": ""}, {"source": "bioinf2009_hotspots", "target": "fragment_based_screening", "relation": "uses_method", "note": ""}, {"source": "pmc6270832_docking_review", "target": "scoring_function_limitations", "relation": "discusses", "note": ""}, {"source": "pmc6270832_docking_review", "target": "docking", "relation": "discusses", "note": ""}, {"source": "cosb2018_docking_to_md", "target": "molecular_dynamics_refinement", "relation": "discusses", "note": ""}, {"source": "cosb2018_docking_to_md", "target": "docking", "relation": "discusses", "note": ""}, {"source": "bond_practical_guide", "target": "docking", "relation": "explains", "note": ""}], "w": 1900, "h": 1250};
+
+const nodesById = Object.fromEntries(DATA.nodes.map(n => [n.id, n]));
+const svg = document.getElementById("graph");
+const viewport = document.getElementById("viewport");
+const edgesG = document.getElementById("edges");
+const edgeLabelsG = document.getElementById("edge-labels");
+const nodesG = document.getElementById("nodes");
+const detail = document.getElementById("detail");
+const nodeListEl = document.getElementById("node-list");
+const searchEl = document.getElementById("search");
+
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+const typeColorVar = { Concept: "--concept", Method: "--method", Paper: "--paper" };
+const radiusFor = n => 9 + Math.min(n.degree, 8) * 1.4;
+
+// edges
+const edgeEls = [];
+DATA.edges.forEach(e => {
+  const a = nodesById[e.source], b = nodesById[e.target];
+  if (!a || !b) return;
+  const line = el("line", {
+    class: "edge", x1: a.x, y1: a.y, x2: b.x, y2: b.y,
+    "data-source": e.source, "data-target": e.target
+  });
+  edgesG.appendChild(line);
+  const label = el("text", {
+    class: "edge-label", x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 - 3,
+    "text-anchor": "middle", "data-source": e.source, "data-target": e.target
+  });
+  label.textContent = e.relation;
+  edgeLabelsG.appendChild(label);
+  edgeEls.push({ e, line, label });
+});
+
+// nodes
+const nodeEls = {};
+DATA.nodes.forEach(n => {
+  const g = el("g", { class: "node", tabindex: "0", "data-id": n.id });
+  const r = radiusFor(n);
+  const circle = el("circle", { cx: n.x, cy: n.y, r: r, fill: `var(${typeColorVar[n.type]})` });
+  const text = el("text", { x: n.x, y: n.y + r + 13, "text-anchor": "middle" });
+  text.textContent = n.label.length > 26 ? n.label.slice(0, 24) + "…" : n.label;
+  g.appendChild(circle);
+  g.appendChild(text);
+  g.addEventListener("click", () => selectNode(n.id));
+  g.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); selectNode(n.id); } });
+  nodesG.appendChild(g);
+  nodeEls[n.id] = g;
+});
+
+// sidebar list, grouped by type
+const groupOrder = ["Concept", "Method", "Paper"];
+const listItems = {};
+groupOrder.forEach(type => {
+  const items = DATA.nodes.filter(n => n.type === type).sort((a, b) => a.label.localeCompare(b.label));
+  if (!items.length) return;
+  const label = document.createElement("div");
+  label.className = "group-label";
+  label.textContent = type + "s";
+  nodeListEl.appendChild(label);
+  items.forEach(n => {
+    const btn = document.createElement("button");
+    btn.className = "node-btn";
+    btn.setAttribute("data-id", n.id);
+    btn.innerHTML = `<i class="dot ${type.toLowerCase()}"></i><span class="label"></span>`;
+    btn.querySelector(".label").textContent = n.label;
+    btn.addEventListener("click", () => selectNode(n.id));
+    nodeListEl.appendChild(btn);
+    listItems[n.id] = btn;
+  });
+});
+
+let selected = null;
+
+function neighborsOf(id) {
+  const out = [], incoming = [];
+  DATA.edges.forEach(e => {
+    if (e.source === id) out.push(e);
+    if (e.target === id) incoming.push(e);
+  });
+  return { out, incoming };
+}
+
+function selectNode(id) {
+  selected = id;
+  const n = nodesById[id];
+  const { out, incoming } = neighborsOf(id);
+  const connectedIds = new Set([id, ...out.map(e => e.target), ...incoming.map(e => e.source)]);
+
+  Object.entries(nodeEls).forEach(([nid, g]) => {
+    g.classList.toggle("dim", !connectedIds.has(nid));
+    g.classList.toggle("selected", nid === id);
+  });
+  edgeEls.forEach(({ e, line, label }) => {
+    const lit = e.source === id || e.target === id;
+    line.classList.toggle("lit", lit);
+    line.classList.toggle("dim", !lit);
+    label.classList.toggle("lit", lit);
+  });
+  Object.entries(listItems).forEach(([nid, btn]) => btn.classList.toggle("active", nid === id));
+  const activeBtn = listItems[id];
+  if (activeBtn) activeBtn.scrollIntoView({ block: "nearest" });
+
+  const pillClass = n.type.toLowerCase();
+  let html = `<span class="type-pill ${pillClass}">${n.type}</span>`;
+  html += `<h2>${n.label}</h2>`;
+  html += `<p class="summary">${n.summary}</p>`;
+  if (n.type === "Paper") {
+    html += `<div class="meta">${n.year || ""}</div>`;
+    if (n.url) html += `<a class="paper-link" href="${n.url}" target="_blank" rel="noopener">${n.url}</a>`;
+  } else {
+    html += `<div class="source-block">`;
+    html += `<div class="meta">Source</div>`;
+    if (n.source_url) {
+      html += `<a class="paper-link" href="${n.source_url}" target="_blank" rel="noopener">${n.source_url}</a>`;
+    }
+    if (n.source_note) {
+      html += `<p class="source-note">${n.source_note}</p>`;
+    }
+    html += `</div>`;
+  }
+
+  function relLabel(e, otherId, dir) {
+    const other = nodesById[otherId];
+    const arrow = dir === "out" ? "→" : "←";
+    return `<button class="rel-item" data-id="${otherId}"><span class="rel-tag">${e.relation} ${arrow}</span>${other.label}</button>`;
+  }
+
+  if (out.length) {
+    html += `<div class="rel-section"><h3>Connects to</h3>${out.map(e => relLabel(e, e.target, "out")).join("")}</div>`;
+  }
+  if (incoming.length) {
+    html += `<div class="rel-section"><h3>Referenced by</h3>${incoming.map(e => relLabel(e, e.source, "in")).join("")}</div>`;
+  }
+
+  detail.innerHTML = html;
+  detail.querySelectorAll(".rel-item").forEach(btn => {
+    btn.addEventListener("click", () => selectNode(btn.getAttribute("data-id")));
+  });
+}
+
+// filter
+searchEl.addEventListener("input", () => {
+  const q = searchEl.value.trim().toLowerCase();
+  DATA.nodes.forEach(n => {
+    const match = !q || n.label.toLowerCase().includes(q) || n.summary.toLowerCase().includes(q);
+    listItems[n.id].classList.toggle("hidden", !match);
+    nodeEls[n.id].classList.toggle("dim", !match && !selected);
+  });
+});
+
+// pan & zoom
+let scale = 1, tx = 0, ty = 0, dragging = false, lastX = 0, lastY = 0;
+function applyTransform() {
+  viewport.setAttribute("transform", `translate(${tx} ${ty}) scale(${scale})`);
+}
+svg.addEventListener("wheel", ev => {
+  ev.preventDefault();
+  const rect = svg.getBoundingClientRect();
+  const mx = ev.clientX - rect.left, my = ev.clientY - rect.top;
+  const factor = ev.deltaY < 0 ? 1.12 : 1 / 1.12;
+  const newScale = Math.min(4, Math.max(0.35, scale * factor));
+  tx = mx - (mx - tx) * (newScale / scale);
+  ty = my - (my - ty) * (newScale / scale);
+  scale = newScale;
+  applyTransform();
+}, { passive: false });
+
+const DRAG_THRESHOLD = 4;
+let downX = 0, downY = 0, downPointerId = null, movedPastThreshold = false;
+
+svg.addEventListener("pointerdown", ev => {
+  downX = lastX = ev.clientX;
+  downY = lastY = ev.clientY;
+  downPointerId = ev.pointerId;
+  movedPastThreshold = false;
+  dragging = false;
+});
+svg.addEventListener("pointermove", ev => {
+  if (ev.pointerId !== downPointerId) return;
+  if (!movedPastThreshold) {
+    const dx = ev.clientX - downX, dy = ev.clientY - downY;
+    if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+    // real drag confirmed: capture pointer now so a click never fires on
+    // the element under the cursor at pointerup (setPointerCapture would
+    // otherwise retarget click on every mousedown, silently breaking node
+    // clicks - only engage it once this is an actual pan, not a tap)
+    movedPastThreshold = true;
+    dragging = true;
+    svg.classList.add("grabbing");
+    svg.setPointerCapture(downPointerId);
+  }
+  if (!dragging) return;
+  tx += ev.clientX - lastX; ty += ev.clientY - lastY;
+  lastX = ev.clientX; lastY = ev.clientY;
+  applyTransform();
+});
+["pointerup", "pointercancel"].forEach(evt =>
+  svg.addEventListener(evt, () => {
+    dragging = false; movedPastThreshold = false; downPointerId = null;
+    svg.classList.remove("grabbing");
+  })
+);
+
+document.getElementById("zoom-in").addEventListener("click", () => { scale = Math.min(4, scale * 1.25); applyTransform(); });
+document.getElementById("zoom-out").addEventListener("click", () => { scale = Math.max(0.35, scale / 1.25); applyTransform(); });
+document.getElementById("zoom-reset").addEventListener("click", () => { scale = 1; tx = 0; ty = 0; applyTransform(); });
+</script>

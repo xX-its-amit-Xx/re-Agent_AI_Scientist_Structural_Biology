@@ -1,0 +1,361 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "type": "Concept",
+      "label": "Binding hot spot",
+      "summary": "Small sub-region of a pocket contributing disproportionately to binding free energy; found via fragment screening or computational fragment mapping.",
+      "source_url": "https://academic.oup.com/bioinformatics/article/25/5/621/183466",
+      "source_note": null,
+      "id": "hot_spot"
+    },
+    {
+      "type": "Concept",
+      "label": "Pharmacophore",
+      "summary": "3D arrangement of features (H-bond donor/acceptor, hydrophobe, aromatic, charge) required for a ligand to bind; often built by anchoring to hot spots.",
+      "source_url": "https://pubmed.ncbi.nlm.nih.gov/18570371/",
+      "source_note": null,
+      "id": "pharmacophore"
+    },
+    {
+      "type": "Concept",
+      "label": "Water displacement",
+      "summary": "Displacing an ordered, enthalpically unhappy water from the pocket can yield a large affinity gain independent of the ligand's own direct interactions.",
+      "source_url": null,
+      "source_note": "General medicinal-chemistry knowledge - not tied to a single paper turned up in search; standard SBDD textbook concept.",
+      "id": "water_displacement"
+    },
+    {
+      "type": "Concept",
+      "label": "Shape complementarity",
+      "summary": "Geometric fit between ligand and pocket; necessary but not sufficient for affinity - overweighted by naive scoring functions.",
+      "source_url": null,
+      "source_note": "General medicinal-chemistry knowledge - not tied to a single paper turned up in search.",
+      "id": "shape_complementarity"
+    },
+    {
+      "type": "Concept",
+      "label": "Electrostatic complementarity",
+      "summary": "Alignment of ligand/pocket charge and H-bond donor-acceptor patterns; usually the dominant term once shape is roughly satisfied.",
+      "source_url": null,
+      "source_note": "General medicinal-chemistry knowledge - not tied to a single paper turned up in search.",
+      "id": "electrostatic_complementarity"
+    },
+    {
+      "type": "Concept",
+      "label": "Induced fit",
+      "summary": "Pocket/loop conformational change upon ligand binding; apo structures can misrepresent the true holo pocket.",
+      "source_url": null,
+      "source_note": "General structural-biology knowledge - not tied to a single paper turned up in search.",
+      "id": "induced_fit"
+    },
+    {
+      "type": "Concept",
+      "label": "Cryptic pocket",
+      "summary": "Binding site not visible/open in the unliganded (apo) structure, only forms upon ligand engagement.",
+      "source_url": null,
+      "source_note": "General structural-biology knowledge - not tied to a single paper turned up in search.",
+      "id": "cryptic_pocket"
+    },
+    {
+      "type": "Concept",
+      "label": "Pocket flexibility / plasticity",
+      "summary": "How much a pocket's volume/shape varies across structures or an MD trajectory, not just atomic wobble within one static structure (e.g. PXR's unusually plastic pocket). Quantified as a plasticity score (normalized pocket-volume range across superposed structures or MD frames); drives whether rigid or ensemble docking is valid, and should discount per-fragment confidence when only one rigid structure was used.",
+      "source_url": null,
+      "source_note": "General structural-biology knowledge, grounded in the PXR case discussed in this session - not tied to a single paper.",
+      "id": "pocket_flexibility"
+    },
+    {
+      "type": "Concept",
+      "label": "Rigid-receptor docking (limitation)",
+      "summary": "Standard docking approximation holding the protein fixed while sampling only ligand pose/conformation; breaks down under induced fit or cryptic pockets.",
+      "source_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6270832/",
+      "source_note": "Review discusses docking limitations generally; not specific to this failure mode by name.",
+      "id": "rigid_receptor_docking"
+    },
+    {
+      "type": "Concept",
+      "label": "Scoring function limitations",
+      "summary": "Docking scoring functions are fast empirical/knowledge-based approximations to binding free energy; often poor at ranking hits by affinity even when pose prediction is good.",
+      "source_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6270832/",
+      "source_note": null,
+      "id": "scoring_function_limitations"
+    },
+    {
+      "type": "Concept",
+      "label": "Binding free energy (dG)",
+      "summary": "The thermodynamic quantity determining affinity; decomposes into enthalpic (H-bonds, vdW, electrostatics) and entropic (conformational, solvent release) terms.",
+      "source_url": null,
+      "source_note": "Standard thermodynamics/textbook concept - not tied to a single paper turned up in search.",
+      "id": "binding_free_energy"
+    },
+    {
+      "type": "Concept",
+      "label": "Free energy perturbation (FEP)",
+      "summary": "Rigorous but expensive alchemical method to compute relative binding free energy differences between ligands.",
+      "source_url": null,
+      "source_note": "General computational-chemistry knowledge - not tied to a single paper turned up in search.",
+      "id": "free_energy_perturbation"
+    },
+    {
+      "type": "Concept",
+      "label": "Druggability",
+      "summary": "Assessment of whether a pocket is likely to bind a small molecule with high affinity - based on volume, hydrophobicity, enclosure, and hot-spot hit-rate in fragment screens.",
+      "source_url": "https://academic.oup.com/bioinformatics/article/25/5/621/183466",
+      "source_note": null,
+      "id": "druggability"
+    },
+    {
+      "type": "Concept",
+      "label": "Ensemble docking",
+      "summary": "Docking against multiple receptor conformations (from MD, NMR, or multiple crystal structures) to partly account for flexibility rigid docking misses.",
+      "source_url": null,
+      "source_note": "General computational-chemistry knowledge - not tied to a single paper turned up in search.",
+      "id": "conformational_ensemble_docking"
+    },
+    {
+      "type": "Method",
+      "label": "Molecular docking",
+      "summary": "Computational sampling of ligand poses in a binding site with a scoring-function estimate of affinity; fast first-pass triage.",
+      "source_url": "https://pure.bond.edu.au/ws/files/12803722/A_practical_guide_to_molecular_docking_and_homology_modelling_for_medicinal_chemists.pdf",
+      "source_note": null,
+      "id": "docking"
+    },
+    {
+      "type": "Method",
+      "label": "Fragment-based screening",
+      "summary": "Screening small (~150-250 Da) fragment libraries by NMR/X-ray/SPR to directly identify hot spots and build up ligands atom-by-atom.",
+      "source_url": "https://academic.oup.com/bioinformatics/article/25/5/621/183466",
+      "source_note": null,
+      "id": "fragment_based_screening"
+    },
+    {
+      "type": "Method",
+      "label": "MD refinement",
+      "summary": "Post-docking molecular dynamics used to relax a docked pose, check pose stability, and estimate free energy more rigorously (e.g. MM-GBSA).",
+      "source_url": "https://www.sciencedirect.com/science/article/abs/pii/S0959440X17301100",
+      "source_note": null,
+      "id": "molecular_dynamics_refinement"
+    },
+    {
+      "type": "Method",
+      "label": "MDpocket",
+      "summary": "fpocket-based tool that tracks cavity volume, shape, and opening/closing across an MD trajectory or other conformational ensemble, instead of a single static structure.",
+      "source_url": "https://academic.oup.com/bioinformatics/article/27/23/3276/234086",
+      "source_note": null,
+      "id": "mdpocket"
+    },
+    {
+      "type": "Paper",
+      "label": "Exploring protein hotspots by optimized fragment pharmacophores",
+      "summary": "Nature Communications 2021. Fragment-pharmacophore method for locating and characterizing protein binding hot spots.",
+      "url": "https://www.nature.com/articles/s41467-021-23443-y",
+      "year": 2021,
+      "id": "nakamura2021_hotspots"
+    },
+    {
+      "type": "Paper",
+      "label": "Fragment-based identification of druggable 'hot spots' of proteins",
+      "summary": "Bioinformatics 2009. Computational fragment-mapping approach to hot spot / druggability prediction.",
+      "url": "https://academic.oup.com/bioinformatics/article/25/5/621/183466",
+      "year": 2009,
+      "id": "bioinf2009_hotspots"
+    },
+    {
+      "type": "Paper",
+      "label": "Challenges, Applications, and Recent Advances of Protein-Ligand Docking in Structure-Based Drug Design",
+      "summary": "Review covering docking scoring-function and sampling limitations.",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6270832/",
+      "year": 2018,
+      "id": "pmc6270832_docking_review"
+    },
+    {
+      "type": "Paper",
+      "label": "Protein structure-based drug design: from docking to molecular dynamics",
+      "summary": "Current Opinion in Structural Biology review on moving from a naive dock to MD-based refinement and free-energy estimation.",
+      "url": "https://www.sciencedirect.com/science/article/abs/pii/S0959440X17301100",
+      "year": 2018,
+      "id": "cosb2018_docking_to_md"
+    },
+    {
+      "type": "Paper",
+      "label": "A Practical Guide to Molecular Docking and Homology Modelling for Medicinal Chemists",
+      "summary": "Introductory, chemist-facing guide to running and sanity-checking docking/homology modelling.",
+      "url": "https://pure.bond.edu.au/ws/files/12803722/A_practical_guide_to_molecular_docking_and_homology_modelling_for_medicinal_chemists.pdf",
+      "year": 2018,
+      "id": "bond_practical_guide"
+    }
+  ],
+  "edges": [
+    {
+      "relation": "anchors",
+      "note": "",
+      "source": "hot_spot",
+      "target": "pharmacophore"
+    },
+    {
+      "relation": "informs",
+      "note": "hit-rate in fragment screens",
+      "source": "hot_spot",
+      "target": "druggability"
+    },
+    {
+      "relation": "contributes_to",
+      "note": "",
+      "source": "water_displacement",
+      "target": "binding_free_energy"
+    },
+    {
+      "relation": "insufficient_for",
+      "note": "",
+      "source": "shape_complementarity",
+      "target": "binding_free_energy"
+    },
+    {
+      "relation": "contributes_to",
+      "note": "",
+      "source": "electrostatic_complementarity",
+      "target": "binding_free_energy"
+    },
+    {
+      "relation": "causes",
+      "note": "",
+      "source": "induced_fit",
+      "target": "cryptic_pocket"
+    },
+    {
+      "relation": "extends",
+      "note": "operationalizes induced fit as a measurable score across structures/frames, not just a qualitative risk",
+      "source": "pocket_flexibility",
+      "target": "induced_fit"
+    },
+    {
+      "relation": "informs",
+      "note": "plasticity score above threshold makes ensemble docking mandatory",
+      "source": "pocket_flexibility",
+      "target": "conformational_ensemble_docking"
+    },
+    {
+      "relation": "fails_under",
+      "note": "",
+      "source": "rigid_receptor_docking",
+      "target": "induced_fit"
+    },
+    {
+      "relation": "fails_under",
+      "note": "",
+      "source": "rigid_receptor_docking",
+      "target": "cryptic_pocket"
+    },
+    {
+      "relation": "fails_under",
+      "note": "",
+      "source": "rigid_receptor_docking",
+      "target": "pocket_flexibility"
+    },
+    {
+      "relation": "rigorous_variant_of",
+      "note": "",
+      "source": "free_energy_perturbation",
+      "target": "molecular_dynamics_refinement"
+    },
+    {
+      "relation": "estimates",
+      "note": "",
+      "source": "free_energy_perturbation",
+      "target": "binding_free_energy"
+    },
+    {
+      "relation": "mitigates",
+      "note": "",
+      "source": "conformational_ensemble_docking",
+      "target": "rigid_receptor_docking"
+    },
+    {
+      "relation": "has_limitation",
+      "note": "",
+      "source": "docking",
+      "target": "rigid_receptor_docking"
+    },
+    {
+      "relation": "has_limitation",
+      "note": "",
+      "source": "docking",
+      "target": "scoring_function_limitations"
+    },
+    {
+      "relation": "refined_by",
+      "note": "",
+      "source": "docking",
+      "target": "molecular_dynamics_refinement"
+    },
+    {
+      "relation": "identifies",
+      "note": "",
+      "source": "fragment_based_screening",
+      "target": "hot_spot"
+    },
+    {
+      "relation": "estimates",
+      "note": "",
+      "source": "molecular_dynamics_refinement",
+      "target": "binding_free_energy"
+    },
+    {
+      "relation": "identifies",
+      "note": "",
+      "source": "mdpocket",
+      "target": "pocket_flexibility"
+    },
+    {
+      "relation": "extends",
+      "note": "",
+      "source": "nakamura2021_hotspots",
+      "target": "hot_spot"
+    },
+    {
+      "relation": "introduces",
+      "note": "",
+      "source": "bioinf2009_hotspots",
+      "target": "hot_spot"
+    },
+    {
+      "relation": "uses_method",
+      "note": "",
+      "source": "bioinf2009_hotspots",
+      "target": "fragment_based_screening"
+    },
+    {
+      "relation": "discusses",
+      "note": "",
+      "source": "pmc6270832_docking_review",
+      "target": "scoring_function_limitations"
+    },
+    {
+      "relation": "discusses",
+      "note": "",
+      "source": "pmc6270832_docking_review",
+      "target": "docking"
+    },
+    {
+      "relation": "discusses",
+      "note": "",
+      "source": "cosb2018_docking_to_md",
+      "target": "molecular_dynamics_refinement"
+    },
+    {
+      "relation": "discusses",
+      "note": "",
+      "source": "cosb2018_docking_to_md",
+      "target": "docking"
+    },
+    {
+      "relation": "explains",
+      "note": "",
+      "source": "bond_practical_guide",
+      "target": "docking"
+    }
+  ]
+}

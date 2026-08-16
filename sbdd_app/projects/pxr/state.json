@@ -1,0 +1,133 @@
+{
+  "name": "PXR",
+  "slug": "pxr",
+  "created": 1786832049.1108327,
+  "literature": {
+    "nodes": [
+      {
+        "id": "pxr_protein",
+        "type": "Protein",
+        "label": "PXR",
+        "summary": "Pregnane X Receptor - xenobiotic-sensing nuclear receptor with a large plastic ligand-binding pocket.",
+        "source_url": "https://www.rcsb.org/structure/1ILH",
+        "source_note": null,
+        "x": 1.0,
+        "y": 0.0
+      },
+      {
+        "id": "hot_spot",
+        "type": "Concept",
+        "label": "Binding hot spot",
+        "summary": "Residue(s) contributing disproportionate binding free energy.",
+        "source_url": null,
+        "source_note": "General medicinal-chemistry knowledge.",
+        "x": 0.0,
+        "y": 1.0
+      },
+      {
+        "id": "induced_fit",
+        "type": "Concept",
+        "label": "Induced fit",
+        "summary": "Pocket reshapes around the ligand rather than being rigid.",
+        "source_url": null,
+        "source_note": "General structural-biology knowledge.",
+        "x": 0.5124394268521868,
+        "y": 0.4892731677286037
+      }
+    ],
+    "edges": [
+      {
+        "source": "pxr_protein",
+        "relation": "has_limitation",
+        "target": "induced_fit",
+        "note": "PXR pocket is unusually plastic"
+      },
+      {
+        "source": "induced_fit",
+        "relation": "informs",
+        "target": "hot_spot",
+        "note": ""
+      }
+    ]
+  },
+  "playground": [
+    {
+      "id": "pg-1786832056916",
+      "ts": 1786832056.9162502,
+      "kind": "text",
+      "title": "SwitchCraft skim",
+      "body": "Bowen Jing's SwitchCraft (ICML 2026) - programmatic state-switching protein design via Boltz-1 as differentiable loss. Not added to KG per user choice.",
+      "asset": null
+    }
+  ],
+  "stages": [
+    {
+      "id": 1,
+      "name": "Literature Review - Knowledge graph construction",
+      "owner": "Amit",
+      "questions": [
+        "What other proteins are similar to the target?",
+        "What other compounds are similar to the test compounds?"
+      ],
+      "tools": [
+        "Paperclip",
+        "ESMC SAE"
+      ],
+      "status": "in_progress",
+      "sections": [
+        {
+          "title": "Homolog scan",
+          "content": "CYP3A4, VDR, RXR flagged as structurally similar nuclear receptors via RCSB sequence search.",
+          "ts": 1786832056.9178987
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Biochem Exploration",
+      "owner": "Denny",
+      "questions": [
+        "What are the critical amino acids and their complementary fragments?",
+        "What is the dynamics of the pocket?"
+      ],
+      "tools": [
+        "ChimeraX",
+        "PyMOL"
+      ],
+      "status": "not_started",
+      "sections": []
+    },
+    {
+      "id": 3,
+      "name": "Applying the Biological \"Prior\"",
+      "owner": "Sumer",
+      "questions": [
+        "Sampling strategy",
+        "Structural templating",
+        "Choice of models",
+        "Finetuning",
+        "Scoring (physics-based, molecular)"
+      ],
+      "tools": [
+        "OpenProtein",
+        "ESM",
+        "Tamarind",
+        "Modal"
+      ],
+      "status": "not_started",
+      "sections": []
+    },
+    {
+      "id": 4,
+      "name": "Optimizations (Medchem Pass, Minimization)",
+      "owner": "Amit",
+      "questions": [],
+      "tools": [
+        "VinaDock (Tamarind)",
+        "MD (Tamarind)"
+      ],
+      "status": "not_started",
+      "sections": []
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "sbdd-pipeline": {
+      "command": "/home/dsch/miniconda3/bin/python3",
+      "args": ["sbdd_app/mcp_server.py"]
+    }
+  }
+}

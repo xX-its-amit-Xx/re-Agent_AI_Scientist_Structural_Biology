@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SBDD Pipeline</title>
+<link rel="stylesheet" href="/static/style.css" />
+<script src="/static/vendor/3Dmol-min.js"></script>
+</head>
+<body>
+  <div id="shell">
+    <header id="topbar">
+      <div id="brand">
+        <span class="brand-mark">&#9711;</span>
+        <span class="brand-text">SBDD Pipeline</span>
+      </div>
+      <div id="project-switch">
+        <select id="project-select"></select>
+        <button id="new-project-btn" title="New project">+ new</button>
+      </div>
+      <div id="conn-status" class="dot dot-off" title="live connection"></div>
+    </header>
+
+    <nav id="tabs">
+      <button class="tab-btn active" data-tab="literature">Literature Review</button>
+      <button class="tab-btn" data-tab="playground">Playground</button>
+      <button class="tab-btn" data-tab="reports">Reports</button>
+    </nav>
+
+    <main id="panels">
+      <section id="panel-literature" class="panel active">
+        <div id="lit-layout">
+          <div id="lit-graph-wrap">
+            <svg id="lit-graph"></svg>
+          </div>
+          <aside id="lit-detail">
+            <p class="muted">Select a node to see its summary and source.</p>
+          </aside>
+        </div>
+      </section>
+
+      <section id="panel-playground" class="panel">
+        <div id="struct-widget">
+          <div id="struct-toolbar">
+            <span id="struct-live-badge">live structure — agent-controlled</span>
+            <input id="struct-pdb-input" placeholder="PDB ID, e.g. 5TGZ" maxlength="8" />
+            <button id="struct-load-btn">Load</button>
+            <button id="struct-reset-btn">Reset</button>
+          </div>
+          <div id="viewer3d"></div>
+        </div>
+        <div id="pg-feed"></div>
+      </section>
+
+      <section id="panel-reports" class="panel">
+        <div id="stage-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <template id="tpl-empty-project">
+    <div class="empty-state">
+      <p>No project yet.</p>
+      <p class="muted">Click <b>+ new</b> above, or ask Claude to <code>create_project</code> via the MCP server.</p>
+    </div>
+  </template>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
